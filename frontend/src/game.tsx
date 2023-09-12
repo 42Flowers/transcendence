@@ -1,20 +1,20 @@
 import './game.css'
 import React, { useRef, useEffect, useState } from 'react';
 
-type gameProps = {
+interface gameProps {
 	width: number,
 	height: number,
 	className: string,
 }
 
-type paddleElem = {
+interface paddleElem {
 	x: number,
 	y: number,
 	width: number,
 	length: number
 }
 
-type ballElem = {
+interface ballElem {
 	x: number,
 	y: number,
 	size: number,
@@ -25,25 +25,25 @@ type canvasContext = CanvasRenderingContext2D
 function Game (props: gameProps) {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	
-	const ball = {
+	const [ball, setBall] = useState<ballElem>({
 		x: 600,
 		y: 350,
 	  size: 15
-	}
+	})
 	
-	const [leftPad, setLeftPad] = useState({
+	const [leftPad, setLeftPad] = useState<paddleElem>({
 		x: 5,
 		y: 290,
 		width: 10,
 		length: 120
 	})
 	
-	const rightPad = {
+	const [rightPad, setRightPad] = useState<paddleElem>({
 		x: 1185,
 		y: 290,
 		width: 10,
 		length: 120
-	}
+	})
 	
 	const drawGround = (ctx: canvasContext) => {
 		ctx.fillStyle = 'white'
@@ -82,15 +82,15 @@ function Game (props: gameProps) {
 	
 	useEffect(() => {
 		const handleKeyPress = (event: KeyboardEvent) => {
-			if (event.key === 'ArrowUp') {
-				console.log('LEFT-UP')
+			if (event.key === 'ArrowUp' && leftPad.y > 0) {
+				console.log('LEFT-UP', leftPad.y)
 				setLeftPad((pad: paddleElem) => ({
 					...pad,
 					y: pad.y - 10,
 				}));
 			}
-			else if (event.key === 'ArrowDown') {
-				console.log('LEFT-DOWN')
+			else if (event.key === 'ArrowDown' && leftPad.y < 580) {
+				console.log('LEFT-DOWN', leftPad.y)
 				setLeftPad((pad: paddleElem) => ({
 					...pad,
 					y: pad.y + 10,
@@ -103,7 +103,7 @@ function Game (props: gameProps) {
 		return () => {
 			document.removeEventListener('keydown', handleKeyPress);
 		};
-	}, []);
+	}, [leftPad]);
 
 	return <canvas ref={canvasRef} {...props}/>
   }

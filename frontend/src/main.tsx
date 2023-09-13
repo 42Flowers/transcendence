@@ -4,6 +4,6 @@ import Game from './game'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Game width={1200} height={700} className='canvasGame' />
+    <Game width={1000} height={550} className='canvasGame' />
   </React.StrictMode>,
 )

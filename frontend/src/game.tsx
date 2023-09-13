@@ -1,6 +1,11 @@
 import './game.css'
 import React, { useRef, useEffect, useState } from 'react';
 
+interface scoreElem {
+	leftPlayer: string,
+	rightPlayer: string,
+}
+
 interface gameProps {
 	width: number,
 	height: number,
@@ -20,8 +25,6 @@ interface ballElem {
 	size: number,
 }
 
-type canvasContext = CanvasRenderingContext2D
-
 
 
 //////////////////////////////
@@ -29,6 +32,11 @@ type canvasContext = CanvasRenderingContext2D
 //////////////////////////////
 function Game (props: gameProps) {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
+
+	const [score, setScore] = useState<scoreElem>({
+		leftPlayer: '0',
+		rightPlayer: '0',
+	})
 	
 	// DEPENDING ON SCREEN SIZE:   ball.size, leftPad.width, rightPad.width
 	const [ball, setBall] = useState<ballElem>({
@@ -65,6 +73,7 @@ function Game (props: gameProps) {
 	
 	function handleKeyPress(event: KeyboardEvent): void {
 		const canvas = canvasRef.current;
+
 		if (canvas == null) {
 			return;
 		}
@@ -76,7 +85,7 @@ function Game (props: gameProps) {
 				y: pad.y - 10,
 			}));
 		}
-		else if (event.key === 'ArrowDown' && leftPad.y < 580) {
+		else if (event.key === 'ArrowDown' && leftPad.y < props.height - leftPad.length) {
 			console.log('LEFT-DOWN', leftPad.y)
 			setLeftPad((pad: paddleElem) => ({
 				...pad,
@@ -85,14 +94,14 @@ function Game (props: gameProps) {
 		}
 	};
 
-	function clearBackground(ctx: canvasContext): void {
+	function clearBackground(ctx: CanvasRenderingContext2D): void {
 		const { width, height } = ctx.canvas;
 		ctx.rect(0, 0, width, height);
 		ctx.fillStyle = 'white';
 		ctx.fill();
 	}
 	
-	function draw(ctx: canvasContext): void {
+	function draw(ctx: CanvasRenderingContext2D): void {
 		
 		// draw ball
 		ctx.fillStyle = 'blue'
@@ -108,6 +117,11 @@ function Game (props: gameProps) {
 		// draw right paddle
 		ctx.fillStyle = 'blue'
 		ctx.fillRect(rightPad.x, rightPad.y, rightPad.width, rightPad.length)
+
+		ctx.fillStyle = "green";
+		ctx.font = "40px Orbitron";
+      	ctx.fillText(score.leftPlayer, Math.round(props.width / 2 / 2), 100);
+      	ctx.fillText(score.rightPlayer,Math.round(props.width / 2 * 1.5),100);
 	}
 	
 	function renderFrame(): void {

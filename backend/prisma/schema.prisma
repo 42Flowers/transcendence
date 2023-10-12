@@ -32,6 +32,12 @@ model User {
   ftUser FortyTwoUser?
 }
 
+// enum FriendshipStatus {
+// Accepted
+// Pending
+// Blocked
+// }
+
 model Friends {
   userId    Int
   friendId  Int
@@ -48,12 +54,14 @@ model Message {
   createdAt DateTime @default(now())
   authorId  Int
   author    User     @relation(fields: [authorId], references: [id])
+  channelId Int
+  channel   Channel  @relation(fields: [channelId], references: [id])
 }
 
 // enum ChannelVisibility {
 // Private
 // Public
-// InvitationOnly
+// PublicInviteOnly
 // }
 
 model Channel {
@@ -65,6 +73,7 @@ model Channel {
   // visibility ChannelVisibility @default(Private)
 
   memberships ChannelMembership[]
+  messages    Message[]
 
   owner User? @relation("ownedChannels", fields: [ownerId], references: [id])
 }

@@ -1,8 +1,8 @@
-import axios, { RawAxiosRequestHeaders, AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios';
 import { getAuthenticationToken } from './storage';
 
 export const client = axios.create({
-    baseURL: 'http://localhost:3000/',
+    baseURL: BACKEND_BASE_URL,
     timeout: 5000,
 });
 
@@ -29,13 +29,13 @@ function injectAuthorizationHeader(headers: RawAxiosRequestHeaders = {}): RawAxi
         ...authorizationHeader,
     };
 }
-
+/*
 function authorizedPost<P = any>(url: string, data: any, config: AxiosRequestConfig = {}) {
     return client.post<P>(url, data, {
         ...config,
         headers: injectAuthorizationHeader(config.headers ?? {}),
     });
-}
+}*/
 
 function authorizedGet<P = any>(url: string, config: AxiosRequestConfig = {}) {
     return client.get<P>(url, {

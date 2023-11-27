@@ -1,5 +1,7 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
+import { LeaderContext } from '../../../contexts/LeaderContext';
+import { LeaderContextType } from '../Profile';
 import { 
     Table, 
     TableBody, 
@@ -13,25 +15,8 @@ import AvatarOthers from '../../AvatarOthers/AvatarOthers';
 
 import './Ladder.css';
 
-const Ladder: React.FC = () => {
-    // function mockData(
-    //     rank: number,
-    //     pseudo: string,
-    //     wins: number,
-    //     losses: number,
-    //     status: string
-    // ) {
-    //     return { rank, pseudo, wins, losses, status };
-    // }
-    
-    // const rows = [
-    //     mockData(1, 'ycurbill', 15, 0, 'Online'),
-    //     mockData(2, 'nul1', 9, 2, 'Add'),
-    //     mockData(3, 'nul2', 9, 3, 'Playing'),
-    //     mockData(4, 'nul3', 5, 1, 'Online'),
-    //     mockData(5, 'nul4', 4, 5, 'Offline'),
-    //     mockData(6, 'nul5', 4, 5, 'Add'),
-    // ];
+const Ladder: React.FC = ({ currentPopup }) => {
+    // const { setSmallLeader, setGreatLeader } = useContext(LeaderContext) as LeaderContextType;
 
     interface CellStyle {
         color: string,
@@ -52,16 +37,15 @@ const Ladder: React.FC = () => {
     };
 
     type User = {
-        gameParticipationsCurrentUser: never[];
-        wins?: number;
-        losses?: number;
-        avatar?: string,
-        id?: number;
+        gameParticipation: never[]
+        avatar?: string
+        pseudo?: string
+        id?: number
     };
 
     const tableBodyRef = useRef<HTMLTableSectionElement>(null);
     const firstRowRef = useRef<HTMLTableRowElement>(null);
-    const [ladder, setLadder] = useState<User[]>([{"gameParticipationsCurrentUser": []}]);
+    const [ladder, setLadder] = useState<User[]>([]);
     const { userId } = useParams();
 
     const calculateWinsAndLosses = (data: User[]) => {
@@ -69,8 +53,8 @@ const Ladder: React.FC = () => {
             user.wins = 0;
             user.losses = 0;
 
-            user.gameParticipationsCurrentUser.forEach(game => {
-                if (game.gameResult.scored > game.gameResult.conceded) {
+            user.gameParticipation.forEach(game => {
+                if (game.game.winnerId === game.userId) {
                     user.wins++;
                 } else {
                     user.losses++;
@@ -81,7 +65,7 @@ const Ladder: React.FC = () => {
     };
 
     const calculateRanking = (data: User[]) => {
-        return data.sort((a, b) => {
+        const ranking =  data.sort((a, b) => {
             if (a.wins > b.wins) {
                 return -1;
             }
@@ -90,6 +74,12 @@ const Ladder: React.FC = () => {
             }
             return a.losses - b.losses;
         });
+        // if (ranking.length >= 3 && ranking[0].id == userId) {
+        //     setSmallLeader(true);
+        // } else if (ranking.length >= 10 && ranking[0].id == userId) {
+        //     setGreatLeader(true);
+        // }
+        return ranking;
     };
 
 

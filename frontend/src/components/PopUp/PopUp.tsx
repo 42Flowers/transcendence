@@ -1,23 +1,32 @@
 import React from "react";
-
 import MainButton from "../MainButton/MainButton";
 
 import './PopUp.css';
 
-interface Props {
-	title: string;
-    description: string;
-    onClose: () => void;
+type InfosType = {
+    name: string
+    achievementId: number
+	title: string
+    description: string
 }
 
-const PopUp: React.FC<Props> = ({ title, description, onClose }) => {
+interface Props {
+    userId: number
+    infos: InfosType
+    onClose: () => void
+}
+
+const PopUp: React.FC<Props> = ({ userId, infos, onClose }) => {
+
     return (
         <div className="popup">
-            <p style={{marginTop: '40px', }}>{title}</p>
-            <p style={{margin: '40px 0', }}>{description}</p>
+            <p style={{marginTop: '40px', }}>{infos.name}</p>
+            <p style={{margin: '40px 0', }}>{infos.description}</p>
             <MainButton buttonName="Close" onClick={onClose}/>
         </div>
     );
 };
 
-export default PopUp;
+const MemoizedPopUp = React.memo(PopUp);
+
+export default MemoizedPopUp;

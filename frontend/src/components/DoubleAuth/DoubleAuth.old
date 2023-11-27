@@ -1,0 +1,452 @@
+import React, { useCallback, useState, useRef, PropsWithChildren, useContext } from 'react';
+import MainButton from '../MainButton/MainButton'
+import { IoMailOutline } from "react-icons/io5";
+import { HiOutlineArrowCircleLeft } from "react-icons/hi";
+import { BsQrCode } from "react-icons/bs";
+import { FaCommentSms } from "react-icons/fa6";
+import { SiLetsencrypt } from "react-icons/si";
+import { Stack, styled } from '@mui/material';
+import './DoubleAuth.css';
+
+enum AuthenticationMode {
+	Email = 'email',
+	Sms = 'sms',
+	QrCode = 'qrcode',
+	AuthCode = 'otp',
+};
+
+const Spacer = styled('p')({
+	marginTop: '1em',
+	marginBottom: '1em',
+	lineHeight: '1em',
+	fontSize: '1em',
+});
+
+type DoubleAuthProps = {
+	methods?: string[];
+};
+
+type AuthenticationMethodDescriptorTable = {
+	[k in typeof AuthenticationMode[keyof typeof AuthenticationMode]]: {
+		icon: React.ReactNode,
+		name: string;
+		title: string;
+	};
+};
+
+const methodsList: AuthenticationMethodDescriptorTable = {
+	[AuthenticationMode.AuthCode]: {
+		icon: <SiLetsencrypt className="icon" />,
+		name: 'Code',
+		title: 'Open your app and enter the Code',
+	},
+	[AuthenticationMode.Sms]: {
+		icon: <FaCommentSms className="icon" />,
+		name: 'SMS',
+		title: 'Enter the code you received by SMS',
+	},
+	[AuthenticationMode.QrCode]: {
+		icon: <BsQrCode className="icon" />,
+		name: 'QR Code',
+		title: 'Open your app and enter the Code',
+	},
+	[AuthenticationMode.Email]: {
+		icon: <IoMailOutline className="icon" />,
+		name: 'Email',
+		title: 'Enter the code you received in your Email',
+	},
+};
+
+/*
+const TransitionManager: React.FC<PropsWithChildren> = ({ children }) => {
+	const childs = React.Children.toArray(children);
+	const [ currentActive, setCurrentActive ] = React.useState<number>(-1);
+
+	const nextActive = childs.findIndex(c => ((c as any).props?.active));
+
+	/* Initialize *//*
+	React.useEffect(() => {
+		if (currentActive < 0 && nextActive >= 0) {
+			setCurrentActive(nextActive);
+		}
+	}, [ nextActive ]);
+
+	const transitionRequired = nextActive !== currentActive;
+
+	return (
+		<div className="box-parent">
+			<div className="box-popup">
+				{
+					childs.map((c, index) => (
+						<div key={index} style={transitionRequired ? {
+							animation: `${nextActive === index ? 'slideInRight' : 'slideOutLeft'} 1s ease-out`,
+						} : {}}>
+						
+							{c}
+						</div>
+					))
+				}
+			</div>
+		</div>
+	);
+};*/
+
+type AnimatableProps = {
+	active?: boolean;
+	root?: boolean;
+	animationKey?: string;
+}
+
+const Animatable: React.FC<PropsWithChildren<AnimatableProps>> = ({ children }) => children;
+
+interface IAnimationContext {
+	push: (key: string) => void;
+	pop: () => void;
+};
+
+const AnimationContext = React.createContext<IAnimationContext>(undefined as any);
+
+function animationReducer(state, { type, ...action }) {
+	if (type === 'push') {
+		const { key } = action;
+
+		return {
+			...state,
+			animationStack: [...state.animationStack, { type: 'push', key: key } ]
+		};
+	} else if (type === 'pop') {
+		return {
+			...state,
+			stack: state.stack.length === 0 ? [] : state.stack.slice(0, state.stack.length - 1),
+			animations: true,
+		}
+	} else if (type === 'init') {
+		const { key } = action;
+
+		return {
+			...state,
+			stack: [key],
+		}
+	} else if (type === 'animationend') {
+		return {
+			...state,
+			// stack: state.stack.slice(0, state.stack.length - 1),
+			stack: [...state.stack, state.animationStack[0].key],
+			animationStack: state.animationStack.slice(1),
+		}
+	}
+	return state;
+}
+
+const Dog = styled('div')({
+	willChange: 'transform',
+	position: 'relative',
+});
+
+const AnimationManager: React.FC<PropsWithChildren> = ({ children }) => {
+	const [ state, dispatch ] = React.useReducer(animationReducer, {
+		stack: [],
+		animationStack: [],
+	});
+
+	const ctx: IAnimationContext = {
+		push: (key: string) => dispatch({ type: 'push', key }),
+		pop: () => dispatch({ type: 'pop' }),
+	};
+
+	const childs = React.Children.toArray(children);
+
+	React.useEffect(() => {
+		if (state.stack.length === 0) {
+			const root = childs.find(c => c.props.root);
+
+			dispatch({ type: 'init', key: root.props.animationKey });
+		}
+	}, []);
+
+	const stackTop = state.stack.length > 0 ? state.stack[state.stack.length - 1] : false;
+	/* TODO rename to animationQueue */
+	const pendingAnim = state.animationStack.length > 0 ? state.animationStack[0] : undefined;
+
+	let outgoing, incoming;
+
+	if (stackTop) {
+		const c = childs.find(e => e.props.animationKey === stackTop);
+
+		if (pendingAnim) {
+			outgoing = (
+				<Dog className={`${'slideOutLeft'}`} onAnimationEnd={() => dispatch({ type: 'animationend' })}>
+					{c}
+				</Dog>
+			);
+		} else {
+			outgoing = <Dog>{c}</Dog>
+		}
+	}
+
+	if (pendingAnim) {
+		const c = childs.find(e => e.props.animationKey === pendingAnim.key);
+
+		incoming = (
+			<Dog className={`slide slideInRight`}>
+				{c}
+			</Dog>
+		);
+	}
+
+	return (
+		<div style={{ position: 'relative' }}>
+
+		<AnimationContext.Provider value={ctx}>
+			{outgoing}
+			{incoming}
+		</AnimationContext.Provider>
+		</div>
+	);
+};
+
+const AuthMethodPicker: React.FC = ({ methods }) => {
+	const { push } = useContext(AnimationContext);
+
+	const methodsComponents = React.useMemo(() => {
+		return Object.entries(methodsList).filter(([ key ]) => methods.includes(key)).map(([ key, { icon, name } ], index) => (
+			<React.Fragment key={key}>
+				{index > 0 && <Spacer>or</Spacer>}
+				<MainButton icon={icon} buttonName={name} onClick={() => push('2')} />
+			</React.Fragment>
+		));
+	}, [ methods ]);
+
+	return (
+		<Stack direction="column">
+			<h2>Two-Factor Authentication Required</h2>
+			{methodsComponents}
+		</Stack>
+	);
+}
+
+const DoubleAuth: React.FC<DoubleAuthProps> = ({ methods = [ "sms", "email", "otp" ] }) => {
+	const [ authenticationMode, setAuthenticationMode ] = useState<AuthenticationMode | undefined>(() => {
+		if (methods.includes(AuthenticationMode.AuthCode)) {
+			return AuthenticationMode.AuthCode;
+		}
+		return undefined;
+	});
+
+	
+
+	return (
+		<div className="box-parent">
+			<div className="box-popup">
+				<AnimationManager>
+					<Animatable animationKey="1" root>
+						<AuthMethodPicker methods={methods} />
+					</Animatable>
+					<Animatable animationKey="2">
+						<AuthenticationPanel
+							authenticationMode={authenticationMode}
+							onBack={() => setAuthenticationMode(undefined)} />
+					</Animatable>
+				</AnimationManager>
+			</div>
+		</div>
+	);
+
+    if(!authenticationMode) {
+		return (
+			<div className="box-parent">
+				<div className="box-popup">
+					<Stack direction="column">
+						<h2>Two-Factor Authentication Required</h2>
+						
+					</Stack>
+				</div>
+			</div>
+		);
+	}
+	else {
+        return (
+			<AuthenticationPanel
+				authenticationMode={authenticationMode}
+				onBack={() => setAuthenticationMode(undefined)} />
+		);
+	}
+};
+
+type AuthenticationPanelProps = {
+	authenticationMode: AuthenticationMode;
+	onBack: () => void;
+}
+
+const AuthenticationPanel: React.FC<PropsWithChildren<AuthenticationPanelProps>> = ({ children, authenticationMode, onBack }) => {
+	const { title } = methodsList[authenticationMode];
+
+	return (
+		<div className="box-parent">
+			<div className="box-popup">
+				<span className="icon-close" onClick={onBack}>
+					<HiOutlineArrowCircleLeft />
+				</span>
+				<form action="#">
+					<h2 className='h2bis'>{title}</h2>
+					<CodeInput length={6} onChange={() => 0} />
+					<div className="remember-forgot">
+						<p className='pbis'>Didn't have time to receive code? <a href="#">Click here</a> to send it again</p>
+					</div>
+					<div className="input-box">
+						<MainButton buttonName='Submit'/>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
+}
+
+type CodeInputProps = {
+	length: number;
+	// value: string;
+	onChange: (x: string) => void;
+};
+
+const DigitInput = styled('input')({
+	'&': {
+		width: '2em',
+		height: '2em',
+		caretColor: 'transparent',
+	},
+	'&:focus': {
+		boxShadow: '0 0 0 4px rgba(191, 156, 232, 0.8)',
+	},
+});
+/*
+	const validatedOnce = React.useRef<boolean>(false); /* Only validate automatically on the first attempt */
+
+const CodeInput: React.FC<CodeInputProps> = ({ length, onChange }) => {
+	const frozenLength = React.useMemo(() => length, []);
+	const [ inputs, setInputs ] = React.useState(() => new Array(frozenLength).fill(''));
+	const inputRefs = useRef(inputs.map(() => React.createRef<HTMLInputElement>()));
+
+	const handleChange = (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+		const { value } = e.target;
+		const newInputs = [...inputs];
+		let i;
+
+		const transformedValue = value.trim().substring(0, frozenLength - index);
+
+		for (i = 0; i < transformedValue.length; ++i) {
+			if (!/^[0-9]+$/.test(transformedValue[i]))
+				break ;
+
+			newInputs[index + i] = transformedValue[i];
+		}
+
+		inputRefs.current[Math.min(frozenLength - 1, index + i)].current?.focus();
+
+		if (i > 0) {
+			setInputs(newInputs);
+			onChange(newInputs.join(''));
+		}
+	};
+
+	const handleKeyDown = (index: number) => ({ currentTarget, key }: React.KeyboardEvent<HTMLInputElement>) => {
+		if (key === 'Backspace') {
+			setInputs(inputs => {
+				const newInputs = [...inputs];
+				newInputs[index] = '';
+				return newInputs;
+			})
+			if (index > 0) {
+				inputRefs.current[index - 1].current?.focus();
+			}
+		} else if (key === 'ArrowLeft') {
+			if (index > 0) {
+				inputRefs.current[index - 1].current?.focus();
+			}
+		} else if (key === 'ArrowRight') {
+			if (index + 1 < frozenLength) {
+				inputRefs.current[index + 1].current?.focus();
+			}
+		}
+	};
+
+	return (
+		<div className="input-box mfa">
+			{
+				inputs.map((input, index) => (
+					<DigitInput
+						key={index}
+						type="text"
+						value={input}
+						onChange={handleChange(index)}
+						onKeyDown={handleKeyDown(index)}
+						ref={inputRefs.current[index]}
+					/>
+				))
+			}
+		</div>
+	);
+}
+
+/*
+	const handleKeyDown = (index: number) => (event: React.KeyboardEvent<HTMLInputElement>) => {
+		const inputValue = event.currentTarget.value;
+		if (event.key === 'Backspace' && index > 0 && (inputValue.trim() === '')) {
+			inputRefs.current[index - 1].current?.focus();
+		}
+	};
+	*/
+
+/*
+const [inputs, setInputs] = useState(["", "", "", "", "", ""]);
+	const inputRefs = useRef(inputs.map(() => React.createRef<HTMLInputElement>()));
+
+	const handleChange = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+		const newInputs = [...inputs];
+		newInputs[index] = event.target.value;
+		setInputs(newInputs);
+	
+		// if (event.target.value.length === 1 && !isNaN(Number(event.target.value)))
+		// {
+		// 	newInputs[index] = event.target.value;
+		// 	setInputs(newInputs);
+		// }
+
+		if (event.target.value.length === 1 && index < inputRefs.current.length - 1) {
+			inputRefs.current[index + 1].current?.focus();
+		}
+	};
+*/
+
+/*return (
+			<div className="box-parent">
+				<div className="box-popup">
+				<span className="icon-close"><HiOutlineArrowCircleLeft/></span>
+					<form action="#">
+						<h2 className='h2bis'>{msgh2}</h2>
+						<div className="input-box">
+							{inputs.map((input, index) => (
+								<input
+									key={index}
+									type="number"
+									value={input}
+									onChange={handleChange(index)}
+									onKeyDown={handleKeyDown(index)}
+									maxLength={1}
+									min={0}
+									max={9}
+									ref={inputRefs.current[index]}
+								/>
+							))}
+						</div>
+						<div className="remember-forgot">
+							<p className='pbis'>Didn't have time to receive code? <a href="#">Click here</a> to send it again</p>
+						</div>
+						<div className="input-box">
+							<MainButton buttonName='Submit'/>
+						</div>
+					</form>
+				</div>
+			</div>
+        );*/
+
+export default DoubleAuth;

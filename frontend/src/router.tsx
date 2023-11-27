@@ -1,28 +1,28 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
-import { AuthCallbackPage } from './pages/AuthCallbackPage';
-import { LoginPage } from './pages/LoginPage';
-import Profile from './components/Profile/Profile';
-import Game from './components/Game/Game';
-import FriendList from './components/FriendList/FriendList';
+import { Auth } from './components/Auth/Auth';
 import Chat from './components/Chat/Chat';
-import HomePage from './pages/HomePage';
+import FriendList from './components/FriendList/FriendList';
+import Game from './components/Game/Game';
+import Profile from './components/Profile/Profile';
 import PlayPage from './pages/PlayPage';
-import RegisterForm from './components/RegisterForm/RegisterForm';
 
 export const router = createBrowserRouter([
     {
         path: '/auth/login',
-        element: <LoginPage />,
+        element: <Auth />,
     },
     {
         path: '/auth/callback',
-        element: <AuthCallbackPage />,
+        element: <Auth isCallbackUrl />,
     },
     {
-        path: '/',
         element: <AppLayout />,
         children: [
+            {
+                path: '/profile/:userId',
+                element: <Profile onRouteChange={() => void 0} />,
+            },
             {
                 path: '/friends',
                 element: <FriendList />,
@@ -40,7 +40,7 @@ export const router = createBrowserRouter([
                 element: <Chat />
             },
             {
-                path: '/pong',
+                path: '/',
                 element: <PlayPage />
             },
         ],

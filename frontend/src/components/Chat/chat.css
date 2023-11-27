@@ -2,6 +2,5 @@
 	display: flex;
 	width: 90vw;
 	height: 80vh;
-    border: 2px solid white;
-    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+	border: 2px solid #FF00FF; 
 }

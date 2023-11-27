@@ -80,7 +80,7 @@
   
 .Stats-wrapper .win,
 .Stats-wrapper .lose {
-display: inline-block;
+    display: inline-block;
 }
 
 .Stats-wrapper .lose span {

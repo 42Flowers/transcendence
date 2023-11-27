@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { PrismaClient } from '@prisma/client';
+import { hashSync } from 'bcrypt';
 
 // initialize Prisma Client
 const prisma = new PrismaClient();
@@ -18,12 +19,16 @@ async function main() {
   await prisma.userAchievement.deleteMany();
   await prisma.achievement.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.$executeRaw`UPDATE sqlite_sequence SET seq = 0 WHERE name = 'User';`; // Eesier for testing in the URL: This ways, id of user always starts at 1 
+  //await prisma.$executeRaw`UPDATE sqlite_sequence SET seq = 0 WHERE name = 'Game';`;
+  //await prisma.$executeRaw`UPDATE sqlite_sequence SET seq = 0 WHERE name = 'Achievement';`;
     const user1 = await prisma.user.create({
       data: {
         id: 1,
         pseudo: "User1",
         email: "user1@example.com",
         emailVerified: false,
+        password: hashSync('mdp', 10),
       },
     });
   
@@ -32,6 +37,12 @@ async function main() {
         pseudo: "User2",
         email: "user2@example.com",
         emailVerified: false,
+        password: hashSync('mdp', 10),
+        //otpauth://totp/SecretKey?secret=KVAFEKKWOZ4SYZD5JVYWS6KWF5UU4LDCKNBDYUCUGVZVEV3ZJNOQ
+        // To test on your own phone, generate a qr code with the text of the previous comment
+        // And scan it.
+        totpSecret: 'KVAFEKKWOZ4SYZD5JVYWS6KWF5UU4LDCKNBDYUCUGVZVEV3ZJNOQ',
+        totpEnabled: true,
       },
     });
   
@@ -228,55 +239,55 @@ async function main() {
         },
       });
   
-    // assign achievements to users
-  await prisma.userAchievement.create({
-      data: {
-        userId: user1.id,
-        achievementId: ach1.id,
-      },
-    });
+  //   // assign achievements to users
+  // await prisma.userAchievement.create({
+  //     data: {
+  //       userId: user1.id,
+  //       achievementId: ach1.id,
+  //     },
+  //   });
 
-    await prisma.userAchievement.create({
-        data: {
-          userId: user1.id,
-          achievementId: ach3.id,
-        },
-      });
+  //   await prisma.userAchievement.create({
+  //       data: {
+  //         userId: user1.id,
+  //         achievementId: ach3.id,
+  //       },
+  //     });
 
-      await prisma.userAchievement.create({
-        data: {
-          userId: user2.id,
-          achievementId: ach2.id,
-        },
-      });
+  //     await prisma.userAchievement.create({
+  //       data: {
+  //         userId: user2.id,
+  //         achievementId: ach2.id,
+  //       },
+  //     });
 
-      await prisma.userAchievement.create({
-        data: {
-          userId: user3.id,
-          achievementId: ach1.id,
-        },
-      });
+  //     await prisma.userAchievement.create({
+  //       data: {
+  //         userId: user3.id,
+  //         achievementId: ach1.id,
+  //       },
+  //     });
 
-      await prisma.userAchievement.create({
-        data: {
-          userId: user3.id,
-          achievementId: ach2.id,
-        },
-      });
+  //     await prisma.userAchievement.create({
+  //       data: {
+  //         userId: user3.id,
+  //         achievementId: ach2.id,
+  //       },
+  //     });
 
-      await prisma.userAchievement.create({
-        data: {
-          userId: user3.id,
-          achievementId: ach3.id,
-        },
-      });
+  //     await prisma.userAchievement.create({
+  //       data: {
+  //         userId: user3.id,
+  //         achievementId: ach3.id,
+  //       },
+  //     });
   
     // and so on for other user-achievement relations
     // create game results
     const game1 = await prisma.game.create({
       data: {
-        winnerScore: 10,
-        looserScore: 5,
+        score1: 10,
+        score2: 5,
         winnerId: user1.id,
         looserId: user2.id
       },
@@ -284,8 +295,8 @@ async function main() {
     
     const game2 = await prisma.game.create({
       data: {
-        winnerScore: 10,
-        looserScore: 3,
+        score1: 10,
+        score2: 3,
         winnerId: user1.id,
         looserId: user3.id
       },
@@ -293,8 +304,8 @@ async function main() {
 
     const game3 = await prisma.game.create({
       data: {
-        winnerScore: 10,
-        looserScore: 9,
+        score1: 10,
+        score2: 9,
         winnerId: user3.id,
         looserId: user1.id
       },
@@ -302,8 +313,8 @@ async function main() {
 
     const game4 = await prisma.game.create({
       data: {
-        winnerScore: 10,
-        looserScore: 4,
+        score1: 10,
+        score2: 4,
         winnerId: user1.id,
         looserId: user4.id
       },
@@ -919,3 +930,4 @@ main()
     // close Prisma Client at the end
     await prisma.$disconnect();
   });
+  

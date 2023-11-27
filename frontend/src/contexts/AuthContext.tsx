@@ -5,7 +5,9 @@ import { fetchUserProfile } from '../api';
 const HANDLERS = {
   INITIALIZE: 'INITIALIZE' as const,
   SIGN_IN: 'SIGN_IN' as const,
-  SIGN_OUT: 'SIGN_OUT' as const
+  SIGN_OUT: 'SIGN_OUT' as const,
+  AUTHENTICATE: 'AUTHENTICATE' as const,
+  REFRESH_ACK: 'REFRESH_ACK' as const,
 };
 
 type AuthUserInfo = Record<string, any>;
@@ -14,12 +16,14 @@ type AuthenticationState<P extends {} = AuthUserInfo > = {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: null | P;
+  refreshRequested: boolean;
 }
 
 const initialState: AuthenticationState = {
   isAuthenticated: false,
   isLoading: true,
-  user: null
+  user: null,
+  refreshRequested: false,
 };
 
 type InitializeAction<P extends {} = {}> = {
@@ -36,12 +40,19 @@ type SignOutAction = {
   type: 'SIGN_OUT';
 }
 
-type Action<P extends {} = {}> = SignInAction<P> | SignOutAction | InitializeAction<P>;
+type AuthenticateAction = {
+  type: 'AUTHENTICATE';
+  token: string;
+};
+
+type Action<P extends {} = {}> = SignInAction<P> | SignOutAction | InitializeAction<P> | AuthenticateAction;
 
 type Handlers<P extends {} = {}> = {
-  [HANDLERS.INITIALIZE]: (state: AuthenticationState<P>, action: InitializeAction<P>) => AuthenticationState<P>,
-  [HANDLERS.SIGN_IN]: (state: AuthenticationState<P>, action: SignInAction<P>) => AuthenticationState<P>,
-  [HANDLERS.SIGN_OUT]: (state: AuthenticationState<P>, action: SignOutAction) => AuthenticationState<P>,
+  [HANDLERS.INITIALIZE]: (state: AuthenticationState<P>, action: InitializeAction<P>) => AuthenticationState<P>;
+  [HANDLERS.SIGN_IN]: (state: AuthenticationState<P>, action: SignInAction<P>) => AuthenticationState<P>;
+  [HANDLERS.SIGN_OUT]: (state: AuthenticationState<P>, action: SignOutAction) => AuthenticationState<P>;
+  [HANDLERS.AUTHENTICATE]: (state: AuthenticationState<P>, action: AuthenticateAction) => AuthenticationState<P>;
+  [HANDLERS.REFRESH_ACK]: (state: AuthenticationState<P>, action: any) => AuthenticationState<P>;
 };
 
 const handlers: Handlers = {
@@ -78,9 +89,23 @@ const handlers: Handlers = {
     return {
       ...state,
       isAuthenticated: false,
-      user: null
+      user: null,
+      refreshRequested: true,
     };
-  }
+  },
+  [HANDLERS.REFRESH_ACK]: () => {
+    return {
+      ...initialState,
+      refreshRequested: false,
+    };
+  },
+  [HANDLERS.AUTHENTICATE]: (state, { token }) => {
+    return {
+      ...state,
+      refreshRequested: true,
+      token,
+    };
+  },
 };
 
 const reducer = (state: AuthenticationState, action: Action) => (
@@ -89,6 +114,7 @@ const reducer = (state: AuthenticationState, action: Action) => (
 
 type AuthContextData = AuthenticationState & {
 //   signIn: (email: string, password: string) => Promise<void>;
+  authenticate: (token: string) => void;
   signOut: () => void;
 };
 
@@ -99,25 +125,28 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [ state, dispatch ] = React.useReducer(reducer, initialState);
   const initialized = React.useRef<boolean>(false);
 
+  React.useEffect(() => {
+    if (state.refreshRequested) {
+      initialized.current = false;
+      dispatch({ type: 'REFRESH_ACK' });
+      console.log('Refresh requested');
+    }
+  }, [ state ]);
+
   const initialize = async () => {
     // Prevent from calling twice in development mode with React.StrictMode enabled
-    if (initialized.current) {
+    if (initialized.current || state.refreshRequested) {
       return;
     }
 
     initialized.current = true;
 
-    if (true || getAuthenticationToken() !== null) {
+    if (getAuthenticationToken() !== null) {
       try {
-        // const userProfile = await fetchUserProfile('@me');
+        const userProfile = await fetchUserProfile('@me');
         dispatch({
           type: HANDLERS.INITIALIZE,
-          payload: {
-            firstName: 'Test',
-            lastName: 'Test2',
-            avatar: 'bolosse',
-            // ...userProfile.data,
-          },
+          payload: userProfile,
         });
         return ;
       } catch {
@@ -134,7 +163,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     () => {
       initialize();
     },
-    []
+    [ initialized.current ]
   );
 
   const signOut = () => {
@@ -143,10 +172,18 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     });
   };
 
+  const authenticate = (token: string) => {
+    dispatch({
+      type: HANDLERS.AUTHENTICATE,
+      token,
+    });
+  }
+
   return (
     <AuthContext.Provider
       value={{
         ...state,
+        authenticate,
         signOut
       }}
     >

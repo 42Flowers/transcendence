@@ -6,6 +6,8 @@ import { FortyTwoModule } from 'src/ft/ft.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TicketService } from './ticket.service';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
     controllers: [
@@ -14,8 +16,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     providers: [
         AuthService,
         PrismaService,
+        TicketService,
     ],
     imports: [
+        MailModule,
         ConfigModule.forRoot({
             isGlobal: true,
         }),

@@ -4,8 +4,40 @@ import { useMutation } from 'react-query';
 import { authorizeCode } from '../api';
 import { setAuthenticationToken } from '../storage';
 import { AxiosError } from 'axios';
+import DoubleAuth from '../components/DoubleAuth/DoubleAuth';
+
+type LoginManagerProps = {
+    ticket?: string;
+    token?: string;
+    mfa?: string[];
+};
+
+const LoginManager: React.FC<LoginManagerProps> = ({ token, ticket, mfa }) => {
+    const ignore = React.useRef<boolean>(false);
+    const navigate = useNavigate();
+
+    React.useEffect(() => {
+        if (ignore.current)
+            return ;
+        ignore.current = true;
+
+        if (token) {
+            setAuthenticationToken(token);
+            navigate('/');
+        }
+    }, []);
+
+    return (
+        <>
+            <DoubleAuth />
+        </>
+    );
+};
 
 const AuthCallback: React.FC = () => {
+
+    return <LoginManager ticket="lol" mfa={[ 'sms' ]} />
+
     const [ searchParams ] = useSearchParams();
     const ignore = React.useRef<boolean>(false);
     const navigate = useNavigate();
@@ -14,8 +46,7 @@ const AuthCallback: React.FC = () => {
         onSuccess: response => {
             const { data } = response;
 
-            setAuthenticationToken(data.token);
-            navigate('/');
+          
         },
     });
 

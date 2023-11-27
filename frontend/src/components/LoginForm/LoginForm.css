@@ -1,0 +1,120 @@
+.LoginForm-wrapper h2 {
+    color: white;
+}
+
+.LoginForm-wrapper p {
+    font-size: 1em;
+    color: white;
+    margin-top: 60px;
+}
+
+.LoginForm-wrapper p a {
+    color: var(--color-purple);
+}
+
+.LoginForm-wrapper p a:hover {
+    color: var(--color-light-purple);
+}
+
+.LoginForm-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.LoginForm-wrapper .box-popup {
+    position: relative;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 40px;
+    top: 10vh;
+    margin-bottom: 4%;
+}
+
+.LoginForm-wrapper .input-box {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    border-bottom: 2px solid white;
+    margin: 30px 0;
+}
+
+.LoginForm-wrapper .input-box:last-of-type {
+    border-bottom: none;
+}
+
+.LoginForm-wrapper .input-box label{
+    position: absolute;
+    top: 0;
+    left: 5px;
+    font-size: 1em;
+    color: white;
+    font-weight: 500;
+    pointer-events: none;
+    transition: top 0.3s ease;
+}
+
+.LoginForm-wrapper .input-box input {
+    width: 100%;
+    height: 130%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 1em;
+    color: white;
+            text-shadow: 0 0 4px var(--color-yellow);
+            /* text-shadow: 0 0 4px var(--color-light-pink); */
+    padding: 0 35px 0 5px;
+}
+
+.LoginForm-wrapper .input-box .icon {
+    position: absolute;
+    right: 8px;
+    top: 15px;
+    font-size: 1.2em;
+    color: white;
+    line-height: 57px;
+}
+
+.LoginForm-wrapper .input-box .element {
+    position: absolute;
+    bottom: 20%;
+    left: 1%;
+    color: white;
+    border: none;
+    outline: none;
+    border-radius: 6px;
+}
+
+.LoginForm-wrapper .input-box p {
+    font-size: 1em;
+    color: white;
+    margin: -15px 0 15px;
+    display: flex;
+    justify-content: center;
+}
+
+.LoginForm-wrapper .remember-forgot {
+    font-size: .9em;
+    color: white;
+    font-weight: 500;
+    margin: -15px 0 15px;
+    display: flex;
+}
+
+.LoginForm-wrapper .remember-forgot a {
+    color: white;
+    text-decoration: none;
+    margin-left: 30px;
+}
+
+.LoginForm-wrapper .remember-forgot a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 6px var(--color-yellow);
+}

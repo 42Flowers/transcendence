@@ -1,0 +1,37 @@
+.mainBtn {
+    background-color: var(--color-purple);
+    box-shadow: -5px 5px 0 0 var(--color-yellow);
+    padding: 10px 20px;
+    border: 2px solid var(--color-yellow);
+    border-radius: 13px;
+    color: white;
+    font-size: 1.2em;
+    width: 100%;
+    font-family: "Short Stack";
+    text-decoration: none;
+    display: inline-block;
+    box-sizing: border-box;
+    cursor: pointer;
+    margin: 10px 0px;
+}
+   
+.mainBtn:hover {
+    background-color: var(--color-light-purple);
+    transform: translate(-5px,5px);
+    transition: transform 0.5s ease-out;
+    box-shadow: 0 0 0 0 var(--color-yellow)
+}
+
+/* .mainBtn .icon:first-child {
+    padding-right: 15px;
+    font-size: 1em;
+    color: white;
+
+}
+
+.mainBtn .icon:last-child {
+    padding-left: 15px;
+    font-size: 1em;
+    color: white;
+
+} */

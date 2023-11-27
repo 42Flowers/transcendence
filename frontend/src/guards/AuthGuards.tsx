@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 export const AuthGuard: React.FC<PropsWithChildren> = ({ children }) => {
     const { isAuthenticated } = useAuthContext();
     const ignore = React.useRef<boolean>(false);
-    const [ isAuthorized, setAuthorized ] = React.useState<boolean>(false);
+    const [ isAuthorized, setAuthorization ] = React.useState<boolean>(false);
     const navigate = useNavigate();
 
     React.useEffect(() => {
@@ -15,7 +15,7 @@ export const AuthGuard: React.FC<PropsWithChildren> = ({ children }) => {
         ignore.current = true;
 
         if (isAuthenticated) {
-            setAuthorized(true);
+            setAuthorization(true);
         } else {
             navigate('/auth/login');
         }

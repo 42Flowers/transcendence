@@ -1,8 +1,5 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-
-import { PerfectContext } from '../../../contexts/PerfectContext';
-import { PerfectContextType } from '../Profile';
 
 import { 
     Table, 
@@ -17,9 +14,27 @@ import './MatchHistory.css';
 import AvatarOthers from '../../AvatarOthers/AvatarOthers';
 
 const MatchHistory: React.FC = () => {
-    const [matchHistory, setMatchHistory] = useState([]);
-    const { setPerfectWin, setPerfectLose } = useContext(PerfectContext) as PerfectContextType;
 
+    // function mockData(
+    //     scored: number,
+    //     conceded: number,
+    //     pseudo: string,
+    //     avatar: string,
+    //     date: string,
+    //     status: string
+    // ) {
+    //     return { scored, conceded, pseudo, avatar, date, status };
+    // }
+    
+    // const rows = [
+    //     mockData(3, 0, 'adversaire1', '', '09/11/01 9:34am', 'Online'),
+    //     mockData(0, 3, 'adversaire2', '', '09/11/01 9:34am', 'Online'),
+    //     mockData(3, 0, 'adversaire3', '', '09/11/01 9:34am', 'Offline'),
+    //     mockData(0, 3, 'adversaire4', '', '09/11/01 9:34am', 'Offline'),
+    //     mockData(3, 0, 'adversaire5', '', '09/11/01 9:34am', 'Playing'),
+    //     mockData(3, 0, 'adversaire6', '', '09/11/01 9:34am', 'Add'),
+    // ];
+    const [matchHistory, setMatchHistory] = useState({"gameParticipationsCurrentUser": []});
 
     const { userId } = useParams();
 
@@ -28,17 +43,20 @@ const MatchHistory: React.FC = () => {
             .then(response => response.json())
             .then(data => {
                 setMatchHistory(data);
-                data.map(game => {
-                    if ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10)) {
-                        if (userId == game.game.winnerId) {
-                            setPerfectWin(true);
-                        } else {
-                            setPerfectLose(true);
-                        }
-                    }
-                });
             })
     }, [userId])
+
+    interface CellStyle {
+        backgroundColor: string,
+    }
+
+    const outcome = (scored: number, conceded: number): CellStyle => {
+        if (scored > conceded) {
+            return { backgroundColor: '#85DE89', };
+        } else {
+            return { backgroundColor: '#DE8585', };
+        }
+    }
 
     return (
         <div className="matchHistory">
@@ -48,28 +66,28 @@ const MatchHistory: React.FC = () => {
                     <TableBody 
                         id="table-body-mh"
                     >
-                        {matchHistory?.map((row) => (
+                        {matchHistory?.gameParticipationsCurrentUser.map((row) => (
                             <TableRow
-                                key={row.game.id}
+                                key={row.id}
                                 sx={{ 
                                     '&:last-child td, &:last-child th': { border: 0 },
                                     display: 'table',
                                     width: '100%',
                                     tableLayout: 'fixed',
-                                    backgroundColor: row.game.winnerId == userId ? '#85DE89' : '#DE8585'
+                                    backgroundColor: outcome(row.gameResult.scored, row.gameResult.conceded).backgroundColor,
                                 }}
                             >
                                 <TableCell id="cell-scored-mh">
-                                    {row.game.score1}
+                                    {row.gameResult.scored}
                                 </TableCell>
                                 <TableCell id="cell-dash-mh">
                                     -
                                 </TableCell>
                                 <TableCell id="cell-conceded-mh">
-                                    {row.game.score2}
+                                    {row.gameResult.conceded}
                                 </TableCell>
                                 <TableCell id="cell-pseudo-mh">
-                                    {row.opponent.pseudo}
+                                    {row.user2.pseudo}
                                 </TableCell>
                                 <TableCell id="cell-status-mh">
                                     <div className='cell-status-div-mh'>
@@ -78,7 +96,7 @@ const MatchHistory: React.FC = () => {
                                 </TableCell>
                                 <TableCell id="cell-date-mh">
                                     <div className='cell-date-div-mh'>
-                                        {row.game.createdAt}
+                                        {row.gameResult.date}
                                     </div>
                                 </TableCell>
                             </TableRow>

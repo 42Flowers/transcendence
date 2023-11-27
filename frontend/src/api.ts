@@ -1,4 +1,4 @@
-import axios, { RawAxiosRequestHeaders, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { RawAxiosRequestHeaders, AxiosRequestConfig } from 'axios';
 import { getAuthenticationToken } from './storage';
 
 export const client = axios.create({
@@ -9,19 +9,6 @@ export const client = axios.create({
 export type AuthorizeCodeResponse = {
     token: string;
 };
-
-export type PasswordLoginResponse = {
-    ticket: string;
-    mfa: string[];
-} & AuthorizationTokenPayload;
-
-export type AuthorizationTokenPayload = {
-    token: string;
-    type: string;
-    expire_at: number;
-};
-
-type SubmitOTPResponse = AuthorizationTokenPayload;
 
 function makeAuthorizationHeader(): RawAxiosRequestHeaders {
     const token = getAuthenticationToken();
@@ -57,12 +44,6 @@ function authorizedGet<P = any>(url: string, config: AxiosRequestConfig = {}) {
     });
 }
 
-function wrapResponse<T>(resp: Promise<AxiosResponse<T>>): Promise<T> {
-    return resp.then(e => e.data);
-}
-
 export const authorizeCode = (code: string) => client.post<AuthorizeCodeResponse>('/api/v1/auth/authorize_code', { provider: 'ft', code });
-export const loginWithPassword = (email: string, password: string) => wrapResponse(client.post<PasswordLoginResponse>('/api/v1/auth/login', { email, password }));
-export const submitOtp = (ticket: string, code: string) => wrapResponse(client.post<AuthorizationTokenPayload>('/api/v1/auth/mfa/otp', { ticket, code }));
 
-export const fetchUserProfile = (profile: string) => wrapResponse(authorizedGet(`/api/v1/users/${profile}`));
+export const fetchUserProfile = (profile: string) => authorizedGet(`/api/v1/users/${profile}`);

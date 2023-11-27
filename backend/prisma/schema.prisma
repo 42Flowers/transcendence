@@ -11,14 +11,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Ticket {
-  id             Int      @id @default(autoincrement())
-  userId         Int
-  issuedAt       DateTime @default(now())
-
-  user      User       @relation(fields: [userId], references: [id])
-}
-
 model User {
   id                   Int          @id @default(autoincrement())
 
@@ -26,22 +18,15 @@ model User {
   email                String       @unique
   emailVerified        Boolean      @default(false)
 
-  totpSecret           String?
-  totpEnabled          Boolean @default(false)
-
-  // The bcrypt password when using email & password login
-  password             String?
-
   avatar               String?   /////////////////////////////////////////////////
 
   level                Int          @default(0)
   experience           Float        @default(0)
 
-  friends              Friendship[] @relation("users")
   befriendedBy         Friendship[] @relation("friends")
-
-  blocked	             Blocked[]    @relation("users")
-  bannedBy	           Blocked[]    @relation("blocked")
+  friends              Friendship[] @relation("users")
+  bannedBy	           Blocked[]    @relation("users")
+  blocked	             Blocked[]    @relation("blocked")
 
   gameParticipation    GameParticipation[]
 
@@ -51,7 +36,6 @@ model User {
   ownedChannels        Channel[]
 
   ftUser               FortyTwoUser?
-  tickets              Ticket[]
 
   achievements         UserAchievement[]
 }
@@ -77,14 +61,14 @@ model Blocked {
 }
 
 model GameParticipation {
-  id          Int     @id @default(autoincrement()) // TODO: @@id([userId, gameId])
+  @@id([userId, gameId])
 
-  opponentId Int
+  opponentId    Int
 
-  userId      Int
-  gameId      Int
-  user        User    @relation(fields: [userId], references: [id])
-  game        Game    @relation(fields: [gameId], references: [id])
+  userId        Int
+  gameId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  game          Game     @relation(fields: [gameId], references: [id])
 }
 
 model Game {
@@ -92,8 +76,8 @@ model Game {
 
   createdAt          DateTime @default(now())
 
-  score1              Int
-  score2              Int
+  winnerScore         Int
+  looserScore         Int
   winnerId            Int
   looserId            Int
   gameParticipations  GameParticipation[]

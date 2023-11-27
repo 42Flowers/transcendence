@@ -1,11 +1,9 @@
 import React from "react";
-import { useState, useEffect, useContext, useCallback } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
+import { Avatar, Button, TextField } from "@mui/material";
+import default_avatar from "../../assets/images/default_avatar.png";
 import { AvatarContext } from "../../contexts/AvatarContext";
-import { PseudoContext } from "../../contexts/PseudoContext";
-import { AchievementsListContext } from "../../contexts/AchievementsListContext";
-import { LeaderContext } from "../../contexts/LeaderContext";
-import async from 'async';
 
 import Stats from "../Stats/Stats";
 import Ladder from "./Ladder/Ladder";
@@ -13,256 +11,38 @@ import MatchHistory from "./MatchHistory/MatchHistory";
 import Achievements from "./Achievements/Achievements";
 import Switch2FA from "./Switch2FA/Switch2FA";
 import PopUp from "../PopUp/PopUp";
-import PseudoButton from "./PseudoButton/PseudoButton";
-import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 
 import './Profile.css';
-import { PerfectContext } from "../../contexts/PerfectContext";
 
 interface Props {
     onRouteChange: (route: string) => void;
 }
 
-export interface AvatarContextType {
+interface AvatarContextType {
     avatar: string;
     setAvatar: (avatar: string) => void;
 }
 
-export interface PseudoContextType {
-    pseudo: string
-    setPseudo: (pseudo: string) => void;
-}
-
-export interface LeaderContextType {
-    smallLeader: boolean
-    setSmallLeader: (smallLeader: boolean) => void;
-    greatLeader: boolean
-    setGreatLeader: (greatLeader: boolean) => void;
-}
-
-export interface PerfectContextType {
-    perfectWin: boolean
-    setPerfectWin: (perfectWin: boolean) => void;
-    perfectLose: boolean
-    setPerfectLose: (perfectLose: boolean) => void;
-}
-
-interface Achievement {
-    id: number;
-    name: string;
-    description: string;
-    difficulty: number;
-    isHidden: boolean;
-    createdAt: Date;
- }
- 
- interface UserAchievement {
-    userId: number;
-    achievement: Achievement;
- }
-
-interface AchievementsListContextType {
-    achievementsList: UserAchievement[];
-    setAchievementsList: (achievementsList: UserAchievement[]) => void;
-}
-
-type GameResult = {
-    winnerId: number
-    createdAd: Date
-};
-   
-type Game = {
-    gameResult: GameResult;
-};
-
 const Profile: React.FC<Props> = () => {
     const [profileInfos, setProfileInfos] = useState(null);
-    const [currentPopup, setCurrentPopup] = useState({
-        'Newwww Avatar': false,
-        'Newwww Pseudo': false,
-        '3 total': false,
-        '10 total': false,
-        '100 total': false,
-        'First Game': false,
-        'You\'re getting used to Pong': false,
-        'You\'re playing a lot': false,
-        '3': false,
-        '10': false,
-        '100': false,
-        'Small Leader': false,
-        'Great Leader': false,
-        'Perfect win': false,
-        'You\'re a looser': false,
-    });
-    const [popupQueue, setPopupQueue] = useState([]);
+    const [isPopupVisible, setPopupVisible] = useState(false);
+    //const [avatar, setAvatar] = useState<string | undefined>();
     const { userId } = useParams();
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
-    const { setAchievementsList } = useContext(AchievementsListContext) as AchievementsListContextType;
-    const { pseudo, setPseudo } = useContext(PseudoContext) as PseudoContextType;
-    const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
-    const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType;
 
-    const gamesWonFunc = ( userId: string, games: Game[] ): number => {
-        let gamesWon = 0;
-        games.map(game => {
-            if (game.game.winnerId == userId) {
-                gamesWon++;
-            }
-        });
-        return gamesWon;
-    };
-
-    const showPopup = (popup) => {
-        setCurrentPopup(prevPopup => ({
-            ...prevPopup,
-            [popup]: true
-        }));
-        setPopupQueue(prevQueue => [...prevQueue, popup]);
-    }
-
-    const gamesWonInARowFunc = (userId: string, games): number => {
-        games.sort((a, b) => new Date(a.game.createdAt).getTime() - new Date(b.game.createdAt).getTime());
-
-        let maxConsecutiveWins = 0;
-        let currentConsecutiveWins = 0;
-
-        games.forEach((game) => {
-            if (userId == game.game.winnerId) {
-                currentConsecutiveWins++;
-                maxConsecutiveWins = Math.max(maxConsecutiveWins, currentConsecutiveWins);
-            } else {
-                currentConsecutiveWins = 0;
-            }
-        });
-
-        return maxConsecutiveWins;
-    };
-
-    const requestOptionsAchievements = useCallback(({ achievementName, data }) => {
-        if (data !== undefined) {
-            const requestOptionsGame = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId: Number(userId), achievementId: data.achievements[achievementName].id }),
-            }
-            return requestOptionsGame;
-        }
-     }, [userId]);
-     
-     const addAchievement = useCallback(( requestOptions ) => {
-        console.log("3", requestOptions);
-        return fetch(`http://localhost:3000/api/profile/${userId}/add-achievement-to-user`, requestOptions)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error');
-                }
-                return response.json();
-            })
-            .then((data) => {
-                console.log('Success:', data);
-                return fetch(`http://localhost:3000/api/profile/${userId}/achievements`)
-                    .then(response => response.json())
-                    .then(data => {
-                       setAchievementsList(data);
-                    });
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-     }, [userId, setAchievementsList]);
-
-     // Only with SQLite ? For Postgresql might need to change concurrency limite or pool size
-     const queue = async.queue((task, callback) => {
-        addAchievement(task.requestOptions)
-         .then(data => {
-           callback(null, data);
-         })
-         .catch(error => {
-           callback(error);
-         });
-       }, 1); // Set concurrency limit to 1
- 
     useEffect(() => {
-        const fetchData = async () => {
-            const response = await fetch(`http://localhost:3000/api/profile/${userId}`);
-            const data = await response.json();
-            if (data.avatar !== avatar) {
-                setAvatar(`http://localhost:3000/static/${data.avatar}`);
-            }
-            if (data.pseudo !== pseudo) {
-                setPseudo(data.pseudo);
-            }
-            setProfileInfos(prevState => {
-                if (JSON.stringify(data) !== JSON.stringify(prevState)) {
-                    return data;
+        fetch(`http://localhost:3000/api/profile/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.avatar) {
+                    console.log("1");
+                    setAvatar(`http://localhost:3000/static/${data.avatar}`);
                 }
-                return prevState;
-            });
-
-            if (data !== null) {
-                const handleAchievement = (achievementName: string) => {
-                    showPopup(achievementName);
-                    const requestOptions = requestOptionsAchievements({achievementName: achievementName, data});
-                    queue.push({ requestOptions });
-                };
-
-                const gamesWon = gamesWonFunc(userId, data?.gamesParticipated);
-                if (gamesWon >= 3 && data?.achievements['3 total'].users.length === 0) {
-                    handleAchievement('3 total');
-                }
-                if (gamesWon >= 10 && data?.achievements['10 total'].users.length === 0) {
-                    handleAchievement('10 total');
-                }
-                if (gamesWon >= 100 && data?.achievements['100 total'].users.length === 0) {
-                    handleAchievement('100 total');
-                }
-
-                const gamesWonInARow = gamesWonInARowFunc(userId, data?.gamesParticipated);
-                if (gamesWonInARow >= 3 && data?.achievements['3'].users.length === 0) {
-                    handleAchievement('3');
-                }
-                if (gamesWonInARow >= 3 && data?.achievements['10'].users.length === 0) {
-                    handleAchievement('10');
-                }
-                if (gamesWonInARow >= 3 && data?.achievements['100'].users.length === 0) {
-                    handleAchievement('100');
-                }
-
-                const gameParticipations = data?.gamesParticipated.length;
-                let inc = 0;
-                if (gameParticipations >= 1 && data?.achievements['First Game'].users.length === 0) {
-                    inc++;
-                    console.log("inc", inc);
-                    handleAchievement('First Game');
-                }
-                if (gameParticipations >= 10 && data?.achievements['You\'re getting used to Pong'].users.length === 0) {
-                    handleAchievement('You\'re getting used to Pong');
-                }
-                if (gameParticipations >= 100 && data?.achievements['You\'re playing a lot'].users.length === 0) {
-                    handleAchievement('You\'re playing a lot');
-                }
-
-                // if (smallLeader && data?.achievements['Small Leader'].users.length === 0) {
-                //     handleAchievement('Small Leader');
-                // }
-                // if (greatLeader && data?.achievements['Great Leader'].users.length === 0) {
-                //     handleAchievement('Great Leader');
-                // }
-
-                // if (perfectWin && data?.achievements['Perfect win'].users.length === 0) {
-                //     handleAchievement('Perfect win');
-                // }
-                // if (perfectLose && data?.achievements['You\'re a looser'].users.length === 0) {
-                //     handleAchievement('You\'re a looser');
-                // }
-                //TODO: New level, Level 21, You like to talk?, Chatterbox
-            }
-        };
-        fetchData();
-    }, []);
+                console.log("2");
+                setProfileInfos(data);
+            })
+    }, [userId, setAvatar]);
 
     const handleUploadAvatar = (e) => {
         e.preventDefault();
@@ -277,83 +57,81 @@ const Profile: React.FC<Props> = () => {
             body: formData
         }
 
-        fetch(`http://localhost:3000/api/profile/${userId}/add-avatar`, requestOptions)
+        fetch(`http://localhost:3000/api/profile/${userId}`, requestOptions)
             .then(response => response.json())
             .then(data => {
                 setAvatar(`http://localhost:3000/static/${data.avatar}`)
-                if (!profileInfos?.avatar) {
-                    showPopup('Newwww Avatar');
-                    const requestOptions2 = requestOptionsAchievements({achievementName: "Newwww Avatar", data});
-                    addAchievement(requestOptions2);
-                }
+                setPopupVisible(true);
             })
     }
 
-    const handleChangePseudo = async (e) => {
-        e.preventDefault();
-
-        const pseudo = (e.target.elements as HTMLFormControlsCollection)['outlined-basic'].value;
-        const data = { pseudo: pseudo };
-
-        fetch(`http://localhost:3000/api/profile/${userId}/change-pseudo`, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(result => {
-            setPseudo(result.pseudo);
-            if (profileInfos.achievements["Newwww Pseudo"].users.length === 0) {
-                showPopup('Newwww Pseudo');
-                const requestOptions = requestOptionsAchievements({achievementName: "Newwww Pseudo", data});
-                addAchievement(requestOptions);
-            }
-            console.log('Success:', result);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-
     const closePopup = () => {
-        setPopupQueue(prevQueue => {
-            const firstItem = prevQueue[0];
-            setCurrentPopup(prevPopup => ({
-                ...prevPopup,
-                [firstItem]: false
-            }));
-            return prevQueue.slice(1)
-        });
+        setPopupVisible(false);
     };
 
     return (
         <>
-            <div className="overlay" style={{ display: currentPopup['Newwww Avatar'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Newwww Pseudo'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['3 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['10 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['100 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['First Game'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re getting used to Pong'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re playing a lot'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['3'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['10'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['100'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Small Leader'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Great Leader'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Perfect win'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re a looser'] ? 'block': 'none' }}></div>
+            <div className="overlay" style={{ display: isPopupVisible ? 'block': 'none' }}></div>
             <div className="Profile">
-                {popupQueue.length > 0 && <PopUp userId={Number(userId)} infos={profileInfos?.achievements[popupQueue[0]]} onClose={closePopup}/>}
-                <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
-                <PseudoButton handleChangePseudo={handleChangePseudo} />
+                {isPopupVisible && <PopUp title="New achievement Unlocked: Newwww Avatar" description="Congrats, you've just changed you're avatar for the very first time!" onClose={closePopup}/>}
+                <Avatar
+                    alt="Avatar"
+                    src={avatar || default_avatar}
+                    sx={{
+                        width: '6vh',
+                        height: '6vh'
+                    }}
+                />
+                <Button
+                    variant="text"
+                    sx={{ 
+                        fontSize: '1em', 
+                        marginTop: '1.5vh',
+                        fontWeight: '900',
+                        color: "#F8A38B",
+                    }}
+                    onClick={() => (document.getElementById('fileInput') as HTMLElement).click()}
+                >
+                    CHANGE AVATAR 
+                </Button>
+                <input
+                    type="file"
+                    id="fileInput"
+                    style={{ display: 'none' }}
+                    onChange={handleUploadAvatar}
+                />
+                <TextField 
+                    id="outlined-basic" 
+                    label="Change pseudo"
+                    InputLabelProps={{
+                        style: { 
+                            color: '#7638C7', 
+                            fontSize: '1em', 
+                        }
+                    }}
+                    variant="outlined"
+                    placeholder={`${profileInfos?.pseudo ?? ''}`}
+                    sx={{
+                        color: '#9747FF',
+                        marginTop: '3vh',
+                        width: '35vw',
+                        minWidth: '200px',
+                        maxWidth: '300px',
+                        '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                            borderRadius: '20px',
+                            border: '3px solid #9747FF',
+                            //   backgroundColor: "#F8A38B",
+                            },
+                            '&:hover fieldset': {
+                                border: '4px solid #7638C7'
+                            },
+                            '&.Mui-focused fieldset': {
+                                border: '4px solid #7638C7'
+                            },
+                        },
+                    }}
+                />
                 <Switch2FA />
                 <Ladder />
                 <Stats />

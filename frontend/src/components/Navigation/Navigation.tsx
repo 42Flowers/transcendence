@@ -5,7 +5,6 @@ import default_avatar from "../../assets/images/default_avatar.png";
 import { AvatarContext } from "../../contexts/AvatarContext";
 
 import './Navigation.css';
-import { useAuthContext } from "../../contexts/AuthContext";
 
 interface Props {
     // onRouteChange: (route: string) => void;
@@ -20,7 +19,6 @@ interface AvatarContextType {
 const Navigation: React.FC<Props> = ({ /*onRouteChange,*/ isSignedIn }) => {
     const navigate = useNavigate();
     const [avatarEl, setAvatarEl] = React.useState<HTMLDivElement | null>(null);
-    const { signOut } = useAuthContext();
 
     const { avatar } = useContext(AvatarContext) as AvatarContextType;
 
@@ -41,7 +39,7 @@ const Navigation: React.FC<Props> = ({ /*onRouteChange,*/ isSignedIn }) => {
         return (
             <>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" style={{padding: '5px'}}>
-                    <p onClick={() => navigate('/')} className="logo">
+                    <p onClick={() => navigate('/pong')} className="logo">
                         PONG
                     </p>
                     <Avatar aria-describedby={id} alt="Avatar" onClick={handleAvatarClick} src={avatar || default_avatar} style={{margin: '5px 10px'}}/>
@@ -85,14 +83,6 @@ const Navigation: React.FC<Props> = ({ /*onRouteChange,*/ isSignedIn }) => {
                         <ListItem disablePadding>
                             <ListItemButton onClick={() => navigate('/chat')}>
                                 <ListItemText primary="Chat" />
-                            </ListItemButton>
-                        </ListItem>
-
-                        <Divider />
-
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={signOut}>
-                                <ListItemText primary="Log Out" />
                             </ListItemButton>
                         </ListItem>
                         

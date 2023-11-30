@@ -20,20 +20,7 @@ import { MailModule } from 'src/mail/mail.module';
     ],
     imports: [
         MailModule,
-        ConfigModule.forRoot({
-            isGlobal: true,
-        }),
         FortyTwoModule,
-        JwtModule.registerAsync({
-            useFactory: (config: ConfigService) => ({
-                secret: config.getOrThrow<string>('JWT_SECRET'),
-                global: true,
-                signOptions: {
-
-                },
-            }),
-            inject: [ ConfigService ],
-        }),
     ]
 })
 export class AuthModule {}

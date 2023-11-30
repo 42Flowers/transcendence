@@ -1,9 +1,11 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
 import { RoomService } from '../rooms/DBrooms.service';
 import { ChatService } from './DBchat.service';
-
+import { AuthGuard } from '../auth/auth.guard';
+import { Request as ExpressRequest } from 'express';
 
 @Controller("chat")
+@UseGuards(AuthGuard)
 export class ChatController {
 
     constructor(
@@ -16,10 +18,10 @@ export class ChatController {
      */
     @Get('get-channels')
     async getChannels( 
-		@Body() userId: number
+		@Request() req: ExpressRequest
 	) {
 		try {
-			const rooms = await this.roomService.getPublicRooms(userId);
+			const rooms = await this.roomService.getPublicRooms(Number(req.user.sub));
 			return rooms;
 		} catch (error) {
 			console.log(error.message);

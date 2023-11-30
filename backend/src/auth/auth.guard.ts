@@ -3,31 +3,49 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 
-// @Injectable()
-// export class AuthGuard implements CanActivate {
-//     constructor(private jwtService: JwtService) {}
+/**
+ * The user token payload directly extracted from the JWT token
+ */
+interface UserPayload {
+    /**
+     * The user ID as a string.
+     */
+    sub: string;
+}
 
-//     async canActivate(context: ExecutionContext): Promise<boolean> {
-//         const request = context.switchToHttp().getRequest();
-//         const token = this.extractTokenFromHeader(request);
+declare global {
+    namespace Express {
+        export interface Request {
+            user?: UserPayload;
+        }
+    }
+}
 
-//         if (!token) {
-//             throw new UnauthorizedException();
-//         }
+@Injectable()
+export class AuthGuard implements CanActivate {
+    constructor(private jwtService: JwtService) {}
 
-//         try {
-//             const payload = await this.jwtService.verifyAsync(token);
+    async canActivate(context: ExecutionContext): Promise<boolean> {
+        const request = context.switchToHttp().getRequest();
+        const token = this.extractTokenFromHeader(request);
 
-//             // request['user'] = payload;
-//         } catch {
-//             throw new UnauthorizedException();
-//         }
+        if (!token) {
+            throw new UnauthorizedException();
+        }
 
-//         return true;
-//     }
+        try {
+            const payload = await this.jwtService.verifyAsync(token);
+
+            request['user'] = payload;
+        } catch {
+            throw new UnauthorizedException();
+        }
+
+        return true;
+    }
     
-//     private extractTokenFromHeader(request: Request) {
-//         const [ type, token ] = request.headers.authorization?.split(' ') ?? [];
-//         return type === 'Bearer' ? token : undefined;
-//     }
-// }
+    private extractTokenFromHeader(request: Request) {
+        const [ type, token ] = request.headers.authorization?.split(' ') ?? [];
+        return type === 'Bearer' ? token : undefined;
+    }
+}

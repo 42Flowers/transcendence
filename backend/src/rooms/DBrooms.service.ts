@@ -305,15 +305,12 @@ export class RoomService {
 
 	async getPublicRooms(userId: number) : Promise<any> {
 		try {
-			const id :number = userId;
 			const channels =  await this.prismaService.channel.findMany({
 				where: {
 					accessMask: 1,
 					memberships: {
 						none: {
-							userId: {
-								equals: id,
-							},
+							userId,
 						},
 					},
 				},

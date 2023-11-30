@@ -45,9 +45,17 @@ export class RoomService {
 	async joinByInvite(userId: number, channelId: number, channelName: string) {
 		return await this.prismaService.channelMembership.create({
 			data: {
+				channel: {
+					connect: {
+						id: channelId,
+					}
+				},
 				channelName: channelName,
-				userId: userId,
-				channelId: channelId,
+				user : {
+					connect: {
+						id: userId,
+					}
+				},
 				permissionMask: 1
 			}
 		});
@@ -81,8 +89,16 @@ export class RoomService {
 			try {
 				const channelMembership = await this.prismaService.channelMembership.create({
 				data: {
-					userId: userId, 
-					channelId: channelId,
+					user : {
+						connect: {
+							id: userId,
+						},
+					},
+					channel: {
+						connect : {
+							id: channelId,
+						},
+					},
 					channelName: roomname,
 					permissionMask: 1
 					}
@@ -288,13 +304,24 @@ export class RoomService {
 	}
 
 	async getPublicRooms(userId: number) : Promise<any> {
-		return await this.prismaService.channel.findMany({
-			where: {
-				accessMask: 1,
-				memberships : {
-					none: { userId: userId, },
+		try {
+			const id :number = userId;
+			const channels =  await this.prismaService.channel.findMany({
+				where: {
+					accessMask: 1,
+					memberships: {
+						none: {
+							userId: {
+								equals: id,
+							},
+						},
+					},
 				},
-			},
-		});
+			});
+			console.log(channels);
+			return channels;
+		} catch (err) {
+			throw (new Error(err.message));
+		}
 	}
 }

@@ -1,7 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UsersService } from '../users_chat/DBusers.service';
 import { RoomService } from '../rooms/DBrooms.service';
-import { SocketGateway } from '../socket/socket.gateway'
 import { MessagesService } from '../messages/messages.service'
 import { ConversationsService } from '../conversations/conversations.service'
 import { SocketService } from 'src/socket/socket.service';

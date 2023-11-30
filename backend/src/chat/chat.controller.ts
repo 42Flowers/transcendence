@@ -18,23 +18,37 @@ export class ChatController {
     async getChannels( 
 		@Body() userId: number
 	) {
-		return this.roomService.getPublicRooms(userId);
+		try {
+			const rooms = await this.roomService.getPublicRooms(userId);
+			return rooms;
+		} catch (error) {
+			console.log(error.message);
+		}
     }
 
 	@Post('join-channel')
 	async joinChannel(
 		@Body() data: {userId: number, type: string, roomname: string, roomId: number, option: any}
 	) {
-		console.log(await this.chatService.chatRoom(data));
-		return 'worked';
+		try {
+			console.log(await this.chatService.chatRoom(data));
+			return 'worked';
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@Get('private-conv')
 	async privateMessages(
 		@Body() data: {userId: number, targetId: number}
 	) {
-		console.log('passe ici');
-		return await this.chatService.getPrivateConversations(data.userId, data.targetId);
+		try {
+			console.log('passe ici');
+			const conversations = await this.chatService.getPrivateConversations(data.userId, data.targetId);
+			return conversations;
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
     // /**

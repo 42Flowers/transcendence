@@ -9,17 +9,14 @@ import {
 	WebSocketGateway,
 	WebSocketServer
 } from "@nestjs/websockets";
-import { Body, forwardRef, Inject, Injectable } from "@nestjs/common";
-import { ChatService } from "src/chat/DBchat.service";
+import { Injectable } from "@nestjs/common";
 import { SocketService } from "./socket.service";
-import { RoomService } from "src/rooms/DBrooms.service";
 import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
 import { ChatUserBlockEvent } from "src/events/chat/userBlock.event";
 import { ChatUserUnBlockEvent } from "src/events/chat/userUnBlock.event";
 import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
-import { ChatMessageEvent } from "src/events/chat/message.event";
 import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
 import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
 import { GameKeyUpEvent } from "src/events/game/keyUp.event";

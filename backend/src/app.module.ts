@@ -16,7 +16,7 @@ import { JwtModule } from '@nestjs/jwt';
     AuthModule,
     GameModule,
     SocketModule,
-  	ChatModule,
+	  ChatModule,
     ProfileModule,
     FriendsModule,
     TestModule,

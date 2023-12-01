@@ -23,6 +23,19 @@ import { GameKeyUpEvent } from "src/events/game/keyUp.event";
 import { GameKeyDownEvent } from "src/events/game/keyDown.event";
 import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.event";
 import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
+import { JwtService } from "@nestjs/jwt";
+
+type Connected = {
+	[k: string]: Socket[];
+};
+
+declare module 'socket.io' {
+	interface Socket {
+		user: {
+			sub: string;
+		}
+	}
+}
 
 @Injectable()
 @WebSocketGateway({
@@ -37,13 +50,16 @@ export class SocketGateway implements
 {
 
 	sockets: Socket[] = [];
+
+	lesGensOnline: Connected = {};
 	
 	@WebSocketServer()
 	server: Server;
 
 	constructor(
 		private readonly socketService: SocketService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly jwtService: JwtService,
 		) {}
 
 	afterInit() {
@@ -51,13 +67,53 @@ export class SocketGateway implements
 	}
 
 	async handleConnection(client: Socket, ...args: any[]) {
-		console.log(`Client connected: ${client.id}`);
-		//TODO rajouter socket pour chaque user, utiliser le token, trouver le moyen de le passe dans le header
+		const { authorization: token } = client.handshake.headers;
+		let payload;
+
+		try {
+			payload = await this.jwtService.verifyAsync(token);
+		} catch {
+			console.warn('Socket %s disconnected : invalid authentication', client.id);
+			client.disconnect(true);
+			return ;
+		}
+
+		client.user = payload;
+
+		const userId = payload.sub as string;
+
+		if (!(userId in this.lesGensOnline)) {
+			this.lesGensOnline[userId] = [];
+		}
+		
+		this.lesGensOnline[userId].push(client);
+		
+		console.log(`Client connected: ${client.id} user : ${payload.sub}`);
 		client.join('server');
 		// this.socketService.addSocket(token.id, client);
+		console.log('C', Object.keys(this.lesGensOnline));
+
 	}
 
 	async handleDisconnect(client: Socket) {
+		const { sub } = client.user;
+
+		if (sub) {
+			
+			if (sub in this.lesGensOnline) {
+				const sockList = this.lesGensOnline[sub];
+
+				const idx = sockList.findIndex(e => e === client);
+				sockList.splice(idx, 1);
+
+				if (sockList.length === 0) {
+					delete this.lesGensOnline[sub];
+				}
+			}
+		}
+
+		console.log('D', Object.keys(this.lesGensOnline));
+
 		console.log(`Client disconnected: ${client.id}`);
 		client.leave('server');
 		// this.socketService.removeSocket(token.id, client);

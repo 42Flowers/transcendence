@@ -3,6 +3,7 @@ import { RoomService } from '../rooms/DBrooms.service';
 import { ChatService } from './DBchat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { Request as ExpressRequest } from 'express';
+import { UsersService } from 'src/users_chat/DBusers.service';
 
 @Controller("chat")
 @UseGuards(AuthGuard)
@@ -10,7 +11,8 @@ export class ChatController {
 
     constructor(
         private readonly roomService: RoomService,
-		private readonly chatService: ChatService
+		private readonly chatService: ChatService,
+		private readonly userService: UsersService
     ) {}
 
     /**
@@ -33,7 +35,8 @@ export class ChatController {
 		@Body() data: {userId: number, type: string, roomname: string, roomId: number, option: any}
 	) {
 		try {
-			console.log(await this.chatService.chatRoom(data));
+			// console.log(await this.chatService.chatRoom(data));
+			console.log(await this.chatService.chatRoom({userId: 2, type: 'join', roomname: 'chan', roomId: 1, option: ''}));
 			return 'worked';
 		} catch (err) {
 			console.log(err.message);
@@ -51,6 +54,14 @@ export class ChatController {
 		} catch (err) {
 			console.log(err.message);
 		}
+	}
+
+	@Get('get-friends')
+	async getFriends(
+		@Body() userId: number
+	) {
+		try {this.userService.getFriends(userId)}
+		catch (err) {console.log(err.message)}
 	}
 
     // /**

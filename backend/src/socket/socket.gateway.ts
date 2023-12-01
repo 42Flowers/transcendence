@@ -21,6 +21,8 @@ import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
 import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
 import { GameKeyUpEvent } from "src/events/game/keyUp.event";
 import { GameKeyDownEvent } from "src/events/game/keyDown.event";
+import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.event";
+import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
 
 @Injectable()
 @WebSocketGateway({
@@ -70,17 +72,15 @@ export class SocketGateway implements
 		});
 	}
 
-	sendPrivateMessage = (userId: number, type : string, data: any) => {
-		const sockets = this.socketService.getSockets(userId);
-		sockets.map((sock) => {
-			this.server.to(sock.id).emit('message', {type, from: data.from, to : data.to, message: data.message});
-			//TODO ne pas oublier de transmettre le moment ou le message a été invoyé aussi. Genre le DTO
-		});
+	@OnEvent('chat.sendprivatemessage')
+	sendPrivateMessage(event: ChatSendPrivateMessageEvent) {
+		this.server.to(event.conversationName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
 	}
 
-	sendChannelMessage = (userId: number, channelName: string, channelId: number, type: string, data: any) => {
+	@OnEvent('chat.sendchannelmessage')
+	sendChannelMessage(event: ChatSendChannelMessageEvent) {
+		this.server.to(event.channelName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
 	}
-
 	// CHAT EVENTS
 	
 	@SubscribeMessage('blockuser')

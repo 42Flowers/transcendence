@@ -38,16 +38,6 @@ export class UsersService {
 	}
 
 
-	// async addFriend(userId: number, friendId: number) : Promise<any> {
-	// 		const friendship1 = await this.prismaService.friendship.createMany({
-	// 			data:
-	// 				{userId_friendId: {userId: userId, friendId: friendId}},
-	// 				{userId_friendId: {userId: friendId, friendId: userId}},
-	// 		});
-	// 		return friendship;
-	// }
-
-
 	async removeFriend(userId: number, friendId: number) : Promise<any> {
 		try {
 			const friendship =  await this.prismaService.friendship.delete({
@@ -83,27 +73,6 @@ export class UsersService {
 		}
 	}
 
-	// async addUser(socket: Socket, name: string,) : Promise<any> { //! revoir ça ++ utilsier socket service
-	// 	const newUser = await this.prismaService.user.create({
-	// 		data: {
-	// 			name: name
-	// 		}
-	// 	});
-	// 	// this.connectedUsers.map((obj) => {
-	// 	// 	if (obj.userId === newUser.id) {
-	// 	// 		return;
-	// 	// 	}
-	// 	// 	else {
-	// 	// 		this.connectedUsers.push({userId: newUser.id, sockets: []});
-	// 	// 		this.connectedUsers.map((obj) => { 
-	// 	// 			if (obj.userId === newUser.id) { 
-	// 	// 				obj.sockets.push(socket);
-	// 	// 		}});
-	// 	// 	}
-	// 	// })
-	// 	return newUser;
-	// }
-
 	async getUsers() {
 		try {
 			const user = await this.prismaService.user.findMany({select: {}});
@@ -123,15 +92,6 @@ export class UsersService {
 			throw (new Error(err.message));
 		}
 	}
-
-	// async alreadyRegisterdByName(name: string) : Promise<any> { //essayer si je dois utiliser select ou pas
-	// 	return this.prismaService.user.findUnique({
-	// 		where: {
-	// 			name: name
-	// 		},
-	// 		select: {}
-	// 	});
-	// }
 
 	async alreadyRegisterdById(id: number) : Promise<any> {
 		try {
@@ -176,14 +136,6 @@ export class UsersService {
 		}
 	}
 
-	// async getUserbyName(name: string): Promise<any> {
-	// 	return this.prismaService.user.findUnique({
-	// 		where: {
-	// 			name: name
-	// 		}
-	// 	})
-	// }
-
 	async isUserBlocked(userId: number, targetId: number) : Promise<any> {
 		try {
 			const blocked = await this.prismaService.blocked.findUnique({
@@ -226,5 +178,11 @@ export class UsersService {
 		} catch (err) {
 			throw (new Error(err.message));
 		}
+	}
+
+	async getFriends(userId: number) {
+		try {
+			return await this.prismaService.friendship.findMany({where: {userId: userId}});
+		} catch (err) {throw err}
 	}
 }

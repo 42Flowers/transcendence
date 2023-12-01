@@ -84,4 +84,18 @@ export class ConversationsService {
 			throw new Error(err.message);
 		}
 	}
+
+	async getAllUserConversations(userId: number) : Promise<any> {
+		try {
+			const conversations = await this.prismaService.user.findUnique({
+				where: {
+					id: userId,
+				},
+				include : {userConversations:true}
+			});
+			console.log(conversations.userConversations);
+			console.log("coucou");
+			return conversations.userConversations;
+		} catch (err) {throw err}
+	}
 }

@@ -306,7 +306,7 @@ export class ChatService {
 	
 	}
 
-	async getPrivateConversations(
+	async getPrivateConversation(
 		userId: number,
 		targetId: number
 	){

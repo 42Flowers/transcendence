@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { SocketAddress } from 'net';
 import { Socket } from 'socket.io';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -16,7 +15,6 @@ export class SocketService {
 		) {}
 
 	connectedusers : connectedUsers[] = [];
-	
 
 	getSockets(userId: number) : Socket[] {
 		this.connectedusers.map((obj) => {

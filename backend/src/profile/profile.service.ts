@@ -150,6 +150,18 @@ export class ProfileService {
         return matchHistory;
     }
 
+    async getStats(userId: number): Promise<any> {
+        const gameParticipations = await this.prisma.gameParticipation.findMany({
+            where: {
+                userId: userId,
+            },
+            include: {
+                game: true,
+            },
+        });
+        return gameParticipations;
+    }
+
     async getLadder(): Promise<any> {
         const allUsers = await this.prisma.user.findMany({
             select: {

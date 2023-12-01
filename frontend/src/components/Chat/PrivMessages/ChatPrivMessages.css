@@ -1,15 +1,15 @@
-.chat-friends {
+.chat-priv-messages {
 	width: 20%;
 	height: 100%;
 }
 
-.chat-friends .title {
+.chat-priv-messages .title {
 	height: 10%;
     border: 2px solid white;
     background: linear-gradient(to left, #BF9CE8 10%, #FFEA95 100%) no-repeat;
 }
 
-.chat-friends h3 {
+.chat-priv-messages h3 {
 	padding: 10px;
 	align-items:center;
     justify-content: center;
@@ -18,11 +18,11 @@
 	margin-bottom: 4%;
 }
 
-.chat-friends li {
+.chat-priv-messages li {
     width: 100%;
 }
 
-.chat-friends .friends-button {
+.chat-priv-messages .priv-messages-button {
     font-family: "Short Stack";
 	margin: 2px;
 	border: 2px solid white;
@@ -35,11 +35,11 @@
     cursor: pointer;
 }
 
-.chat-friends .friends-button:hover {
+.chat-priv-messages .priv-messages-button:hover {
 	font-size: 1.2em;
 }
 
-.chat-friends .display-friends {
+.chat-priv-messages .display-priv-messages {
     border: 2px solid white;
 	height: 75%;
 	overflow: hidden;
@@ -47,11 +47,11 @@
     overflow-y: scroll;
 }
 
-.chat-friends .add-friend {
+.chat-priv-messages .add-priv-messages {
 	height: 15%;
 }
 
-.chat-friends .add-friend input {
+.chat-priv-messages .add-priv-messages input {
     font-family: "Short Stack";
 	text-align: center;
 	height: 50%;
@@ -62,7 +62,7 @@
 	color: white;
 }
 
-.chat-friends .add-friend button {
+.chat-priv-messages .add-priv-messages button {
     cursor: pointer;
     font-family: "Short Stack";
 	display: block;
@@ -75,6 +75,6 @@
 	font-size: 1.2em;
 }
 
-.chat-friends .add-friend button:hover {
+.chat-priv-messages .add-priv-messages button:hover {
 	font-size: 1.4em;
 }

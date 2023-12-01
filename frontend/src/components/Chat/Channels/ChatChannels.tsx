@@ -1,6 +1,22 @@
 import './ChatChannels.css';
 import React, { useState } from 'react';
 
+interface channelElem {
+	channelId: number,
+	channelName: string,
+	userPermissionMask: number,
+}
+
+interface privMessageElem {
+	targetId: number,
+	targetName: string,
+}
+
+interface channelsProp {
+	channels: channelElem[],
+	handleClickConv: (conv: channelElem | privMessageElem | null) => void,
+}
+
 const AddChannel: React.FC = () => {
 	const [chanName, setChanName] = useState<string>("");
 	const [chanPwd, setChanPwd] = useState<string>("");
@@ -36,14 +52,10 @@ const AddChannel: React.FC = () => {
 	)
 }
 
-interface channelsProp {
-	channels: string[];
-}
-
-const DisplayChannels: React.FC<channelsProp> = ({ channels }) => {
+const DisplayChannels: React.FC<channelsProp> = ({ channels, handleClickConv }) => {
 	let listChannels = channels.map((channel) => 
-		<li key={ channel }>
-			<button className='channels-button'>{ channel }</button>
+		<li key={ channel.channelId }>
+			<button className='channels-button' onClick={() => handleClickConv(channel)}>{ channel.channelName }</button>
 		</li>
 	);
 
@@ -54,21 +66,15 @@ const DisplayChannels: React.FC<channelsProp> = ({ channels }) => {
 	)
 }
 
-const ChatChannels: React.FC = () => {
-	
-
-	// const channels = ["General", "Gaming", "Coding chat lol", "test","General", "Gaming", "Coding chat lol", "test","General", "Gaming", "Coding chat lol", "test","General", "Gaming", "Coding chat lol", "test","General", "Gaming", "Coding chat lol", "test","General", "Gaming", "Coding chat lol", "test"]
-	const channels = ["General", "Gaming", "Coding chat lol"]
-
-	// Get list of subsribed channel for the current user
+const ChatChannels: React.FC<channelsProp> = ({ channels, handleClickConv }) => {
 
 	return (
 		<div className='chat-channels' >
 			<div className='title'>
 				<h3>Channels</h3>
 			</div>
-			{channels && <DisplayChannels channels={channels} />}
-			{!channels && <DisplayChannels channels={[]} />}
+			{channels && <DisplayChannels channels={channels} handleClickConv={handleClickConv} />}
+			{!channels && <DisplayChannels channels={[]} handleClickConv={handleClickConv} />}
 			<AddChannel />
 		</div>
 	);

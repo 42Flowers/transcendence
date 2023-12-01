@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 // import { Socket } from "socket.io-client";
 import SocketContext from "../Socket/Context/Context";
 import FriendsRequest from "./FriendsRequest";
-import Messages from "./Messages";
+import Messages from "./PrivMessages";
 import Rooms from "./Rooms";
 import UsersConnectedComponent from "./UsersConnectedComponent";
 import './chat.css';

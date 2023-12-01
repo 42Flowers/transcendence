@@ -402,7 +402,7 @@ export class RoomService {
 				where: {
 					accessMask: 1,
 					memberships: {
-						none: {
+						none: { //! Refaire ça pour que ça renvoie les channels dont on fait partie
 							userId,
 						},
 					},

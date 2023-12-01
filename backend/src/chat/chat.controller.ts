@@ -16,7 +16,7 @@ export class ChatController {
     ) {}
 
     /**
-     * @returns list of channels the user can join
+     * @returns list of channels the user can join, nom du channel, le channelId et les permissions que le user en question a dans le channel
      */
     @Get('get-channels')
     async getChannels( 
@@ -30,6 +30,12 @@ export class ChatController {
 		}
     }
 
+	/**
+	 * return : toutes les informations sur le channel, type messages, users et tout ça
+	 */
+	@Get('get-channel')
+	async getChannelContext() {}
+
 	@Post('join-channel')
 	async joinChannel(
 		@Body() data: {userId: number, type: string, roomname: string, roomId: number, option: any}
@@ -41,6 +47,16 @@ export class ChatController {
 		} catch (err) {
 			console.log(err.message);
 		}
+	}
+
+	/**
+	 * return id conversation et nom de la personne avec qui je discute
+	 */
+	@Get('get-conversations')
+	async getPrivateConversations(
+		@Body() userId: number
+	) {
+
 	}
 
 	@Get('private-conv')

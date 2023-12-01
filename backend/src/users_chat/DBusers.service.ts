@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Socket } from 'socket.io';
 import { SocketService } from 'src/socket/socket.service';
 
 
@@ -13,7 +12,8 @@ export class UsersService {
 		) {}
 
 	async areFriends(userId: number, friendId: number) : Promise<any> {
-		const friends = await this.prismaService.friendship.findUnique({
+		try {
+			const friends = await this.prismaService.friendship.findUnique({
 			where: {
 				userId_friendId: {
 					userId: userId,
@@ -32,147 +32,157 @@ export class UsersService {
 		}
 		else
 			return friends;
+		} catch (err) {
+			throw (new Error(err.message));
+		}
 	}
 
 
-	// async addFriend(userId: number, friendId: number) : Promise<any> {
-	// 		const friendship1 = await this.prismaService.friendship.createMany({
-	// 			data:
-	// 				{userId_friendId: {userId: userId, friendId: friendId}},
-	// 				{userId_friendId: {userId: friendId, friendId: userId}},
-	// 		});
-	// 		return friendship;
-	// }
-
-
 	async removeFriend(userId: number, friendId: number) : Promise<any> {
-		return await this.prismaService.friendship.delete({
+		try {
+			const friendship =  await this.prismaService.friendship.delete({
 			where: {
 				userId_friendId :{
 				userId: userId,
 				friendId: friendId
-			}}
-		});
-	}
-
-	async blockUser(userId: number, targetId: number) : Promise<any> {
-		return await this.prismaService.blocked.upsert({
-			where: {
-				userId_blockedId: {
-				userId: userId,
-				blockedId: targetId
-			}},
-			update: {},
-			create: {
-				userId: userId,
-				blockedId: targetId
-			}
-		});
-	}
-
-	// async addUser(socket: Socket, name: string,) : Promise<any> { //! revoir ça ++ utilsier socket service
-	// 	const newUser = await this.prismaService.user.create({
-	// 		data: {
-	// 			name: name
-	// 		}
-	// 	});
-	// 	// this.connectedUsers.map((obj) => {
-	// 	// 	if (obj.userId === newUser.id) {
-	// 	// 		return;
-	// 	// 	}
-	// 	// 	else {
-	// 	// 		this.connectedUsers.push({userId: newUser.id, sockets: []});
-	// 	// 		this.connectedUsers.map((obj) => { 
-	// 	// 			if (obj.userId === newUser.id) { 
-	// 	// 				obj.sockets.push(socket);
-	// 	// 		}});
-	// 	// 	}
-	// 	// })
-	// 	return newUser;
-	// }
-
-	async getUsers() {
-		return this.prismaService.user.findMany({select: {}});
-	}
-
-	async clearUsers() : Promise<any> {
-		this.prismaService.channelMembership.deleteMany({});
-		this.prismaService.friendship.deleteMany({});
-		this.socketService.deleteAllSockets();
-		return this.prismaService.user.deleteMany({});
-	}
-
-	// async alreadyRegisterdByName(name: string) : Promise<any> { //eessayer si je dois utiliser select ou pas
-	// 	return this.prismaService.user.findUnique({
-	// 		where: {
-	// 			name: name
-	// 		},
-	// 		select: {}
-	// 	});
-	// }
-
-	async alreadyRegisterdById(id: number) : Promise<any> {
-		return this.prismaService.user.findUnique({
-			where: {
-				id: id
-			}
-		});
-	}
-
-	async updateName(pseudo: string, id: number) : Promise<any> {
-		return this.prismaService.user.update({
-			where: {
-				id : id
-			},
-			data : {
-				pseudo: pseudo
-			}
-		});
-	}
-
-	async getUserById(id: number) : Promise<any> {
-		if (id != undefined) {
-			return this.prismaService.user.findUnique({
-				where: {id : id}
+				}}
 			});
+			return friendship;
+		} catch (err) {
+			throw (new Error(err.message));
 		}
 	}
 
-	// async getUserbyName(name: string): Promise<any> {
-	// 	return this.prismaService.user.findUnique({
-	// 		where: {
-	// 			name: name
-	// 		}
-	// 	})
-	// }
+	async blockUser(userId: number, targetId: number) : Promise<any> {
+		try {
+			const blocked = await this.prismaService.blocked.upsert({
+				where: {
+					userId_blockedId: {
+					userId: userId,
+					blockedId: targetId
+					}},
+				update: {},
+				create: {
+					userId: userId,
+					blockedId: targetId
+				}
+			});
+			return blocked;
+		} catch (err) {
+			throw (new Error(err.message));
+		}
+	}
+
+	async getUsers() {
+		try {
+			const user = await this.prismaService.user.findMany({select: {}});
+			return user;
+		} catch (err) {
+			throw (new Error(err.message));
+		}
+	}
+
+	async clearUsers() : Promise<any> {
+		try {
+			await this.prismaService.channelMembership.deleteMany({});
+			await this.prismaService.friendship.deleteMany({});
+			this.socketService.deleteAllSockets();
+			return this.prismaService.user.deleteMany({});
+		} catch (err) {
+			throw (new Error(err.message));
+		}
+	}
+
+	async alreadyRegisterdById(id: number) : Promise<any> {
+		try {
+			const user = await this.prismaService.user.findUnique({
+				where: {
+					id: id
+				}
+			});
+			return user;
+		}
+		catch (err) {
+			throw (new Error(err.message));
+		}
+	}
+
+	async updateName(pseudo: string, id: number) : Promise<any> {
+		try {
+			const user = await this.prismaService.user.update({
+				where: {
+					id : id
+				},
+				data : {
+					pseudo: pseudo
+				}
+			});
+			return user;
+		} catch (err) {
+			throw (new Error(err.message));
+		}
+	}
+
+	async getUserById(id: number) : Promise<any> {
+		try {
+			if (id != undefined) {
+				const user = await this.prismaService.user.findUnique({
+					where: {id : id}
+				});
+				return user;
+			}
+		} catch (err) {
+			throw (new Error(err.message));
+		}
+	}
 
 	async isUserBlocked(userId: number, targetId: number) : Promise<any> {
-		return await this.prismaService.blocked.findUnique({
-			where: {
-				userId_blockedId: {
-				userId: userId,
-				blockedId: targetId
-			}}
-		});
+		try {
+			const blocked = await this.prismaService.blocked.findUnique({
+				where: {
+					userId_blockedId: {
+					userId: userId,
+					blockedId: targetId
+				}}
+			});
+			return blocked;
+		} catch (err) {
+			throw (new Error(err.message));
+		}
 	}
 
 	async blockedByUser(userId: number, targetId: number) : Promise<any> {
-		return await this.prismaService.blocked.findUnique({
-			where: {
-				userId_blockedId : {
-				userId: targetId,
-				blockedId: userId
-			}}
-		}); 
+		try {
+			const blocked = await this.prismaService.blocked.findUnique({
+				where: {
+					userId_blockedId : {
+					userId: targetId,
+					blockedId: userId
+				}}
+			});
+			return blocked;
+		} catch (err) {
+			throw (new Error(err.message));
+		}
 	}
 
 	async unBlockUser(userId: number, targetId: number) : Promise<any> {
-		return await this.prismaService.blocked.delete({where: {
-			userId_blockedId: {
-				userId: userId,
-				blockedId: targetId
-			}
-		}});
+		try {
+			const blocked = await this.prismaService.blocked.delete({where: {
+				userId_blockedId: {
+					userId: userId,
+					blockedId: targetId
+				}
+			}});
+			return blocked;
+		} catch (err) {
+			throw (new Error(err.message));
+		}
 	}
 
+	async getFriends(userId: number) {
+		try {
+			return await this.prismaService.friendship.findMany({where: {userId: userId}});
+		} catch (err) {throw err}
+	}
 }

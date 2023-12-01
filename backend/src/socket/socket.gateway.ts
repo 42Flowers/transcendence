@@ -9,21 +9,20 @@ import {
 	WebSocketGateway,
 	WebSocketServer
 } from "@nestjs/websockets";
-import { Body, forwardRef, Inject, Injectable } from "@nestjs/common";
-import { ChatService } from "src/chat/DBchat.service";
+import { Injectable } from "@nestjs/common";
 import { SocketService } from "./socket.service";
-import { RoomService } from "src/rooms/DBrooms.service";
 import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
 import { ChatUserBlockEvent } from "src/events/chat/userBlock.event";
 import { ChatUserUnBlockEvent } from "src/events/chat/userUnBlock.event";
 import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
-import { ChatMessageEvent } from "src/events/chat/message.event";
 import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
 import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
 import { GameKeyUpEvent } from "src/events/game/keyUp.event";
 import { GameKeyDownEvent } from "src/events/game/keyDown.event";
+import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.event";
+import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
 
 @Injectable()
 @WebSocketGateway({
@@ -73,17 +72,15 @@ export class SocketGateway implements
 		});
 	}
 
-	sendPrivateMessage = (userId: number, type : string, data: any) => {
-		const sockets = this.socketService.getSockets(userId);
-		sockets.map((sock) => {
-			this.server.to(sock.id).emit('message', {type, from: data.from, to : data.to, message: data.message});
-			//TODO ne pas oublier de transmettre le moment ou le message a été invoyé aussi. Genre le DTO
-		});
+	@OnEvent('chat.sendprivatemessage')
+	sendPrivateMessage(event: ChatSendPrivateMessageEvent) {
+		this.server.to(event.conversationName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
 	}
 
-	sendChannelMessage = (userId: number, channelName: string, channelId: number, type: string, data: any) => {
+	@OnEvent('chat.sendchannelmessage')
+	sendChannelMessage(event: ChatSendChannelMessageEvent) {
+		this.server.to(event.channelName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
 	}
-
 	// CHAT EVENTS
 	
 	@SubscribeMessage('blockuser')

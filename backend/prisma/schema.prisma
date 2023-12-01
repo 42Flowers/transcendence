@@ -12,186 +12,192 @@ datasource db {
 }
 
 model Ticket {
-  id             Int      @id @default(autoincrement())
-  userId         Int
-  issuedAt       DateTime @default(now())
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  issuedAt DateTime @default(now())
 
-  user      User       @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id                   Int          @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  pseudo               String       @unique
-  email                String       @unique
-  emailVerified        Boolean      @default(false)
+  pseudo        String  @unique
+  email         String  @unique
+  emailVerified Boolean @default(false)
 
-  totpSecret           String?
-  totpEnabled          Boolean @default(false)
+  totpSecret  String?
+  totpEnabled Boolean @default(false)
 
   // The bcrypt password when using email & password login
-  password             String?
+  password String?
 
-  avatar               String?   /////////////////////////////////////////////////
+  avatar String? /////////////////////////////////////////////////
 
-  level                Int          @default(0)
-  experience           Float        @default(0)
+  level      Int   @default(0)
+  experience Float @default(0)
 
-  friends              Friendship[] @relation("users")
-  blocked	             Blocked[]    @relation("users")
-  befriendedBy         Friendship[] @relation("friends")
-  bannedBy	           Blocked[]    @relation("blocked")
+  friends      Friendship[] @relation("users")
+  blocked      Blocked[]    @relation("users")
+  befriendedBy Friendship[] @relation("friends")
+  bannedBy     Blocked[]    @relation("blocked")
 
-  gameParticipation    GameParticipation[]
+  gameParticipation GameParticipation[]
 
-  userConversations    UserConversation[]
+  userConversations UserConversation[]
 
-  channelMemberships   ChannelMembership[]
-  ownedChannels        Channel[]
+  channelMemberships ChannelMembership[]
+  ownedChannels      Channel[]
 
-  ftUser               FortyTwoUser?
-  tickets              Ticket[]
+  ftUser  FortyTwoUser?
+  tickets Ticket[]
 
-  achievements         UserAchievement[]
+  achievements UserAchievement[]
 }
 
 model Friendship {
+
+  status Int @default(0) //0 sender   /1 receiver  /2 accepted /3 blocked
+
+  userId   Int
+  friendId Int
+  user     User @relation("users", fields: [userId], references: [id])
+  friend   User @relation("friends", fields: [friendId], references: [id])
+
   @@id([userId, friendId])
-
-  status     Int      @default(0)   //0 sender   /1 receiver  /2 accepted /3 blocked
-
-  userId     Int
-  friendId   Int
-  user       User      @relation("users", fields: [userId], references: [id])
-  friend     User      @relation("friends", fields: [friendId], references: [id])
 }
 
 model Blocked {
-	@@id([userId, blockedId])
 
-	userId		 Int
-	blockedId	 Int
-	user       User		 @relation("users", fields: [userId], references: [id])
-	blocked		 User		 @relation("blocked", fields: [blockedId], references: [id])
+  userId    Int
+  blockedId Int
+  user      User @relation("users", fields: [userId], references: [id])
+  blocked   User @relation("blocked", fields: [blockedId], references: [id])
+
+  @@id([userId, blockedId])
 }
 
 model GameParticipation {
-  @@id([userId, gameId])
 
   opponentId Int
 
-  userId      Int
-  gameId      Int
-  user        User    @relation(fields: [userId], references: [id])
-  game        Game    @relation(fields: [gameId], references: [id])
+  userId Int
+  gameId Int
+  user   User @relation(fields: [userId], references: [id])
+  game   Game @relation(fields: [gameId], references: [id])
+
+  @@id([userId, gameId])
 }
 
 model Game {
-  id                  Int     @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  createdAt          DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  score1              Int
-  score2              Int
-  winnerId            Int
-  looserId            Int
-  gameParticipations  GameParticipation[]
+  score1             Int
+  score2             Int
+  winnerId           Int
+  looserId           Int
+  gameParticipations GameParticipation[]
 }
 
 model UserConversation {
+
+  receiverId Int
+
+  userId         Int
+  conversationId Int
+  user           User         @relation(fields: [userId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
   @@id([userId, conversationId])
-
-  receiverId        Int
-
-  userId            Int
-  conversationId    Int
-  user              User             @relation(fields: [userId], references: [id])
-  conversation      Conversation     @relation(fields: [conversationId], references: [id])
 }
 
 model Conversation {
-	id           Int      @id    @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  name		   String	@unique
-  messages     PrivateMessage[]
-  users        UserConversation[]
+  name     String             @unique
+  messages PrivateMessage[]
+  users    UserConversation[]
 }
 
 model PrivateMessage {
-  id               Int       @id   @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  authorId         Int
-  content          String
-  createdAt        DateTime @default(now())
+  authorId  Int
+  content   String
+  createdAt DateTime @default(now())
 
-  conversationId   Int
-  conversation     Conversation @relation(fields: [conversationId], references: [id])
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
 }
 
 model ChannelMembership {
+
+  permissionMask  Int @default(1) //1(simple member), 2(Administrator) or 4(owner)
+  membershipState Int @default(1) //1 (ok), 2 (mute), 4 (ban)
+
+  channelName String
+
+  userId    Int
+  channelId Int
+  user      User    @relation(fields: [userId], references: [id])
+  channel   Channel @relation(fields: [channelId], references: [id])
+
   @@id([userId, channelId])
-
-  permissionMask   Int @default(1) //1(simple member), 2(Administrator) or 4(owner)
-  membershipState  Int @default(1) //1 (ok), 2 (mute), 4 (ban)
-
-  channelName      String
-
-  userId           Int
-  channelId        Int
-  user             User    @relation(fields: [userId], references: [id])
-  channel          Channel @relation(fields: [channelId], references: [id])
 }
 
 model Channel {
-  id         Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  name	     String
+  name       String
   password   String?
-  accessMask Int @default(1) //1 (libre), 2 (invite), 4 (pwd)
+  accessMask Int     @default(1) //1 (libre), 2 (invite), 4 (pwd)
 
   memberships ChannelMembership[]
   messages    Message[]
 
-  ownerId   Int
-  owner     User @relation(fields: [ownerId], references: [id])
+  ownerId Int
+  owner   User @relation(fields: [ownerId], references: [id])
 }
 
 model Message {
-  id         Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  authorId   Int
-  createdAt  DateTime @default(now())
+  authorId  Int
+  createdAt DateTime @default(now())
 
-  content    String
+  content String
 
-  channelId  Int
-  channel    Channel   @relation(fields: [channelId], references: [id])
+  channelId Int
+  channel   Channel @relation(fields: [channelId], references: [id])
 }
 
 model FortyTwoUser {
-  id           Int    @id
+  id Int @id
 
-  accessToken  String
-  userId       Int?   @unique
-  user         User?  @relation(references: [id], fields: [userId])
+  accessToken String
+  userId      Int?   @unique
+  user        User?  @relation(references: [id], fields: [userId])
 }
 
 model UserAchievement {
+
+  userId        Int
+  achievementId Int
+  createdAt     DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id])
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
   @@id([userId, achievementId])
-
-  userId         Int
-  achievementId  Int
-  createdAt      DateTime @default(now())
-
-  user           User        @relation(fields: [userId], references: [id])
-  achievement    Achievement @relation(fields: [achievementId], references: [id])
 }
 
 model Achievement {
-  id           Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  name         String
-  description  String
-  difficulty   Int
-  users        UserAchievement[]
+  name        String
+  description String
+  difficulty  Int
+  users       UserAchievement[]
 }

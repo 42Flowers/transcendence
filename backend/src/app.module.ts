@@ -8,18 +8,36 @@ import { PrismaModule } from './prisma/prisma.module';
 import { FriendsModule } from './friends/friends.module';
 import { ProfileModule } from './profile/profile.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     AuthModule,
     GameModule,
     SocketModule,
-	ChatModule,
+  	ChatModule,
     ProfileModule,
     FriendsModule,
     TestModule,
     PrismaModule,
     EventEmitterModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    {
+      ...JwtModule.registerAsync({
+        useFactory: (config: ConfigService) => ({
+            secret: config.getOrThrow<string>('JWT_SECRET'),
+            global: true,
+            signOptions: {
+
+            },
+        }),
+        inject: [ ConfigService ],
+      }),
+      global: true,
+    },
   ],
   controllers: [],
   providers: [],

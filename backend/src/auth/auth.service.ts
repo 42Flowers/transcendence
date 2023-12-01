@@ -5,7 +5,6 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
 import { FortyTwoService } from 'src/ft/ft.service';
-import { MailService } from 'src/mail/mail.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserRegisterDto } from './dto/register.dto';
 import { TicketPayload, TicketService } from './ticket.service';
@@ -37,8 +36,7 @@ export class AuthService {
         private ft: FortyTwoService,
         private jwtService: JwtService,
         private prismaService: PrismaService,
-        private ticketService: TicketService,
-        private readonly mailService: MailService) {}
+        private ticketService: TicketService) {}
     
     async authorizeCodeFortyTwo(code: string): Promise<object> {
         /* First we exchange the code for an access token and a refresh token */

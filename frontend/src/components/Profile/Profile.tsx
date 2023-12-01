@@ -356,7 +356,7 @@ const Profile: React.FC<Props> = () => {
                 <PseudoButton handleChangePseudo={handleChangePseudo} />
                 <Switch2FA />
                 <Ladder />
-                <Stats />
+                <Stats userId={userId}/>
                 <MatchHistory />
                 <Achievements />
             </div>

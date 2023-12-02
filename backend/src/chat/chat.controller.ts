@@ -80,7 +80,7 @@ export class ChatController {
 	) {
 		try {
 			// console.log(await this.chatService.chatRoom(data));
-			const join = await this.chatService.chatRoom({userId: 3, type: 'join', roomname: 'chan', roomId: 1, option: ''});
+			const join = await this.chatService.chatRoom({userId: 3, type: 'join', roomname: 'chan1', roomId: 2, option: ''});
 			console.log(join);
 			return 'worked';
 		} catch (err) {
@@ -96,12 +96,16 @@ export class ChatController {
         @Request() req: ExpressRequest
     ) {
         try {
-            const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
+            // const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
+            const conversations = await this.conversationService.getAllUserConversations(1);
+
             const convs: privMessageElem[] = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
-			conversations.map((conv) => {
-				userNames.forEach(name => convs.push({targetId: conv.receiverId, targetName: name.pseudo}));
-			})
+			console.log(userNames);
+			conversations.map((conv, index) => {
+				convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo});
+			});
+			console.log("la conversations: ", conversations, " \n et ici convs ", convs);
             return convs;
         } catch (err) {
 			console.log(err.message);
@@ -129,6 +133,7 @@ export class ChatController {
 		try {
 			const friends = await this.userService.getFriends(Number(req.user.sub));
 			console.log(friends);
+			console.log("test");
 			return friends;
 		} catch (err) {console.log(err.message)}
 	}

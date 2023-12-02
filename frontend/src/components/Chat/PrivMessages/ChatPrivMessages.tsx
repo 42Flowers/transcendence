@@ -40,7 +40,7 @@ const AddPrivMessage: React.FC = () => {
 }
 
 const DisplayPrivMessages: React.FC<privMessageProps> = ({ privMessages }) => {
-	let listFriends = privMessages.map((pm) =>
+	let listPrivMessages = privMessages.map((pm) =>
 		<li key={ pm.targetId }>
 			<button className="priv-messages-button">{ pm.targetName }</button>
 		</li>
@@ -48,7 +48,7 @@ const DisplayPrivMessages: React.FC<privMessageProps> = ({ privMessages }) => {
 
 	return (
 		<ul className="display-priv-messages" >
-			{ listFriends }
+			{ listPrivMessages }
 		</ul>
 	);
 }

@@ -18,6 +18,7 @@ import { ChatController } from './chat.controller';
 		PrismaModule, 
 		ConversationsModule, 
 		SocketModule,
+		MessagesModule,
 		EventEmitterModule.forRoot()
 	],
 	controllers: [ChatController],

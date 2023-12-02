@@ -4,8 +4,25 @@ import { ChatService } from './DBchat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { Request as ExpressRequest } from 'express';
 import { UsersService } from 'src/users_chat/DBusers.service';
-import { ConversationsModule } from 'src/conversations/conversations.module';
 import { ConversationsService } from 'src/conversations/conversations.service';
+import { MessagesService } from 'src/messages/messages.service';
+
+interface convMessage {
+    authorName: string,
+    creationTime: Date,
+    content: string,
+}
+
+interface channelElem {
+    channelId: number,
+    channelName: string,
+    userPermissionMask: number,
+}
+
+interface privMessageElem {
+    targetId: number,
+    targetName: string,
+}
 
 @Controller("chat")
 @UseGuards(AuthGuard)
@@ -15,7 +32,8 @@ export class ChatController {
         private readonly roomService: RoomService,
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
-		private readonly conversationService: ConversationsService
+		private readonly conversationService: ConversationsService,
+		private readonly messageService : MessagesService
 		) {}
 
     /**
@@ -27,7 +45,9 @@ export class ChatController {
 	) {
 		try {
 			const rooms = await this.roomService.getPublicRooms(Number(req.user.sub));
-			return rooms;
+			const chans : channelElem[] = [];
+			rooms.forEach(room => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask}));
+			return chans;
 		} catch (error) {
 			console.log(error.message);
 		}
@@ -41,7 +61,14 @@ export class ChatController {
 		@Request() req: ExpressRequest
 	) {
 		try {
-
+		const channel = await this.messageService.getMessagesfromChannel(Number(req.user.sub), 1);
+		console.log(channel);
+		const messages: convMessage[] = [];
+		const userNames = await Promise.all(channel.map(conv => this.userService.getUserName(conv.authorId)));
+		channel.map((chan) => {
+			userNames.forEach(name => messages.push({authorName: name.pseudo, content: chan.content, creationTime: chan.createdAt}));
+		});
+		return messages;
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -49,11 +76,12 @@ export class ChatController {
 
 	@Post('join-channel')
 	async joinChannel(
-		@Body() data: {userId: number, type: string, roomname: string, roomId: number, option: any}
+		@Request() req : ExpressRequest
 	) {
 		try {
 			// console.log(await this.chatService.chatRoom(data));
-			console.log(await this.chatService.chatRoom({userId: 2, type: 'join', roomname: 'chan', roomId: 1, option: ''}));
+			const join = await this.chatService.chatRoom({userId: 3, type: 'join', roomname: 'chan', roomId: 1, option: ''});
+			console.log(join);
 			return 'worked';
 		} catch (err) {
 			console.log(err.message);
@@ -69,10 +97,8 @@ export class ChatController {
     ) {
         try {
             const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
-            const convs = [];
-
+            const convs: privMessageElem[] = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
-
 			conversations.map((conv) => {
 				userNames.forEach(name => convs.push({targetId: conv.receiverId, targetName: name.pseudo}));
 			})
@@ -88,7 +114,9 @@ export class ChatController {
 	) {
 		try {
 			const conversations = await this.chatService.getPrivateConversation(Number(req.user.sub), 1);
-			console.log(conversations);
+			const messages: convMessage[] = [];
+			conversations.forEach(msg => messages.push({authorName: msg.authorId, content: msg.content, creationTime: msg.createdAt}));
+			return messages;
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -96,23 +124,12 @@ export class ChatController {
 
 	@Get('get-friends')
 	async getFriends(
-		@Body() userId: number
+		@Request() req: ExpressRequest
 	) {
-		try {this.userService.getFriends(userId)}
-		catch (err) {console.log(err.message)}
+		try {
+			const friends = await this.userService.getFriends(Number(req.user.sub));
+			console.log(friends);
+			return friends;
+		} catch (err) {console.log(err.message)}
 	}
-
-    // /**
-    //  * @param {User} user
-    //  * @param {string} friend
-    //  * @return all messages from the private conversation between two users.
-    //  */
-    // @Get('friend-conv')
-    // async friendMessages(
-	// 	@Body() data: {curruser: any, friendId: number}
-	// ) {
-	// 	// const user = this.userService.getUserById() //! ici il faut retrouver le user avec le token
-	// 	const user = await this.userService.getUserById(data.curruser.id)
-    //     return this.messagesService.getMessagesfromConversation(user, data.friendId);
-    // }
 }

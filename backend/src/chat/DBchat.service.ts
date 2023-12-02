@@ -310,8 +310,8 @@ export class ChatService {
 		userId: number,
 		targetId: number
 	){
-		const conversation = await this.conversationsService.conversationExists(userId, targetId);
-		console.log(conversation.receiverId);
+		let conversation = await this.conversationsService.conversationExists(userId, targetId);
+		console.log(conversation);
 		if (conversation) {
 			return await this.messagesService.getMessagesfromConversation(userId, targetId);
 		}else {

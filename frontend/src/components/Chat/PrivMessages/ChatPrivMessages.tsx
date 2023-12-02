@@ -39,10 +39,10 @@ const AddPrivMessage: React.FC = () => {
 	)
 }
 
-const DisplayPrivMessages: React.FC<privMessageProps> = ({ privMessages }) => {
+const DisplayPrivMessages: React.FC<privMessageProps> = ({ privMessages, handleClickConv }) => {
 	let listPrivMessages = privMessages.map((pm) =>
 		<li key={ pm.targetId }>
-			<button className="priv-messages-button">{ pm.targetName }</button>
+			<button className="priv-messages-button" onClick={() => handleClickConv(pm)}>{ pm.targetName }</button>
 		</li>
 	);
 

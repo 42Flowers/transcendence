@@ -21,6 +21,13 @@ export type AuthorizationTokenPayload = {
     expire_at: number;
 };
 
+export interface UserProfileResponse {
+    pseudo: string;
+    email: string;
+    id: number;
+    avatar: string;
+}
+
 type SubmitOTPResponse = AuthorizationTokenPayload;
 
 function makeAuthorizationHeader(): RawAxiosRequestHeaders {
@@ -66,4 +73,7 @@ export const loginWithPassword = (email: string, password: string) => wrapRespon
 export const submitOtp = (ticket: string, code: string) => wrapResponse(client.post<AuthorizationTokenPayload>('/api/v1/auth/mfa/otp', { ticket, code }));
 export const registerUser = (payload: any) => wrapResponse(client.post('/api/v1/auth/register', payload));
 
-export const fetchUserProfile = (profile: string) => wrapResponse(authorizedGet(`/api/v1/users/${profile}`));
+export const fetchUserProfile = (profile: string) => wrapResponse(authorizedGet<UserProfileResponse>(`/api/v1/users/${profile}`));
+
+
+export const getPrivMessages = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));

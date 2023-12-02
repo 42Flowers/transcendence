@@ -311,6 +311,7 @@ export class ChatService {
 		targetId: number
 	){
 		const conversation = await this.conversationsService.conversationExists(userId, targetId);
+		console.log(conversation.receiverId);
 		if (conversation) {
 			return await this.messagesService.getMessagesfromConversation(userId, targetId);
 		}else {

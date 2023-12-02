@@ -60,28 +60,9 @@ export class ChatController {
 		}
 	}
 
-
 	/**
 	 * return id conversation et nom de la personne avec qui je discute
 	 */
-	// @Get('get-conversations')
-	// async getPrivateConversations(
-	// 	@Request() req: ExpressRequest
-	// ) {
-	// 	try {
-	// 		const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
-	// 		const convs = [];
-	// 		conversations.map((conv) => {
-	// 			const name = await this.userService.getUserName(conv.receiverId);
-	// 			convs.push({targetId: conv.receiverId, targetName: name});
-	// 		})
-	// 		return convs;
-	// 		// return conversations;
-	// 	} catch (err) {
-
-	// 	}
-	// }
-
 	@Get('get-conversations')
     async getPrivateConversations(
         @Request() req: ExpressRequest
@@ -103,10 +84,10 @@ export class ChatController {
 
 	@Get('private-conv')
 	async privateConversation(
-		@Body() data: {userId: number, targetId: number}
+		@Request() req: ExpressRequest
 	) {
 		try {
-			const conversations = await this.chatService.getPrivateConversation(data.userId, data.targetId);
+			const conversations = await this.chatService.getPrivateConversation(Number(req.user.sub), 1);
 			console.log(conversations);
 		} catch (err) {
 			console.log(err.message);

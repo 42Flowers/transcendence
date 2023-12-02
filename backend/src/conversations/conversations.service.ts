@@ -12,9 +12,14 @@ export class ConversationsService {
 	async conversationExists(userId: number, targetId: number) : Promise<any> {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, include : {userConversations: true}});
+			console.log(user);
 			user.userConversations.map((conv) => {
 				if (conv.receiverId === targetId)
+				{
+					console.log(conv.conversationId);
+					console.log(conv);
 					return conv.conversationId;
+				}
 			});
 			return null;
 		} catch (err) {
@@ -34,12 +39,32 @@ export class ConversationsService {
 			if(conversation) {
 				const conversation1 = await this.prismaService.userConversation.create({
 					data: {
-						userId: userId, receiverId: targetId, conversationId: conversation.id
+						user: {
+							connect: {
+								id: userId,
+							},
+						},
+						conversation: {
+							connect: {
+								id : conversation.id,
+							}
+						},
+						receiverId: targetId,
 					}
 				});
 				const conversation2 = await this.prismaService.userConversation.create({
 					data: {
-						userId: userId, receiverId: targetId, conversationId: conversation.id
+						user: {
+							connect: {
+								id: targetId,
+							}
+						},
+						conversation: {
+							connect: {
+								id: conversation.id,
+							},
+						},
+						receiverId: userId,
 					}
 				});
 				if (!conversation1 || !conversation2)

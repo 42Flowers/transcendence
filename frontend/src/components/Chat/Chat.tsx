@@ -3,7 +3,7 @@ import ChatChannels from './Channels/ChatChannels';
 import ChatConv from './Conv/ChatConv';
 import ChatPrivMessages from './PrivMessages/ChatPrivMessages';
 import './Chat.css';
-import { getPrivMessages } from '../../api';
+import { getChannels, getPrivMessages } from '../../api';
 import { useQuery } from 'react-query';
 import { useAuthContext } from '../../contexts/AuthContext';
 
@@ -35,7 +35,6 @@ interface convElem {
 }
 
 const Chat: React.FC = () => {
-	const [channels, setChannels] = useState<channelElem[]>([]);
 	const [selectedConv, setSelectedConv] = useState< convElem | null>(null);
 	const auth = useAuthContext();
 
@@ -44,17 +43,7 @@ const Chat: React.FC = () => {
 	const userId = 1;
 
 	const privateMessages = useQuery('priv_convs', getPrivMessages);
-
-	useEffect(() => {
-		const fetchData = async () => {
-			const response = await fetch(`http://localhost:3000/api/friends/${userId}`);
-			const data = await response.json();
-			console.log("get channels: ", data);
-			setChannels(data);
-		};
-		fetchData();
-	}, []);
-
+	const channels = useQuery('channels', getChannels);
 
 	const handleClickConv = useCallback((conv: channelElem | privMessageElem | null) => {
 		if (!conv)
@@ -90,8 +79,7 @@ const Chat: React.FC = () => {
 
 	return (
 		<div className='chat-wrapper' >
-			<ChatChannels channels={ channels } handleClickConv={ handleClickConv } />
-			{/* <ChatConv conv={ selectedConv } permissions={  } /> */}
+			{channels.isFetched && <ChatChannels channels={ channels.data } handleClickConv={ handleClickConv } />}
 			{selectedConv && <ChatConv conversation={ selectedConv } />}
 			{privateMessages.isFetched && <ChatPrivMessages privMessages={ privateMessages.data } handleClickConv={ handleClickConv } />}
 		</div>

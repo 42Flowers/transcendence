@@ -77,3 +77,4 @@ export const fetchUserProfile = (profile: string) => wrapResponse(authorizedGet<
 
 
 export const getPrivMessages = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
+export const getChannels = () => wrapResponse(authorizedGet(`/api/chat/get-channels`));

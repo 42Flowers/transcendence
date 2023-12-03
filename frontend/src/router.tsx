@@ -6,6 +6,7 @@ import FriendList from './components/FriendList/FriendList';
 import Game from './components/Game/Game';
 import RegisterForm from './components/RegisterForm/RegisterForm';
 import PlayPage from './pages/PlayPage';
+import Profile from './components/Profile/Profile';
 
 export const router = createBrowserRouter([
     {

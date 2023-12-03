@@ -1,18 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { IsNotEmpty, IsString } from 'class-validator';
-
-export class CreateUserAchievementDto {
-    userId: number;
-    achievementId: number;
-}
-
-export class ChangePseudoDto {
-    @IsNotEmpty()
-    @IsString()
-    pseudo: string
-}
+import { ChangePseudoDto, CreateUserAchievementDto } from './profile.dto';
 
 export class ChangeIsPopupShown {
     isShown: boolean
@@ -80,7 +69,7 @@ export class ProfileService {
             }
         });
         if (existingUserAchievement) {
-            throw new Error('Already connected');
+            throw new BadRequestException('Already connected');
         }
 
         const newUserAchievement = await this.prisma.userAchievement.create({
@@ -104,11 +93,21 @@ export class ProfileService {
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             data: { avatar: avatarPath },
+            include: {
+                
+            }
         });
-        return { "avatar": updatedUser.avatar};
+        return { "avatar": updatedUser.avatar };
     }
 
     async changePseudo(dto: ChangePseudoDto, userId: number): Promise<any> {
+        const existingUser = await this.prisma.user.findUnique({
+            where: { pseudo: dto.pseudo },
+        });
+        if (existingUser) {
+            throw new BadRequestException('Pseudo already exists');
+        }
+
         const updatedPseudo = await this.prisma.user.update({
             where: { id: userId },
             data: { pseudo: dto.pseudo },

@@ -95,6 +95,7 @@ const Profile: React.FC<Props> = () => {
         'You\'re a looser': false,
     });
     const [popupQueue, setPopupQueue] = useState([]);
+    const [isPseudoAdded, setIsPseudoAdded] = useState(false);
     const { userId } = useParams();
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
@@ -139,7 +140,8 @@ const Profile: React.FC<Props> = () => {
         return maxConsecutiveWins;
     };
 
-    const requestOptionsAchievements = useCallback(({ achievementName, data }) => {
+    const requestOptionsAchievements = useCallback((achievementName, data) => {
+        console.log("2", achievementName, data);
         if (data !== undefined) {
             const requestOptionsGame = {
                 method: 'POST',
@@ -157,7 +159,7 @@ const Profile: React.FC<Props> = () => {
         return fetch(`http://localhost:3000/api/profile/${userId}/add-achievement-to-user`, requestOptions)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Error');
+                    throw new Error('Bad Request');
                 }
                 return response.json();
             })
@@ -170,7 +172,7 @@ const Profile: React.FC<Props> = () => {
                     });
             })
             .catch((error) => {
-                console.error('Error:', error);
+                console.error(error);
             });
      }, [userId, setAchievementsList]);
 
@@ -201,11 +203,14 @@ const Profile: React.FC<Props> = () => {
                 }
                 return prevState;
             });
+            if (data.achievements["Newwww Pseudo"].users.length > 0) {
+                setIsPseudoAdded(true);
+            }
 
             if (data !== null) {
                 const handleAchievement = (achievementName: string) => {
                     showPopup(achievementName);
-                    const requestOptions = requestOptionsAchievements({achievementName: achievementName, data});
+                    const requestOptions = requestOptionsAchievements(achievementName, data);
                     queue.push({ requestOptions });
                 };
 
@@ -278,15 +283,23 @@ const Profile: React.FC<Props> = () => {
         }
 
         fetch(`http://localhost:3000/api/profile/${userId}/add-avatar`, requestOptions)
-            .then(response => response.json())
+            .then(response =>  {
+                if (response.status === 422) {
+                    throw new Error('Only jpg, jpeg, png file. Maximum dimension 1000x1000. Maximum size 1000042 bytes');
+                }
+                return response.json();
+            })
             .then(data => {
                 setAvatar(`http://localhost:3000/static/${data.avatar}`)
                 if (!profileInfos?.avatar) {
                     showPopup('Newwww Avatar');
-                    const requestOptions2 = requestOptionsAchievements({achievementName: "Newwww Avatar", data});
+                    const requestOptions2 = requestOptionsAchievements("Newwww Avatar", profileInfos);
                     addAchievement(requestOptions2);
                 }
             })
+            .catch(error => {
+                alert(error);
+            });
     }
 
     const handleChangePseudo = async (e) => {
@@ -304,21 +317,21 @@ const Profile: React.FC<Props> = () => {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error("Min 3 characters and maximum 32 characters, no special characters except '-' or pseudo already in use");
             }
             return response.json();
         })
         .then(result => {
             setPseudo(result.pseudo);
-            if (profileInfos.achievements["Newwww Pseudo"].users.length === 0) {
+            if (!isPseudoAdded) {
+                setIsPseudoAdded(true);
                 showPopup('Newwww Pseudo');
-                const requestOptions = requestOptionsAchievements({achievementName: "Newwww Pseudo", data});
+                const requestOptions = requestOptionsAchievements("Newwww Pseudo", profileInfos);
                 addAchievement(requestOptions);
             }
-            console.log('Success:', result);
         })
         .catch(error => {
-            console.error('Error:', error);
+            alert(error);
         });
     }
 

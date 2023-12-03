@@ -121,7 +121,15 @@ export class ProfileService {
                 userId: userId,
             },
             include: {
-                game: true,
+                game: {
+                    select: {
+                        id: true,
+                        createdAt: true,
+                        score1: true,
+                        score2: true,
+                        winnerId: true,
+                    }
+                }
             },
         });
          
@@ -135,7 +143,13 @@ export class ProfileService {
                         },
                     },
                     include: {
-                        user: true,
+                        user: {
+                            select: {
+                                id: true,
+                                pseudo: true,
+                                avatar: true,
+                            }
+                        },
                     },
                 });
          

@@ -113,7 +113,7 @@ export class ProfileController {
     }
 
     @Get(':userId/stats')
-    async getStats(@Param('userId', ParseIntPipe) userId: number): Promise<any> {
+    async getStats(@Param('userId', CheckIntPipe) userId: number): Promise<any> {
         return this.profileService.getStats(userId);
     }
 

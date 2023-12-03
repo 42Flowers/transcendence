@@ -3,18 +3,14 @@ import { styled, useTheme } from '@mui/material/styles';
 import Badge from '@mui/material/Badge';
 import Avatar from '@mui/material/Avatar';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Box } from "@mui/material"
+import { Box } from "@mui/material";
 
 interface Props {
-    // user: {
-    //     avatar: string;
-    //     lastName: string;
-    //     color: string;
-    //   };
     status: string;
+    avatar: string;
 }
 
-const AvatarOthers: React.FC<Props> = ({ status }) => {
+const AvatarOthers: React.FC<Props> = ({ status, avatar }) => {
     interface StatusResult {
         statusColor: string;
         statusImage: JSX.Element | null;
@@ -73,7 +69,7 @@ const AvatarOthers: React.FC<Props> = ({ status }) => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 variant="dot"
             >
-                <Avatar alt="avatar" src="" />
+                <Avatar alt="avatar" src={avatar} />
                 <Box position="absolute" bottom={-4} right={9.5} sx={{zIndex: 1,}}>
                     {statusImage}
                 </Box>

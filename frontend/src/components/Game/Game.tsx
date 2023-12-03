@@ -13,7 +13,7 @@ interface gameProps {
 	width: number,
 	height: number,
 	className: string,
-	specialMode?: boolean,
+	specialMode: boolean,
 }
 
 interface paddleElem {
@@ -30,9 +30,6 @@ interface ballElem {
 	radius: number,
 }
 
-let leftPaddleColor = 'blue';
-let rightPaddleColor = 'blue';
-
 //////////////////////////////
 //           GAME           //
 //////////////////////////////
@@ -40,6 +37,8 @@ const Game: React.FC<gameProps> = (props) => {
 	const { SocketState } = useContext(SocketContext);
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	let   gameEnd = false;
+	let   gameStart = false;
+	let   count = 3;
 
 	let   ball: ballElem = {
 		speed: {x: 1, y: 1},
@@ -83,7 +82,7 @@ const Game: React.FC<gameProps> = (props) => {
 		ctx.fill();
 	};
 	
-	function draw(ctx: CanvasRenderingContext2D): void {
+	function drawGame(ctx: CanvasRenderingContext2D): void {
 		
 		const { width, height } = ctx.canvas;
 		const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
@@ -94,7 +93,6 @@ const Game: React.FC<gameProps> = (props) => {
 		gradientball.addColorStop(1, colorYellow);
 		gradientball.addColorStop(0, colorPurple);
 		ctx.fillStyle = gradientball;
-		// ctx.fillStyle = colorPurple;
 		ctx.beginPath();
 		ctx.arc(ball.x, ball.y, ball.radius, 0, 2*Math.PI);
 		ctx.closePath();
@@ -105,8 +103,6 @@ const Game: React.FC<gameProps> = (props) => {
 		gradientleft.addColorStop(0, colorYellow);
 		gradientleft.addColorStop(1, colorPurple);
 		ctx.fillStyle = gradientleft;
-		// ctx.fillStyle = colorYellow;
-		// ctx.fillStyle = leftPaddleColor;
 		ctx.fillRect(leftPad.x, leftPad.y, leftPad.width, leftPad.length);
 		
 		// draw right paddle
@@ -114,29 +110,50 @@ const Game: React.FC<gameProps> = (props) => {
 		gradientright.addColorStop(0, colorYellow);
 		gradientright.addColorStop(1, colorPurple);
 		ctx.fillStyle = gradientright;
-		// ctx.fillStyle = colorYellow;
-		// ctx.fillStyle = rightPaddleColor;
 		ctx.fillRect(rightPad.x, rightPad.y, rightPad.width, rightPad.length);
 		
 		// score
 		ctx.fillStyle = colorYellow;
 		ctx.font = "40px Short Stack";
-		ctx.fillText(score.leftPlayer, Math.round(props.width / 2 / 2), 100);
-		ctx.fillText(score.rightPlayer,Math.round(props.width / 2 * 1.5),100);
+		ctx.fillText(score.leftPlayer, Math.round(width / 2 / 2), Math.round(height / 8));
+		ctx.fillText(score.rightPlayer,Math.round(width / 2 * 1.5), Math.round(height / 8));
 	};
+
+	function drawStart(ctx: CanvasRenderingContext2D, count: number): void {
+		const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
+		const { width, height } = ctx.canvas;
+
+		ctx.fillStyle = colorYellow;
+		ctx.font = "40px Short Stack";
+		ctx.fillText("Get READY !", Math.round(width / 3), Math.round(height / 8));
+		ctx.fillText(count.toString(), Math.round(width / 2), Math.round(height / 2));
+	};
+
+	function drawEnd(ctx: CanvasRenderingContext2D): void {
+		const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
+		const { width, height } = ctx.canvas;
+
+		ctx.fillStyle = colorYellow;
+		ctx.font = "40px Short Stack";
+		ctx.fillText("Game is Over", Math.round(width / 3), Math.round(height / 2));
+		ctx.fillText(score.leftPlayer, Math.round(props.width / 2 / 2), Math.round(height / 8));
+		ctx.fillText(score.rightPlayer,Math.round(props.width / 2 * 1.5), Math.round(height / 8));
+	}
 	
-	function renderFrame(context: CanvasRenderingContext2D | null | undefined): void {
+	function renderFrame(context: CanvasRenderingContext2D | null | undefined, count: number): void {
 		if (context != null && context != undefined) {
 			clearBackground(context);
-			draw(context);
+			if (gameStart == false) {
+				drawStart(context, count);
+			}
+			else if (gameEnd == true)
+				drawEnd(context);
+			else
+				drawGame(context);
 		}
 	};
 
-	const activateShield = useCallback((color: string) => {
-		if (color === "left")
-			leftPaddleColor = "red";
-		else
-			rightPaddleColor = "red";
+	const activateShield = useCallback((side: string) => {
 	}, []);
 
 	// const calculateWinsAndLosses = (data: User[]) => {
@@ -193,29 +210,33 @@ const Game: React.FC<gameProps> = (props) => {
 	}, []);
 
 	const updateScore = useCallback((newScore: {leftPlayer: string, rightPlayer: string}) => {
-		leftPaddleColor = "blue"
-		rightPaddleColor = "blue"
 		score.leftPlayer = newScore.leftPlayer.toString();
 		score.rightPlayer = newScore.rightPlayer.toString();
-		console.log("update score event");
 	}, []);
 
 	const updateGame = useCallback((newLeftPad: paddleElem, newRightPad: paddleElem, newBall: ballElem) => {
 		leftPad = newLeftPad;
 		rightPad = newRightPad;
 		ball = newBall;
-		console.log("update game event");
 	}, []);
-	
+
+	const countdown = useCallback(() => {
+		count--;
+		console.log(count)
+		if (count == 0)
+			gameStart = true;
+	}, []);
 
 	useEffect(() => {
 
+		SocketState.socket?.on("countdown", countdown);
 		SocketState.socket?.on("gameFinished", finishGame);
 		SocketState.socket?.on("updateScore", updateScore);
 		SocketState.socket?.on("updateGame", updateGame);
 		SocketState.socket?.on("shield", activateShield);
 		
 		return () => {
+			SocketState.socket?.off("countdown", countdown);
 			SocketState.socket?.off("gameFinished", finishGame);
 			SocketState.socket?.off("updateScore", updateScore);
 			SocketState.socket?.off("updateGame", updateGame);
@@ -231,7 +252,7 @@ const Game: React.FC<gameProps> = (props) => {
 
 		const gameLoop = () => {
 
-			renderFrame(context);
+			renderFrame(context, count);
 
 			if (!gameEnd) {
 				window.requestAnimationFrame(gameLoop);

@@ -3,8 +3,8 @@ import { AppLayout } from './components/AppLayout';
 import { Auth } from './components/Auth/Auth';
 import Chat from './components/Chat/Chat';
 import FriendList from './components/FriendList/FriendList';
-import Game from './components/Game/Game';
 import RegisterForm from './components/RegisterForm/RegisterForm';
+import GameWrapper from './components/Game/GameWrapper';
 import PlayPage from './pages/PlayPage';
 import Profile from './components/Profile/Profile';
 
@@ -34,11 +34,11 @@ export const router = createBrowserRouter([
             },
             {
                 path: '/game-normal',
-                element: <Game className="gameCanvas" width={800} height={600} specialMode={false} />,
+                element: <GameWrapper width={800} height={600} specialMode={false} />,
             },
             {
                 path: '/game-special',
-                element: <Game className="gameCanvas" width={800} height={600} specialMode={true} />,
+                element: <GameWrapper width={800} height={600} specialMode={true} />,
             },
             {
                 path: '/chat',

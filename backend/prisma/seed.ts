@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { PrismaClient } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 import { hashSync } from 'bcrypt';
 
 // initialize Prisma Client
@@ -527,10 +528,13 @@ async function main() {
       }
     })
 
+	const id1 : string = uuidv4();
+	const id2 : string = uuidv4();
+	const id3: string= uuidv4();
     // CONVERSATIONS
-    const conv1 = await prisma.conversation.create({})
-    const conv2 = await prisma.conversation.create({})
-    const conv3 = await prisma.conversation.create({})
+    const conv1 = await prisma.conversation.create({data: {name: id1}})
+    const conv2 = await prisma.conversation.create({data: {name: id2}})
+    const conv3 = await prisma.conversation.create({data: {name: id3}})
 
 
     // PRIVATE MESSAGES

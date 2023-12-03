@@ -1,0 +1,80 @@
+.chat-priv-messages {
+	width: 20%;
+	height: 100%;
+}
+
+.chat-priv-messages .title {
+	height: 10%;
+    border: 2px solid white;
+    background: linear-gradient(to left, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+}
+
+.chat-priv-messages h3 {
+	padding: 10px;
+	align-items:center;
+    justify-content: center;
+    color: white;
+	margin-top: 4%;
+	margin-bottom: 4%;
+}
+
+.chat-priv-messages li {
+    width: 100%;
+}
+
+.chat-priv-messages .priv-messages-button {
+    font-family: "Short Stack";
+	margin: 2px;
+	border: 2px solid white;
+    border-radius: 20px;
+    background: transparent;
+    font-size: 1em;
+    color: white;
+	text-shadow: 0 0 4px var(--color-yellow);
+	width: 100%;
+    cursor: pointer;
+}
+
+.chat-priv-messages .priv-messages-button:hover {
+	font-size: 1.2em;
+}
+
+.chat-priv-messages .display-priv-messages {
+    border: 2px solid white;
+	height: 75%;
+	overflow: hidden;
+	padding: 5px;
+    overflow-y: scroll;
+}
+
+.chat-priv-messages .add-priv-messages {
+	height: 15%;
+}
+
+.chat-priv-messages .add-priv-messages input {
+    font-family: "Short Stack";
+	text-align: center;
+	height: 50%;
+	width: 100%;
+    border: 2px solid white;
+    background: linear-gradient(to left, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+	text-shadow: 0 0 4px var(--color-yellow);
+	color: white;
+}
+
+.chat-priv-messages .add-priv-messages button {
+    cursor: pointer;
+    font-family: "Short Stack";
+	display: block;
+	height: 50%;
+	width: 100%;
+    border: 2px solid white;
+    background: linear-gradient(to left, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+	text-shadow: 0 0 4px var(--color-yellow);
+	color: white;
+	font-size: 1.2em;
+}
+
+.chat-priv-messages .add-priv-messages button:hover {
+	font-size: 1.4em;
+}

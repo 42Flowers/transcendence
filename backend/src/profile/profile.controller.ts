@@ -112,6 +112,11 @@ export class ProfileController {
         return this.profileService.getMatchHistory(userId);
     }
 
+    @Get(':userId/stats')
+    async getStats(@Param('userId', ParseIntPipe) userId: number): Promise<any> {
+        return this.profileService.getStats(userId);
+    }
+
     @Get(':userId/achievements')
     async getAchievements(@Param('userId', CheckIntPipe) userId: number): Promise<any> {
         return this.profileService.getAchievements(userId);

@@ -1,5 +1,4 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/auth/auth.guard";
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller({

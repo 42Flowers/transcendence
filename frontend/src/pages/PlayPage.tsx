@@ -49,7 +49,7 @@ const PlayPage: React.FC = () => {
             // navigate('/selectfriend');
             return ;
         }
-        }
+    }
 
     const handleCancel = () => {
         SocketState.socket?.emit("cancelGameSearch");
@@ -57,13 +57,14 @@ const PlayPage: React.FC = () => {
     };
 
     const launchRandomNormal = useCallback(() => {
+        console.log("Launch game received");
         navigate('/game-normal');
     }, []);
 
     const launchRandomSpecial = useCallback(() => {
         navigate('/game-special');
     }, []);
-
+    
     useEffect(() => {
         SocketState.socket?.on("launchRandomNormal", launchRandomNormal);
         SocketState.socket?.on("launchRandomSpecial", launchRandomSpecial);
@@ -108,6 +109,13 @@ const PlayPage: React.FC = () => {
                     <div className={`friend-choice ${waiting ? 'no-border' : ''}`}>
                         { !waiting && <SelectFriend></SelectFriend>}
                         { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-special") }}/> }
+                    </div>
+                    <div>
+                        <p style={{color: 'white', paddingTop: '-1000px'}}>
+                            Use the "SPACE" key just before you hit the ball to protect the paddle and speed up the ball !
+                            <br/>
+                            Tips: If the ball goes too fast an unprotected paddle might break
+                        </p>
                     </div>
                     {/* { isSuccess && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-special") }}/> } */}
                 </div>

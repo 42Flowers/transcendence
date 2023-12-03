@@ -2,6 +2,15 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { UserPayload } from './user.payload';
+
+declare global {
+    namespace Express {
+        export interface Request {
+            user?: UserPayload;
+        }
+    }
+}
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -16,9 +25,9 @@ export class AuthGuard implements CanActivate {
         }
 
         try {
-            const payload = await this.jwtService.verifyAsync(token);
+            const payload = await this.jwtService.verifyAsync<UserPayload>(token);
 
-            // request['user'] = payload;
+            request['user'] = payload;
         } catch {
             throw new UnauthorizedException();
         }

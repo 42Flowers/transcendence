@@ -1,16 +1,37 @@
-import { Server, Socket } from 'socket.io';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import { Socket } from 'socket.io';
+import { GameCancelSearchEvent } from 'src/events/game/cancelSearch.event';
+import { GameJoinRandomEvent } from 'src/events/game/joinRandom.event';
+import { GameKeyDownEvent } from 'src/events/game/keyDown.event';
+import { GameKeyUpEvent } from 'src/events/game/keyUp.event';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { SocketGateway } from 'src/socket/socket.gateway';
 import { v4 as uuidv4 } from 'uuid';
 
-const BALL_SPEED_MOD = 2;
-const PADDLE_SPEED = 6;
-const BALL_DEFAULT_RADIUS = 15;
-const BALL_SPEED_Y = 5;
-const BALL_SPEED_X = 1.5;
+const SOCKET_NOT_FOUND = -1;
+const REFRESH_RATE = 16.66667;
 
-const WIDTH = 800;
-const HEIGHT = 600;
+const BOARD_WIDTH = 800;
+const BOARD_HEIGHT = 600;
+const BALL_RADIUS = 15; // in px
 
 const GAME_MAX_GOAL = 2;
+
+const PADDLE_SPEED = 6;
+const BALL_SPEED_Y = 5;
+const BALL_SPEED_X = 1;
+const BALL_SPEED_MOD = 2;
+
+const NORMAL_MODE = 0;
+const SPECIAL_MODE = 1;
+
+const LEFT = 0;
+const RIGHT = 1;
+const SHIELD_NOT_ACTIVATED = -1;
+let TURN = LEFT;
+const SPEED_THRESHOLD = 4;
+const SHIELD_MAX_INTERVAL = 400;
 
 interface scoreElem {
 	leftPlayer: number,
@@ -37,407 +58,434 @@ interface keyStateElem {
 	leftPadArrowUp: boolean;
 	leftPadArrowDown: boolean;
 	leftPadSpacebar?: boolean;
+
 	rightPadArrowUp: boolean;
 	rightPadArrowDown: boolean;
 	rightPadSpacebar?: boolean;
 }
 
-class GameEngine {
-
-	roomName: string;
-	server: Server;
-	socketLeft: string;
-	socketRight: string | null;
-	leftPad: paddleElem;
-	rightPad: paddleElem;
-	ball: ballElem;
-	score: scoreElem;
-	keyState: keyStateElem;
-
-
-	constructor(server: Server, socketLeft: string, roomName: string) {
-		this.roomName = roomName;
-		this.server = server;
-		this.socketLeft = socketLeft;
-		this.leftPad = {
-			x: 5,
-			y: Math.round(HEIGHT / 2) - Math.round(WIDTH / 20),
-			width: 10,
-			length: Math.round(WIDTH / 10),
-		}
-		this.rightPad = {
-			x: WIDTH - 5 - 10,
-			y: Math.round(HEIGHT / 2) - Math.round(WIDTH / 20),
-			width: 10,
-			length: Math.round(WIDTH / 10)
-		}
-		this.ball = {
-			speed: {x: 1, y: 1},
-			speedModifyer: BALL_SPEED_MOD,
-			x: Math.round(WIDTH / 2),
-			y: Math.round(HEIGHT / 2),
-			radius: BALL_DEFAULT_RADIUS,
-		}
-		this.score = {
-			leftPlayer: 0,
-			rightPlayer: 0
-		}
-		this.keyState = {
-			leftPadArrowUp: false,
-			leftPadArrowDown: false,
-			rightPadArrowUp: false,
-			rightPadArrowDown: false,
-		}
-	}
-	
-	addPlayerSocket(socketId: string) {
-		this.socketRight = socketId;
-	}
-
-	keyUp(socketId, key) {
-		if (socketId === this.socketLeft) {
-			if (key === "ArrowUp") {
-				this.keyState.leftPadArrowUp = false;
-			}
-			else if (key === "ArrowDown") {
-				this.keyState.leftPadArrowDown = false;
-			}
-		}
-		else if (socketId === this.socketRight) {
-			if (key === "ArrowUp") {
-				this.keyState.rightPadArrowUp = false;
-			}
-			else if (key === "ArrowDown") {
-				this.keyState.rightPadArrowDown = false;
-			}
-		}
-	}
-	
-	keyDown(socketId, key) {
-		if (socketId === this.socketLeft) {
-			if (key === "ArrowUp") {
-				this.keyState.leftPadArrowUp = true;
-			}
-			else if (key === "ArrowDown") {
-				this.keyState.leftPadArrowDown = true;
-			}
-		}
-		else if (socketId === this.socketRight) {
-			if (key === "ArrowUp") {
-				this.keyState.rightPadArrowUp = true;
-			}
-			else if (key === "ArrowDown") {
-				this.keyState.rightPadArrowDown = true;
-			}
-		}
-	}
-
-	resetGamePosition() {
-		this.ball.speed.y = 0;
-		while (Math.abs(this.ball.speed.y) <= 0.2 || Math.abs(this.ball.speed.y) >= 0.9) {
-			const heading = Math.random() * (2 * Math.PI - 0) + 0;
-			this.ball.speed = { x: BALL_SPEED_X, y: Math.sin(heading) }
-		}
-
-		this.ball.x = Math.round(WIDTH / 2);
-		this.ball.y = Math.round(HEIGHT / 2);
-
-		this.leftPad.y = Math.round(HEIGHT / 2) - Math.round(this.leftPad.length / 2);
-		this.rightPad.y = Math.round(HEIGHT / 2) - Math.round(this.rightPad.length / 2);
-
-		this.server.to(this.roomName).emit("updateGame", this.leftPad, this.rightPad, this.ball);
-	}
-
-	gameFinished() {
-		if (this.score.leftPlayer >= GAME_MAX_GOAL || this.score.rightPlayer >= GAME_MAX_GOAL) {
-			this.server.to(this.roomName).emit("gameFinished");
-			return true;
-		}
-		else
-			return false;
-	}
-
-	checkGoal() {
-		if (this.ball.x - this.ball.radius <= 0) {
-			this.score.rightPlayer++;
-			this.resetGamePosition();
-			this.server.to(this.roomName).emit("updateScore", this.score);
-		}
-		else if (this.ball.x + this.ball.radius >= WIDTH) {
-			this.score.leftPlayer++;
-			this.server.to(this.roomName).emit("updateScore", this.score);
-			this.resetGamePosition();
-		}
-	}
-
-	movePaddle() {
-		if (this.keyState.leftPadArrowUp) {
-			this.leftPad.y -= PADDLE_SPEED;
-		}
-		if (this.keyState.leftPadArrowDown) {
-			this.leftPad.y += PADDLE_SPEED;
-		}
-		this.leftPad.y = Math.max(0, this.leftPad.y);
-		this.leftPad.y = Math.min(HEIGHT - this.leftPad.length, this.leftPad.y);
-		
-		// RIGHT PLAYER MOVEMENT
-		if (this.keyState.rightPadArrowUp) {
-			this.rightPad.y -= PADDLE_SPEED;
-		}
-		if (this.keyState.rightPadArrowDown) {
-			this.rightPad.y += PADDLE_SPEED;
-		}
-		this.rightPad.y = Math.max(0, this.rightPad.y);
-		this.rightPad.y = Math.min(HEIGHT - this.rightPad.length, this.rightPad.y);
-	}
-
-	moveBall() {
-
-		function checkWallCollision(ball: ballElem) {
-			if (ball.y - ball.radius <= 0 && ball.speed.y < 0
-				|| ball.y + ball.radius >= HEIGHT && ball.speed.y > 0)
-				ball.speed.y *= -1;
-		}
-
-		function checkPaddleCollision(ball: ballElem, leftPad: paddleElem, rightPad: paddleElem) {
-			function leftPaddleCollision(): boolean {
-				if (ball.x - ball.radius <= leftPad.x + leftPad.width
-					&& ball.y + ball.radius >= leftPad.y
-					&& ball.y - ball.radius <= leftPad.y + leftPad.length)
-				{
-					return true;
-				}
-				return false;
-			}
-	
-			function rightPaddleCollision(): boolean {
-				if (ball.x + ball.radius >= rightPad.x
-					&& ball.y + ball.radius >= rightPad.y
-					&& ball.y - ball.radius <= rightPad.y + rightPad.length)
-				{
-						return true;
-				}
-				return false;
-			}
-	
-			if (leftPaddleCollision() && ball.speed.x < 0) {
-				const relativeBallPos = ball.y - (leftPad.y + leftPad.length / 2);
-				ball.speed.x *= -1;
-				ball.speed.y = ball.speed.x * BALL_SPEED_Y * (relativeBallPos / leftPad.length / 2);
-			}
-			if (rightPaddleCollision() && ball.speed.x > 0) {
-				const relativeBallPos = ball.y - (rightPad.y + rightPad.length / 2);
-				ball.speed.x *= -1;
-				ball.speed.y = ball.speed.x * (BALL_SPEED_Y * -1) * (relativeBallPos / rightPad.length / 2);
-			}
-
-		}
-
-		checkWallCollision(this.ball);
-		checkPaddleCollision(this.ball, this.leftPad, this.rightPad);
-		this.ball.x += this.ball.speed.x * this.ball.speedModifyer;
-		this.ball.y += this.ball.speed.y * this.ball.speedModifyer;
-	}
-
-	updateGame() {
-		this.checkGoal();
-		this.movePaddle();
-		this.moveBall();
-		this.server.to(this.roomName).emit("updateGame", this.leftPad, this.rightPad, this.ball);
-	}
-
+interface gameState {
+	leftPad: paddleElem,
+	rightPad: paddleElem,
+	ball: ballElem,
+	score: scoreElem,
+	keys: keyStateElem,
 }
 
-const LEFT = 0;
-const RIGHT = 1;
-let TURN = LEFT;
+interface gameParam {
+	roomName: string,
+	isFull: boolean,
+	isRunning: boolean,
+	startTime: number | null,
+	countdown: number,
+	userIdLeft: number | null,
+	userIdRight: number | null,
+	socketLeft: Socket | null,
+	socketRight: Socket | null,
+	mode: number,
+	state: gameState,
+};
 
-class GameEnginePlus {
+@Injectable()
+export class GameService {
 
-	roomName: string;
-	server: Server;
-	socketLeft: string;
-	socketRight: string | null;
-	leftPad: paddleElem;
-	rightPad: paddleElem;
-	ball: ballElem;
-	score: scoreElem;
-	keyState: keyStateElem;
+	randomGameList: gameParam[];
+	friendsGameList: gameParam[];
+
+	constructor(
+		private readonly prisma: PrismaService,
+		private socketGateway: SocketGateway) {
+			this.randomGameList = [];
+			this.friendsGameList = [];
+			this.tick();
+	}
+
+	// EVENT LISTENERS
+
+	@OnEvent('game.joinRandom')
+	handleJoinRandomGame(event: GameJoinRandomEvent) {
+		this.joinRandomGame(event.socket, event.gameMode);
+	}
+
+	@OnEvent('game.cancelSearch')
+	handleCancelSearch(event: GameCancelSearchEvent) {
+		this.removeFromGame(event.socket);
+	}
+
+	@OnEvent('game.keyUp')
+	handleKeyUp(event: GameKeyUpEvent) {
+		this.keyUp(event.socket, event.key);
+	}
+
+	@OnEvent('game.keyDown')
+	handleKeyDown(event: GameKeyDownEvent) {
+		this.keyDown(event.socket, event.key);
+	}
+
+	// GAMES SUPERVISOR
+
+	tick() {
+		const interval = setInterval(() => {
+			if (this.randomGameList.length > 0)
+				this.updateRandomGames();
+			if (this.friendsGameList.length > 0)
+				this.updateFriendsGames();
+		}, REFRESH_RATE);
+	}
 
 
-	constructor(server: Server, socketLeft: string, roomName: string) {
-		this.roomName = roomName;
-		this.server = server;
-		this.socketLeft = socketLeft;
-		this.leftPad = {
-			x: 5,
-			y: Math.round(HEIGHT / 2) - Math.round(WIDTH / 20),
-			width: 10,
-			length: Math.round(WIDTH / 10),
-			activate: -1
+	joinRandomGame(socket: Socket, gameMode: number) {
+		if (this.isUserInGame(socket))
+			return;  // EXCEPTION ???
+
+		for (let i = 0; i < this.randomGameList.length; ++i) {
+			const currGame = this.randomGameList[i];
+
+			if (currGame.mode !== gameMode)
+				continue;
+			if (currGame.isRunning == false && currGame.isFull == false) {
+				if (!currGame.socketLeft)
+					currGame.socketLeft = socket;
+				else {
+					currGame.socketRight = socket;
+				}
+				socket.join(currGame.roomName);
+				currGame.isFull = true;
+				currGame.isRunning = false;
+				return ;
+			}
 		}
-		this.rightPad = {
-			x: WIDTH - 5 - 10,
-			y: Math.round(HEIGHT / 2) - Math.round(WIDTH / 20),
-			width: 10,
-			length: Math.round(WIDTH / 10),
-			activate: -1
+		const roomName: string = uuidv4();
+
+		socket.join(roomName);
+		this.randomGameList.push({
+			roomName: roomName,
+			isFull: false,
+			isRunning: false,
+			startTime: null,
+			countdown: 3,
+			userIdLeft: null,
+			userIdRight: null,
+			socketLeft: socket,
+			socketRight: null,
+			mode: gameMode,
+			state: {
+				leftPad: {
+					x: 5,
+					y: Math.round(BOARD_HEIGHT / 2) - Math.round(BOARD_WIDTH / 20),
+					width: 10,
+					length: Math.round(BOARD_WIDTH / 10),
+					activate: SHIELD_NOT_ACTIVATED,
+				},
+				rightPad: {
+					x: BOARD_WIDTH - 5 - 10,
+					y: Math.round(BOARD_HEIGHT / 2) - Math.round(BOARD_WIDTH / 20),
+					width: 10,
+					length: Math.round(BOARD_WIDTH / 10),
+					activate: SHIELD_NOT_ACTIVATED,
+				},
+				ball: {
+					speed: {x: 1, y: 1},
+					speedModifyer: BALL_SPEED_MOD,
+					x: Math.round(BOARD_WIDTH / 2),
+					y: Math.round(BOARD_HEIGHT / 2),
+					radius: BALL_RADIUS,
+				},
+				score: {
+					leftPlayer: 0,
+					rightPlayer: 0,
+				},
+				keys: {
+					leftPadArrowUp: false,
+					leftPadArrowDown: false,
+					leftPadSpacebar: false,
+					rightPadArrowUp: false,
+					rightPadArrowDown: false,
+					rightPadSpacebar: false,
+				}
+			}
+		});
+	}
+
+	removeFromGame(socket: Socket) {
+		for (let i = 0; i < this.randomGameList.length; ++i) {
+			const currGame = this.randomGameList[i];
+
+			if (currGame.isRunning)
+				continue;
+
+			if (currGame.socketLeft && currGame.socketLeft.id === socket.id) {
+				currGame.socketLeft.leave(currGame.roomName);
+				currGame.socketLeft = null;
+				currGame.isFull = false;
+				currGame.userIdLeft = null;
+			}
+			else if (currGame.socketRight && currGame.socketRight.id === socket.id) {
+				currGame.socketRight.leave(currGame.roomName);
+				currGame.socketRight = null;
+				currGame.isFull = false;
+				currGame.userIdRight = null;
+			}
+
+			if (!currGame.socketLeft && !currGame.socketRight)
+				this.randomGameList.splice(i, 1);
 		}
-		this.ball = {
-			speed: {x: 1, y: 1},
-			speedModifyer: BALL_SPEED_MOD,
-			x: Math.round(WIDTH / 2),
-			y: Math.round(HEIGHT / 2),
-			radius: BALL_DEFAULT_RADIUS,
+		for (let i = 0; i < this.friendsGameList.length; ++i) {
+			const currGame = this.friendsGameList[i];
+
+			if (currGame.isRunning)
+				continue;
+
+			if (currGame.socketLeft && currGame.socketLeft.id === socket.id) {
+				currGame.socketLeft.leave(currGame.roomName);
+				currGame.socketLeft = null;
+				currGame.isFull = false;
+				currGame.userIdLeft = null;
+			}
+			else if (currGame.socketRight && currGame.socketRight.id === socket.id) {
+				currGame.socketRight.leave(currGame.roomName);
+				currGame.socketRight = null;
+				currGame.isFull = false;
+				currGame.userIdRight = null;
+			}
+
+			if (!currGame.socketLeft && !currGame.socketRight)
+				this.randomGameList.splice(i, 1);
 		}
-		this.score = {
-			leftPlayer: 0,
-			rightPlayer: 0
-		}
-		this.keyState = {
-			leftPadArrowUp: false,
-			leftPadArrowDown: false,
-			leftPadSpacebar: false,
-			rightPadArrowUp: false,
-			rightPadArrowDown: false,
-			rightPadSpacebar: false,
+	}
+
+	keyUp(socket: Socket, key: string) {
+		let gameIndex = this.findFriendsGameBySocket(socket.id);
+
+		if (gameIndex !== -1 && this.friendsGameList[gameIndex].isRunning)
+			this.updateKeysUp(this.friendsGameList[gameIndex], socket.id, key);
+		else {
+			gameIndex = this.findRandomGameBySocket(socket.id);
+			if (gameIndex !== -1 && this.randomGameList[gameIndex].isRunning)
+				this.updateKeysUp(this.randomGameList[gameIndex], socket.id,  key);
+			else
+				return; // Excepticion not inside a game
 		}
 	}
 	
-	addPlayerSocket(socketId: string) {
-		this.socketRight = socketId;
+	keyDown(socket: Socket, key: string) {
+		let gameIndex = this.findFriendsGameBySocket(socket.id);
+	
+		if (gameIndex !== -1 && this.friendsGameList[gameIndex].isRunning)
+			this.updateKeysDown(this.friendsGameList[gameIndex], socket.id, key);
+		else {
+			gameIndex = this.findRandomGameBySocket(socket.id);
+			if (gameIndex !== -1 && this.randomGameList[gameIndex].isRunning)
+				this.updateKeysDown(this.randomGameList[gameIndex], socket.id, key);
+			else
+				return; // Excepticion not inside a game
+		}
 	}
 
-	keyUp(socketId, key) {
-		if (socketId === this.socketLeft) {
+	// UPDATE GAME STATE
+
+	updateKeysUp(currGame: gameParam, socketId: string, key: string) {
+		const keys = currGame.state.keys;
+
+		if (socketId === currGame.socketLeft.id) {
 			if (key === "ArrowUp") {
-				this.keyState.leftPadArrowUp = false;
+				keys.leftPadArrowUp = false;
 			}
 			else if (key === "ArrowDown") {
-				this.keyState.leftPadArrowDown = false;
+				keys.leftPadArrowDown = false;
 			}
 			else if (key === " ") {
-				this.keyState.leftPadSpacebar = false;
+				keys.leftPadSpacebar = false;
 			}
 		}
-		else if (socketId === this.socketRight) {
+		else if (socketId === currGame.socketRight.id) {
 			if (key === "ArrowUp") {
-				this.keyState.rightPadArrowUp = false;
+				keys.rightPadArrowUp = false;
 			}
 			else if (key === "ArrowDown") {
-				this.keyState.rightPadArrowDown = false;
+				keys.rightPadArrowDown = false;
 			}
 			else if (key === " ") {
-				this.keyState.rightPadSpacebar = false;
+				keys.rightPadSpacebar = false;
 			}
+		}
+	}
+
+	updateKeysDown(currGame: gameParam, socketId: string, key: string) {
+		const keys = currGame.state.keys;
+
+		if (socketId === currGame.socketLeft.id) {
+			if (key === "ArrowUp") {
+				keys.leftPadArrowUp = true;
+			}
+			else if (key === "ArrowDown") {
+				keys.leftPadArrowDown = true;
+			}
+			else if (key === " ") {
+				keys.leftPadSpacebar = true;
+				if (currGame.state.leftPad.activate == SHIELD_NOT_ACTIVATED && TURN == LEFT) {
+					currGame.state.leftPad.activate = new Date().getTime();
+				}
+			}
+		}
+		else if (socketId === currGame.socketRight.id) {
+			if (key === "ArrowUp") {
+				keys.rightPadArrowUp = true;
+			}
+			else if (key === "ArrowDown") {
+				keys.rightPadArrowDown = true;
+			}
+			else if (key === " ") {
+				keys.rightPadSpacebar = true;
+				if (currGame.state.rightPad.activate == SHIELD_NOT_ACTIVATED && TURN == RIGHT) {
+					currGame.state.rightPad.activate = new Date().getTime();
+				}
+			}
+		}
+	}
+
+	updateRandomGames() {
+		for (let i = 0; i < this.randomGameList.length; ++i) {
+			const currGame = this.randomGameList[i];
+			const state = currGame.state;
+
+			if (!currGame.isRunning && currGame.isFull) {
+				if (!currGame.startTime && currGame.mode === NORMAL_MODE) {
+					this.socketGateway.server
+					.to(currGame.roomName)
+					.emit("launchRandomNormal");
+					currGame.startTime = new Date().getTime();
+				}
+				else if (!currGame.startTime && currGame.mode === SPECIAL_MODE) {
+					this.socketGateway.server
+					.to(currGame.roomName)
+					.emit("launchRandomSpecial");
+					currGame.startTime = new Date().getTime();
+				}
+				this.updateFrontCountdown(currGame);
+				if (new Date().getTime() - currGame.startTime > 3200) {
+					currGame.isRunning = true;
+					this.resetGamePosition(currGame);
+				}
+			}
+
+			if (!currGame.isRunning)
+				continue;
+
+			if (this.checkGameFinished(currGame)) {
+				currGame.socketLeft.leave(currGame.roomName);
+				currGame.socketRight.leave(currGame.roomName);
+				this.randomGameList.splice(i, 1)
+				return;
+			}
+
+			this.checkGoal(currGame, i);
+			this.movePaddles(currGame);
+			this.moveBall(currGame);
+			this.socketGateway.server
+				.to(currGame.roomName)
+				.emit("updateGame", state.leftPad, state.rightPad, state.ball);
 		}
 	}
 	
-	keyDown(socketId, key) {
-		if (socketId === this.socketLeft) {
-			if (key === "ArrowUp") {
-				this.keyState.leftPadArrowUp = true;
-			}
-			else if (key === "ArrowDown") {
-				this.keyState.leftPadArrowDown = true;
-			}
-			else if (key === " ") {
-				this.keyState.leftPadSpacebar = true;
-				if (this.leftPad.activate == -1 && TURN == LEFT) {
-					this.leftPad.activate = new Date().getTime();
+	
+	updateFriendsGames() {
+		for (let i = 0; i < this.friendsGameList.length; ++i) {
+			const currGame = this.friendsGameList[i];
+			const state = currGame.state;
+
+			if (!currGame.isRunning && currGame.isFull) {
+				if (!currGame.startTime && currGame.mode === NORMAL_MODE) {
+					this.socketGateway.server
+					.to(currGame.roomName)
+					.emit("launchRandomNormal");
+					currGame.startTime = new Date().getTime();
+				}
+				else if (!currGame.startTime && currGame.mode === SPECIAL_MODE) {
+					this.socketGateway.server
+					.to(currGame.roomName)
+					.emit("launchRandomSpecial");
+					currGame.startTime = new Date().getTime();
+				}
+				this.updateFrontCountdown(currGame);
+				if (new Date().getTime() - currGame.startTime > 3200) {
+					currGame.isRunning = true;
+					this.resetGamePosition(currGame);
 				}
 			}
-		}
-		else if (socketId === this.socketRight) {
-			if (key === "ArrowUp") {
-				this.keyState.rightPadArrowUp = true;
+
+			if (!currGame.isRunning)
+				continue;
+
+			if (this.checkGameFinished(currGame)) {
+				currGame.socketLeft.leave(currGame.roomName);
+				currGame.socketRight.leave(currGame.roomName);
+				this.randomGameList.splice(i, 1)
+				return;
 			}
-			else if (key === "ArrowDown") {
-				this.keyState.rightPadArrowDown = true;
-			}
-			else if (key === " ") {
-				this.keyState.rightPadSpacebar = true;
-				if (this.rightPad.activate == -1 && TURN == RIGHT) {
-					this.rightPad.activate = new Date().getTime();
-				}
-			}
+	
+			this.checkGoal(currGame, i);
+			this.movePaddles(currGame);
+			this.moveBall(currGame);
+			this.socketGateway.server
+				.to(currGame.roomName)
+				.emit("updateGame", state.leftPad, state.rightPad, state.ball);
 		}
 	}
 
-	resetGamePosition() {
-		this.ball.speed.y = 0;
-		while (Math.abs(this.ball.speed.y) <= 0.2 || Math.abs(this.ball.speed.y) >= 0.9) {
-			const heading = Math.random() * (2 * Math.PI - 0) + 0;
-			this.ball.speed = { x: BALL_SPEED_X, y: Math.sin(heading) }
+	resetGamePosition(currGame: gameParam) {
+		const state = currGame.state;
+
+		state.ball.speed.y = 0;
+		while (Math.abs(state.ball.speed.y) <= 0.2 || Math.abs(state.ball.speed.y) >= 0.8) {
+			const heading = Math.random() * (2 * Math.PI);
+			const x_dir = Math.random() >= 0.5 ? 1 : -1;
+			state.ball.speed = { x: BALL_SPEED_X * x_dir, y: Math.sin(heading) }
 		}
 
-		if (this.ball.speed.x > 0)
-			TURN = RIGHT;
-		else
-			TURN = LEFT;
+		state.ball.speedModifyer = BALL_SPEED_MOD;
+		state.ball.x = Math.round(BOARD_WIDTH / 2);
+		state.ball.y = Math.round(BOARD_HEIGHT / 2);
 
-		this.ball.speedModifyer = BALL_SPEED_MOD;
+		state.leftPad.y = Math.round(BOARD_HEIGHT / 2) - Math.round(state.leftPad.length / 2);
+		state.rightPad.y = Math.round(BOARD_HEIGHT / 2) - Math.round(state.rightPad.length / 2);
 
-		this.ball.x = Math.round(WIDTH / 2);
-		this.ball.y = Math.round(HEIGHT / 2);
-
-		this.leftPad.y = Math.round(HEIGHT / 2) - Math.round(this.leftPad.length / 2);
-		this.rightPad.y = Math.round(HEIGHT / 2) - Math.round(this.rightPad.length / 2);
-		
-		this.leftPad.activate = -1;
-		this.rightPad.activate = -1;
-
-		this.server.to(this.roomName).emit("updateGame", this.leftPad, this.rightPad, this.ball);
+		this.socketGateway.server
+			.to(currGame.roomName)
+			.emit("updateGame", state.leftPad, state.rightPad, state.ball);
 	}
 
-	gameFinished() {
-		if (this.score.leftPlayer >= GAME_MAX_GOAL || this.score.rightPlayer >= GAME_MAX_GOAL) {
-			this.server.to(this.roomName).emit("gameFinished");
-			return true;
-		}
-		else
-			return false;
-	}
+	movePaddles(currGame: gameParam) {
+		const state = currGame.state;
+		const keys = currGame.state.keys;
 
-	checkGoal() {
-		if (this.ball.x - this.ball.radius <= 0) {
-			this.score.rightPlayer++;
-			this.resetGamePosition();
-			this.server.to(this.roomName).emit("updateScore", this.score);
+		if (keys.leftPadArrowUp) {
+			state.leftPad.y -= PADDLE_SPEED;
 		}
-		else if (this.ball.x + this.ball.radius >= WIDTH) {
-			this.score.leftPlayer++;
-			this.server.to(this.roomName).emit("updateScore", this.score);
-			this.resetGamePosition();
+		if (keys.leftPadArrowDown) {
+			state.leftPad.y += PADDLE_SPEED;
 		}
-	}
-
-	movePaddle() {
-		if (this.keyState.leftPadArrowUp) {
-			this.leftPad.y -= PADDLE_SPEED;
-		}
-		if (this.keyState.leftPadArrowDown) {
-			this.leftPad.y += PADDLE_SPEED;
-		}
-		this.leftPad.y = Math.max(0, this.leftPad.y);
-		this.leftPad.y = Math.min(HEIGHT - this.leftPad.length, this.leftPad.y);
+		state.leftPad.y = Math.max(0, state.leftPad.y);
+		state.leftPad.y = Math.min(BOARD_HEIGHT - state.leftPad.length, state.leftPad.y);
 		
 		// RIGHT PLAYER MOVEMENT
-		if (this.keyState.rightPadArrowUp) {
-			this.rightPad.y -= PADDLE_SPEED;
+		if (keys.rightPadArrowUp) {
+			state.rightPad.y -= PADDLE_SPEED;
 		}
-		if (this.keyState.rightPadArrowDown) {
-			this.rightPad.y += PADDLE_SPEED;
+		if (keys.rightPadArrowDown) {
+			state.rightPad.y += PADDLE_SPEED;
 		}
-		this.rightPad.y = Math.max(0, this.rightPad.y);
-		this.rightPad.y = Math.min(HEIGHT - this.rightPad.length, this.rightPad.y);
+		state.rightPad.y = Math.max(0, state.rightPad.y);
+		state.rightPad.y = Math.min(BOARD_HEIGHT - state.rightPad.length, state.rightPad.y);
 	}
 
-	moveBall(server: Server, roomName: string) {
+	moveBall(currGame: gameParam) {
+		const state = currGame.state;
+		const server = this.socketGateway.server;
 
 		function checkWallCollision(ball: ballElem) {
 			if (ball.y - ball.radius <= 0 && ball.speed.y < 0
-				|| ball.y + ball.radius >= HEIGHT && ball.speed.y > 0)
+				|| ball.y + ball.radius >= BOARD_HEIGHT && ball.speed.y > 0)
 				ball.speed.y *= -1;
 		}
 
@@ -464,201 +512,149 @@ class GameEnginePlus {
 	
 			if (leftPaddleCollision() && ball.speed.x < 0) {
 				const relativeBallPos = ball.y - (leftPad.y + leftPad.length / 2);
-				ball.speed.x *= -1;
-				ball.speed.y = ball.speed.x * BALL_SPEED_Y * (relativeBallPos / leftPad.length / 2);
-				if (Math.abs(new Date().getTime() - leftPad.activate) < 400) {
-					server.to(roomName).emit("shield", "left");
+				const currTime = new Date().getTime();
+
+				if (currGame.mode == SPECIAL_MODE && Math.abs(new Date().getTime() - leftPad.activate) < SHIELD_MAX_INTERVAL) {
+					server.to(currGame.roomName).emit("shield", "left");
 					ball.speedModifyer += 0.2;
-					console.log("leftPad shielded")
+					ball.speed.x *= -1;
+					ball.speed.y = ball.speed.x * BALL_SPEED_Y * (relativeBallPos / leftPad.length / 2);
 				}
-				leftPad.activate = -1;
+				else if (currGame.mode == SPECIAL_MODE && ball.speedModifyer > 3 && Math.abs(currTime - rightPad.activate) >= 400) {
+					// destroy paddle
+				}
+				else {
+					ball.speed.x *= -1;
+					ball.speed.y = ball.speed.x * BALL_SPEED_Y * (relativeBallPos / leftPad.length / 2);
+				}
+				leftPad.activate = SHIELD_NOT_ACTIVATED;
 				TURN = RIGHT;
 			}
 			if (rightPaddleCollision() && ball.speed.x > 0) {
 				const relativeBallPos = ball.y - (rightPad.y + rightPad.length / 2);
-				ball.speed.x *= -1;
-				ball.speed.y = ball.speed.x * (BALL_SPEED_Y * -1) * (relativeBallPos / rightPad.length / 2);
-				if (Math.abs(new Date().getTime() - rightPad.activate) < 400) {
-					server.to(roomName).emit("shield", "right");
+				const currTime = new Date().getTime();
+
+				if (currGame.mode == SPECIAL_MODE && Math.abs(currTime - rightPad.activate) < SHIELD_MAX_INTERVAL) {
+					server.to(currGame.roomName).emit("shield", "right");
 					ball.speedModifyer += 0.2;
-					console.log("rightPad shielded")
+					ball.speed.x *= -1;
+					ball.speed.y = ball.speed.x * (BALL_SPEED_Y * -1) * (relativeBallPos / rightPad.length / 2);
 				}
-				rightPad.activate = -1;
+				else if (currGame.mode == SPECIAL_MODE && ball.speedModifyer > SPEED_THRESHOLD && Math.abs(currTime - rightPad.activate) >= 400) {
+					// destroy paddle
+				}
+				else {
+					ball.speed.x *= -1;
+					ball.speed.y = ball.speed.x * (BALL_SPEED_Y * -1) * (relativeBallPos / rightPad.length / 2);
+				}
+				rightPad.activate = SHIELD_NOT_ACTIVATED;
 				TURN = LEFT;
 			}
 
 		}
 
-		checkWallCollision(this.ball);
-		checkPaddleCollision(this.ball, this.leftPad, this.rightPad);
-		this.ball.x += this.ball.speed.x * this.ball.speedModifyer;
-		this.ball.y += this.ball.speed.y * this.ball.speedModifyer;
+		checkWallCollision(state.ball);
+		checkPaddleCollision(state.ball, state.leftPad, state.rightPad);
+		state.ball.x += state.ball.speed.x * state.ball.speedModifyer;
+		state.ball.y += state.ball.speed.y * state.ball.speedModifyer;
 	}
 
-	updateGame() {
-		this.checkGoal();
-		this.movePaddle();
-		this.moveBall(this.server, this.roomName);
-		this.server.to(this.roomName).emit("updateGame", this.leftPad, this.rightPad, this.ball);
+	// Game State UTILS
+
+	checkGoal(currGame: gameParam, gameIndex: number) {
+		const state = currGame.state;
+
+		if (state.ball.x - state.ball.radius <= 0) {
+			state.score.rightPlayer++;
+			this.socketGateway.server.to(currGame.roomName).emit("updateScore", state.score);
+			this.resetGamePosition(currGame);
+		}
+		else if (state.ball.x + state.ball.radius >= BOARD_WIDTH) {
+			state.score.leftPlayer++;
+			this.socketGateway.server.to(currGame.roomName).emit("updateScore", state.score);
+			this.resetGamePosition(currGame);
+		}
 	}
 
-}
+	checkGameFinished(currGame: gameParam) {
+		const state = currGame.state;
 
-const NORMAL_MODE = 0;
-const SPECIAL_MODE = 1;
-
-interface gameList {
-	roomName: string,
-	full: boolean,
-	running: boolean,
-	socketA: Socket,
-	socketB: Socket | null,
-	mode: number,
-	game: GameEngine | GameEnginePlus
-
-};
-
-const SOCKET_NOT_FOUND = -1;
-const REFRESH_RATE = 16.66667;
-
-export class GameService {
-
-	server: Server;
-	randomGameList: gameList[];
-
-	constructor(server: Server) {
-		this.server = server;
-		this.randomGameList = [];
+		if (state.score.leftPlayer >= GAME_MAX_GOAL || state.score.rightPlayer >= GAME_MAX_GOAL) {
+			this.socketGateway.server
+				.to(currGame.roomName)
+				.emit("gameFinished");
+			return true;
+		}
+		else
+			return false;
 	}
 
-	tick() {
-		const interval = setInterval(() => {
-			for (let i = 0; i < this.randomGameList.length; i++) {
-				const currGame = this.randomGameList[i];
+	// UTILS
 
-				if (currGame.full && !currGame.running) {
-					if (currGame.mode == NORMAL_MODE)
-						this.server.to(currGame.roomName).emit("launchRandomNormal");
-					if (currGame.mode == SPECIAL_MODE)
-						this.server.to(currGame.roomName).emit("launchRandomSpecial");
-					console.log("launch game");
-					currGame.running = true;
-				}
+	isUserInGame(socket: Socket) {
 
-				if (currGame.game.gameFinished()) {
-					if (currGame.socketA)
-						currGame.socketA.leave(currGame.roomName);
-					if (currGame.socketB)
-						currGame.socketB.leave(currGame.roomName);
-					this.randomGameList.splice(i, 1);
-				} else if (currGame.running) {
-					currGame.game.updateGame();
-				}
-			}
-		}, REFRESH_RATE);
-	}
-	
-	removeFromGame(socket: Socket) {
-		for (let i = 0; i < this.randomGameList.length; i++) {
+		// CHECK FOR ALL SOCKETS OF THIS USER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		for (let i = 0; i < this.randomGameList.length; ++i) {
 			const currGame = this.randomGameList[i];
 
-			if (currGame.socketA.id === socket.id) {
-				currGame.socketA.leave(currGame.roomName);
-				currGame.socketA = null;
-				currGame.full = false;
-			}
-			
-			if (currGame.socketB && currGame.socketB.id === socket.id) {
-				currGame.socketB.leave(currGame.roomName);
-				currGame.socketB = null;
-				currGame.full = false;
-			}
-			if (!currGame.socketA && !currGame.socketB)
-				this.randomGameList.splice(i, 1);
+			if ((currGame.socketLeft && socket.id == currGame.socketLeft.id)
+					|| (currGame.socketRight && socket.id == currGame.socketRight.id))
+				return true;
 		}
-		// check in friendsGameList TO !!!!!
+		for (let i = 0; i < this.friendsGameList.length; ++i) {
+			const currGame = this.friendsGameList[i];
+
+			if ((currGame.socketLeft && socket.id == currGame.socketLeft.id)
+					|| (currGame.socketRight && socket.id == currGame.socketRight.id))
+				return true;
+		}
+
+		return false;
 	}
-	
-	joinRandomMatch(socket: Socket, gameMode: number) {
 
+	findRandomGameBySocket(socketId: string) {
 		for (let i = 0; i < this.randomGameList.length; i++) {
-			if (this.randomGameList[i].socketA.id === socket.id
-					|| (this.randomGameList[i].socketB && this.randomGameList[i].socketB.id === socket.id))
-				return; // EXCEPTION ? player already in a game
-		}
-
-		for (let i = 0; i < this.randomGameList.length; i++) {
-			const currentGame = this.randomGameList[i];
-
-			if (currentGame.mode !== gameMode)
-				continue;
-
-
-			if (currentGame.full == false )
-			{
-				if (socket.id != currentGame.socketA.id
-					&& currentGame.socketB === null)
-				{
-					currentGame.socketB = socket;
-					socket.join(currentGame.roomName);
-					currentGame.game.addPlayerSocket(socket.id);
-					currentGame.full = true;
-					currentGame.running = false;
-					return;
-				}
-			}
-		}
-		const roomName: string = uuidv4();
-		socket.join(roomName);
-		if (gameMode === NORMAL_MODE) {
-			this.randomGameList.push({
-				roomName: roomName,
-				full: false,
-				running: false,
-				socketA: socket,
-				socketB: null,
-				mode: gameMode,
-				game: new GameEngine(this.server, socket.id, roomName)
-			});
-		}
-		else if (gameMode === SPECIAL_MODE) {
-			this.randomGameList.push({
-				roomName: roomName,
-				full: false,
-				running: false,
-				socketA: socket,
-				socketB: null,
-				mode: gameMode,
-				game: new GameEnginePlus(this.server, socket.id, roomName)
-			});
-		}
-	}
-	
-	findGameIndex(socketId: string) {
-		for (let i = 0; i < this.randomGameList.length; i++) {
-			if (this.randomGameList[i].socketA.id === socketId || this.randomGameList[i].socketB.id === socketId)
+			const currGame = this.randomGameList[i];
+			if (currGame.socketLeft.id === socketId || currGame.socketRight.id === socketId)
 				return i;
 		}
 		return SOCKET_NOT_FOUND;
 	}
 
-	keyUp(socketId: string, key: string) {
-		const gameIndex = this.findGameIndex(socketId);
-		if (gameIndex != -1) {
-			this.randomGameList[gameIndex].game.keyUp(socketId, key);
+	findFriendsGameBySocket(socketId: string) {
+		for (let i = 0; i < this.friendsGameList.length; i++) {
+			const currGame = this.friendsGameList[i];
+			if (currGame.socketLeft.id === socketId || currGame.socketRight.id === socketId)
+				return i;
 		}
-		else {
-			return; //EXCEPTION ? player not found
+		return SOCKET_NOT_FOUND;
+	}
+
+	updateFrontCountdown(currGame: gameParam) {
+		if (currGame.countdown == 3 && new Date().getTime() - currGame.startTime > 1000) {
+			this.socketGateway.server.to(currGame.roomName).emit("countdown");
+			currGame.countdown = 2;
+		}
+		else if (currGame.countdown == 2 && new Date().getTime() - currGame.startTime > 2000) {
+			this.socketGateway.server.to(currGame.roomName).emit("countdown");
+			currGame.countdown = 1;
+		}
+		else if (currGame.countdown == 1 && new Date().getTime() - currGame.startTime > 3000) {
+			this.socketGateway.server.to(currGame.roomName).emit("countdown");
+			currGame.countdown = 0;
 		}
 	}
-	
-	keyDown(socketId: string, key: string) {
-		const gameIndex = this.findGameIndex(socketId);
-		if (gameIndex != -1) {
-			this.randomGameList[gameIndex].game.keyDown(socketId, key);
-		}
-		else {
-			return; //EXCEPTION ? player not found
-		}
-	}
+
 }

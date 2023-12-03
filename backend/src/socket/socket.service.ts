@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { SocketAddress } from 'net';
 import { Socket } from 'socket.io';
 import { PrismaService } from 'src/prisma/prisma.service';
 
-interface connectedUsers {
-	userId: number,
-	sockets: Socket[]
+type ConnectedUsers = {
+	[k: number]: Socket[];
 };
 
 @Injectable()
@@ -15,68 +13,68 @@ export class SocketService {
 		private readonly prismaService : PrismaService,
 		) {}
 
-	connectedusers : connectedUsers[] = [];
-	
+	private connectedUsers : ConnectedUsers = {};
 
-	getSockets(userId: number) : Socket[] {
-		this.connectedusers.map((obj) => {
-			if (obj.userId === userId) {
-				return obj.sockets;
-			}
-		})
-		return []
+	getSockets(userId: number): Socket[] {
+		if (userId in this.connectedUsers) {
+			return this.connectedUsers[userId];
+		}
+		return [];
 	}
 
-	addSocket(userId: number, socket: Socket) {
-		this.connectedusers.map((obj) => {
-			if (obj.userId === userId) {
-				obj.sockets.push(socket);
-			}
-		})
+	emitToUserSockets(userId: number, ev: string, ...args: any[]) {
+		this.foreachUserSocket(userId, client => client.emit(ev, ...args));
 	}
 
-	removeSocket(userId: number, socket: Socket) {
-		this.connectedusers.map((obj) => {
-			if (obj.userId === userId) {
-				obj.sockets.map((sock) => {
-					if (sock === socket) 
-						obj.sockets.splice(obj.sockets.indexOf(sock), 1);
-				})
+	addSocket(socket: Socket) {
+		const userId = Number(socket.user!.sub);
+
+		if (!(userId in this.connectedUsers)) {
+			this.connectedUsers[userId] = [];
+		}
+
+		this.connectedUsers[userId].push(socket);
+	}
+
+	removeSocket(socket: Socket) {
+		const userId = Number(socket.user!.sub);
+
+		if (userId in this.connectedUsers) {
+			const clientList = this.connectedUsers[userId];
+			const idx = clientList.findIndex(e => e === socket);
+			if (idx >= 0) {
+				clientList.splice(idx, 1);
 			}
-		})
+
+			if (0 === clientList.length) {
+				delete this.connectedUsers[userId];
+			}
+		}
 	}
 
 	deleteAllSockets() {
-		this.connectedusers = [];
+		this.connectedUsers = [];
 	}
-		
+
+	foreachUserSocket(userId: number, fn: (socket: Socket) => void) {
+		if (userId in this.connectedUsers) {
+			this.connectedUsers[userId].forEach(fn);
+		}
+	}
+
 	joinConversation(userId: number, destId: number, convName: string) {
-		this.connectedusers.map((user) => {
-			if(user.userId === userId ||user.userId === destId) {
-				user.sockets.map((sock) => {
-					sock.join(convName);
-				})
-			}
-		})
+		/* Make userId join convName */
+		this.foreachUserSocket(userId, client => client.join(convName));
+
+		/* Make destId join convName */
+		this.foreachUserSocket(destId, client => client.join(convName));
 	}
 
 	joinChannel(userId: number, channelName: string) {
-		this.connectedusers.map((user) => {
-			if (user.userId === userId) {
-				user.sockets.map((sock) => {
-					sock.join(channelName);
-				})
-			}
-		})
+		this.foreachUserSocket(userId, client => client.join(channelName));
 	}
 
 	leaveChannel(userId: number, channelName: string) {
-		this.connectedusers.map((user) => {
-			if (user.userId === userId) {
-				user.sockets.map((sock) => {
-					sock.leave(channelName);
-				})
-			}
-		})
+		this.foreachUserSocket(userId, client => client.leave(channelName));
 	}
 }

@@ -23,6 +23,14 @@ import { GameKeyUpEvent } from "src/events/game/keyUp.event";
 import { GameKeyDownEvent } from "src/events/game/keyDown.event";
 import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.event";
 import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
+import { UserPayload } from "src/auth/user.payload";
+import { JwtService } from "@nestjs/jwt";
+
+declare module 'socket.io' {
+	interface Socket {
+		user?: UserPayload;
+	}
+}
 
 @Injectable()
 @WebSocketGateway({
@@ -43,32 +51,50 @@ export class SocketGateway implements
 
 	constructor(
 		private readonly socketService: SocketService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly jwtService: JwtService
 		) {}
 
 	afterInit() {
 		console.log("Init socket Gateway")
 	}
 
-	async handleConnection(client: Socket, ...args: any[]) {
+	async handleConnection(client: Socket) {
+		const { authorization: token } = client.handshake.headers;
+		
+		try {
+			const payload = await this.jwtService.verifyAsync<UserPayload>(token);
+
+			client.user = payload;
+		} catch {
+			console.warn('Socket %s disconnected : bad token', client.id);
+			client.disconnect(true);
+			return ;
+		}
+
 		console.log(`Client connected: ${client.id}`);
-		//TODO rajouter socket pour chaque user, utiliser le token, trouver le moyen de le passe dans le header
+
 		client.join('server');
-		// this.socketService.addSocket(token.id, client);
+		this.socketService.addSocket(client);
 	}
 
 	async handleDisconnect(client: Socket) {
-		console.log(`Client disconnected: ${client.id}`);
+		if (!client.user) {
+			return ;
+		}
+
 		client.leave('server');
+		this.socketService.removeSocket(client);
+		console.log(`Client disconnected: ${client.id}`);
 		// this.socketService.removeSocket(token.id, client);
 		
 	}
 
 	@OnEvent('chat.sendtoclient')
-	sendToClient(event: ChatSendToClientEvent) {
-		const sockets = this.socketService.getSockets(event.userId);
-		sockets.map((sock) => {
-			this.server.to(sock.id).emit('info', {type: event.type, msg: event.data});
+	sendToClient({ userId, type, data }: ChatSendToClientEvent) {
+		this.socketService.emitToUserSockets(userId, 'info', {
+			type,
+			msg: data,
 		});
 	}
 

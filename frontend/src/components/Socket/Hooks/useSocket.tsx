@@ -5,7 +5,15 @@ export const useSocket = (
 	uri: string,
 	opts?: Partial<ManagerOptions & SocketOptions> | undefined
 	): Socket  => {
-	const {current: socket} = useRef(io(uri, opts));
+
+	const options: typeof opts = {
+		...(opts ?? {}),
+		extraHeaders: {
+			'Authorization': localStorage.getItem('token') ?? '',
+		}
+	}
+
+	const {current: socket} = useRef(io(uri, options));
 	useEffect(() => {
 		return () => {
 			if (socket) socket.close();

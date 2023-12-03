@@ -76,5 +76,4 @@ export const registerUser = (payload: any) => wrapResponse(client.post('/api/v1/
 export const fetchUserProfile = (profile: string) => wrapResponse(authorizedGet<UserProfileResponse>(`/api/v1/users/${profile}`));
 
 
-export const getPrivMessages = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
-export const getChannels = () => wrapResponse(authorizedGet(`/api/chat/get-channels`));
+export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));

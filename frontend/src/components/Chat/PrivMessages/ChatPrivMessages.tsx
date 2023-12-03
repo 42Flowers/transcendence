@@ -1,20 +1,26 @@
 import "./ChatPrivMessages.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-interface privMessageElem {
-	targetId: number,
-	targetName: string,
+interface convMessage {
+	authorName: string,
+	authorId: number,
+	creationTime: Date,
+	content: string,
 }
 
-interface channelElem {
-	channelId: number,
-	channelName: string,
-	userPermissionMask: number,
+interface convElem {
+	isChannel: boolean,
+	channelId?: number,
+	channelName?: string,
+	targetId?: number
+	targetName?: string,
+	userPermissionMask?: number,
+	messages: convMessage[],
 }
 
 interface privMessageProps {
-	privMessages: privMessageElem[],
-	handleClickConv: (conv: channelElem | privMessageElem | null) => void,
+	privMessages: convElem[],
+	handleClickConv: (conv: convElem | null) => void,
 }
 
 const AddPrivMessage: React.FC = () => {
@@ -58,7 +64,7 @@ const ChatPrivMessages: React.FC<privMessageProps> = ({ privMessages, handleClic
 	return (
 		<div className="chat-priv-messages">
 			<div className='title'>
-				<h3>Friends</h3>
+				<h3>Private Messages</h3>
 			</div>
 			{privMessages && <DisplayPrivMessages privMessages={privMessages} handleClickConv={handleClickConv} />}
 			{!privMessages && <DisplayPrivMessages privMessages={[]} handleClickConv={handleClickConv} />}

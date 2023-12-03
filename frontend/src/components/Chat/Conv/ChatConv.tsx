@@ -8,6 +8,7 @@ import { useAuthContext } from '../../../contexts/AuthContext';
 
 interface convMessage {
 	authorName: string,
+	authorId: number,
 	creationTime: Date,
 	content: string,
 }
@@ -26,21 +27,24 @@ interface convProps {
 	conversation: convElem,
 }
 
-const DisplayConv: React.FC = () => {
+interface displayConvProps {
+	messages: convMessage[],
+}
+
+const DisplayConv: React.FC<displayConvProps> = ({ messages }) => {
 	const auth = useAuthContext();
 
-	console.log(auth);
+	let listMessages = messages.map((msg) =>
+			<li key={msg.creationTime.getTime()} className='conv'>
+				<p>{msg.content}</p>
+			</li>
+	);
 
 	return (
 		<div className='chat-container'>
-			<div className='chat-box'>
-				<div className='conv'>
-					Hello
-				</div>
-				<div className='conv-user'>
-					Hi
-				</div>
-			</div>
+			<ul className='chat-box'>
+				{ listMessages }
+			</ul>
 		</div>
 	)
 }
@@ -67,25 +71,22 @@ function ChatInput() {
 const ConvFriend: React.FC = () => {
 	return (
 		<div className='small-box'>
-				<div className='nav-info'>
-					<AvatarOthers status='Online'/>
-				</div>
-				<div className='nav-info'>
-					Friend Name
-				</div>
-				<div className='nav-info'>
-					11 win / 3 loose
-				</div>
-				<div className='nav-info'>
-					<GiPingPongBat className="icon-button"/>
-				</div>
-				<div className='nav-info'>
-					<HiOutlineUserCircle className="icon-button"/>
-				</div>
-				<div className='nav-info'>
-					<p className="icon-button">Block</p>
-				</div>
+			<div className='nav-info'>
+				<AvatarOthers status='Online'/>
 			</div>
+			<div className='nav-info'>
+				Friend Name
+			</div>
+			<div className='nav-info'>
+				<GiPingPongBat className="icon-button"/>
+			</div>
+			<div className='nav-info'>
+				<HiOutlineUserCircle className="icon-button"/>
+			</div>
+			<div className='nav-info'>
+				<p className="icon-button">Block</p>
+			</div>
+		</div>
 	)
 }
 
@@ -93,7 +94,7 @@ const ChatConv: React.FC<convProps> = ({ conversation }) => {
 	return (
 		<div className='chat-msgs'>
 			<ConvFriend />
-			<DisplayConv />
+			<DisplayConv messages={ conversation.messages } />
 			<div className='small-box'>
 				<ChatInput/>
 				<AiOutlineSend className="icon-send"/>

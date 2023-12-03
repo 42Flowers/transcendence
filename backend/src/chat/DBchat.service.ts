@@ -136,169 +136,154 @@ export class ChatService {
 		try {
 			const user = await this.usersService.getUserById(data.userId);
 			if (data.type === 'join') {
-				console.log('1', data.userId);
-				if (this.roomService.joinRoom(user.id, data.roomId, data.roomname, data.option)) {
+				const join = this.roomService.joinRoom(user.id, data.roomId, data.roomname, data.option);
+				if (join != undefined) {
 					const users = await this.roomService.getUsersfromRoom(data.roomId);
-					console.log("coucou" , users);
 					this.socketService.joinChannel(user.id, data.roomname);
 					//TODO prévenir les autres qu'il est entré dans la room.
-					// this.socketGateway.server.to(data.roomname).emit('message', {from: 'server', to: 'moi', message: user.pseudo + ' has joined this room'});
-					// this.socketGateway.server.to('server').emit('roomupdate', {type: 'add', room: data.roomname});
 				}
-				} else if(data.type === 'exit') {
-					if (this.roomService.roomExists(data.roomId)){
-						if (this.roomService.isUserinRoom(user.id, data.roomId)) {
-							this.roomService.removeUserfromRoom(user.id, data.roomId);
-							this.socketService.leaveChannel(user.id, data.roomname);
-							//TODO prévenir les autres qu'il est parti.
-							// this.socketGateway.server.to(data.roomname).emit('message', {from: 'server', to: 'users', message: user.pseudo + ' has left this room'});
-						} else
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'channel', "You are not in this room"));
-							// this.socketGateway.sendToClient(user.id, 'channel', "You are not in this room");
-					} else this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'channel', "This channel does not exsits"));
-						// this.socketGateway.sendToClient(user.id, 'channel', "This channel does not exsits");
-				} else if (data.type === 'invite') {
-					if (this.roomService.roomExists(data.roomId)) {
-						if (this.roomService.isUserinRoom(user.id, data.roomId)) {
-							if (this.roomService.isUserinRoom(data.option.target, data.roomId)) {
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'invite', data.option.target + ' is already in ' + data.roomname));
-								// this.socketGateway.sendToClient(user.id, 'invite', data.option.target + ' is already in ' + data.roomname);
+			} else if(data.type === 'exit') {
+				if (this.roomService.roomExists(data.roomId)){
+					if (this.roomService.isUserinRoom(user.id, data.roomId)) {
+						this.roomService.removeUserfromRoom(user.id, data.roomId);
+						this.socketService.leaveChannel(user.id, data.roomname);
+						//TODO prévenir les autres qu'il est parti.
+					} else
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'channel', "You are not in this room"));
+				} else this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'channel', "This channel does not exsits"));
+			} else if (data.type === 'invite') {
+				if (this.roomService.roomExists(data.roomId)) {
+					if (this.roomService.isUserinRoom(user.id, data.roomId)) {
+						if (this.roomService.isUserinRoom(data.option.target, data.roomId)) {
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'invite', data.option.target + ' is already in ' + data.roomname));
+							return;
+						} else {
+							if (await this.roomService.isBan(data.option.targetId, data.roomId) === true) {
+								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'ban', data.option.target + " is banned from " + data.roomname));
 								return;
-							} else {
-						if (await this.roomService.isBan(data.option.targetId, data.roomId) === true) {
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'ban', data.option.target + " is banned from " + data.roomname));
-							// this.socketGateway.sendToClient(user.id, 'ban', data.option.target + " is banned from " + data.roomname);
-							return;
+							}
+							const membership = await this.roomService.joinByInvite(user.id, data.roomId, data.roomname);
+							if (membership === null) {
+								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', "Server error, please retry later"));
+								return;
+							}
 						}
-						const membership = await this.roomService.joinByInvite(user.id, data.roomId, data.roomname);
-						if (membership === null) {
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', "Server error, please retry later"));
-							// this.socketGateway.sendToClient(user.id, "error", "Server error, please retry later");
-							return;
+					}
+				}
+			}
+			else if (data.type === 'manage') {
+			//! Options for owner: addadmin, kickAdmin, changePwd, addPwd, rmPwd, addInvite, rmInvite
+			//! Options for administrators: kick, ban and mute (expcept for the owner, and temporally)
+				if (this.roomService.roomExists(data.roomId)) {
+					if (data.option.type === 'invite') {
+						const target = await this.usersService.getUserById(data.option.targetId);
+						if (target && !this.roomService.isUserinRoom(target.id, data.roomId)) {
+						} 
+					}
+					if (this.roomService.isRoomAdmin(user, data.roomId)) {
+						switch (data.option.type) {
+							case 'kick': {
+								const result = await this.roomService.kickUser(data.option.targetId, data.roomId);
+								if (result.status === false)
+									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+								break;
+							}
+							case 'ban': {
+								const result = await this.roomService.banUser(data.option.targetId, data.roomId);
+								if (result.status === false)
+									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+								break;
+							}
+							case 'unban': {
+								const result = await this.roomService.unBanUser(data.option.targetId, data.roomId);
+								if (result.status === false) 
+									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+								break;
+							}
+							case 'mute': {
+								const result = await this.roomService.muteUser(data.option.targetId, data.roomId);
+								if (result.status === false)
+									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+								break;
+							}
+							case 'unmute' : {
+								const result = await this.roomService.unMuteUser(data.option.targetId, data.roomId);
+								if (result.status === false) {
+									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+								}
+								break;
+							}
+							default: 
+								break;
+						}
+						if (this.roomService.isRoomOwner(user, data.roomId)) {
+							switch (data.option.type) {
+								case 'addAdmin': {
+									const result = await this.roomService.addAdmin(data.roomId, data.option.target);
+									if (result.status === false)
+										this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+										// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
+									break;
+								}
+								case 'kickAdmin': {
+									const result = await this.roomService.kickAdmin(data.roomId, data.option.target);
+									if (result.status === false)
+										this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+									// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
+									break;
+								}
+								case 'addPwd': {
+									const result = await this.roomService.addPwd(data.roomId, data.option.target);
+									if (result.status === false)
+										this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+									// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
+									break;
+								}
+								case 'rmPwd' : {
+									const result = await this.roomService.rmPwd(data.roomId);
+									if (result.status === false)
+										this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+									// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
+									break;
+								}
+								case 'changePwd' : {
+									const result = await this.roomService.addPwd(data.roomId, data.option.target);
+									if (result.status === false)
+										this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+									// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
+									break;
+								}
+								case 'addInvite' : {
+									const result = await this.roomService.addInvite(data.roomId);
+									if (result.status === false)
+										this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+									// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
+									break;
+								}
+								case 'rmInvite' : {
+									const result = await this.roomService.rmInvite(data.roomId);
+									if (result.status === false)
+										this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+									// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
+									break;
+								}
+								case 'delete' : {
+									this.roomService.clearUsersfromRoom(data.roomId);
+									const result = await this.roomService.deleteRoom(data.roomId); //vérifier qu'on a bien tout enlevé partout
+									if (result.status === false) {
+										this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
+										// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
+									}
+									break;
+								}
+								default:
+									break;
+							}
 						}
 					}
 				}
 			}
 		}
-		else if (data.type === 'manage') {
-			//! Options for owner: addadmin, kickAdmin, changePwd, addPwd, rmPwd, addInvite, rmInvite
-			//! Options for administrators: kick, ban and mute (expcept for the owner, and temporally)
-			if (this.roomService.roomExists(data.roomId)) {
-				if (data.option.type === 'invite') {
-					const target = await this.usersService.getUserById(data.option.targetId);
-					if (target && !this.roomService.isUserinRoom(target.id, data.roomId)) {
-						// this.socketGateway.server.to(target.id).emit('room', {type: 'invite', roomname: data.roomname});
-					} 
-				}
-				if (this.roomService.isRoomAdmin(user, data.roomId)) {
-					switch (data.option.type) {
-						case 'kick': {
-							const result = await this.roomService.kickUser(data.option.targetId, data.roomId);
-							if (result.status === false)
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-							break;
-						}
-						case 'ban': {
-							const result = await this.roomService.banUser(data.option.targetId, data.roomId);
-							if (result.status === false)
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-							break;
-						}
-						case 'unban': {
-							const result = await this.roomService.unBanUser(data.option.targetId, data.roomId);
-							if (result.status === false) 
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-							break;
-						}
-						case 'mute': {
-							const result = await this.roomService.muteUser(data.option.targetId, data.roomId);
-							if (result.status === false)
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-							break;
-						}
-						case 'unmute' : {
-							const result = await this.roomService.unMuteUser(data.option.targetId, data.roomId);
-							if (result.status === false) {
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg); 
-							}
-							break;
-						}
-						default: 
-							break;
-					}
-					if (this.roomService.isRoomOwner(user, data.roomId)) {
-						switch (data.option.type) {
-							case 'addAdmin': {
-								const result = await this.roomService.addAdmin(data.roomId, data.option.target);
-								if (result.status === false)
-									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-									// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-								break;
-							}
-							case 'kickAdmin': {
-								const result = await this.roomService.kickAdmin(data.roomId, data.option.target);
-								if (result.status === false)
-									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-								break;
-							}
-							case 'addPwd': {
-								const result = await this.roomService.addPwd(data.roomId, data.option.target);
-								if (result.status === false)
-									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-								break;
-							}
-							case 'rmPwd' : {
-								const result = await this.roomService.rmPwd(data.roomId);
-								if (result.status === false)
-									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-								break;
-							}
-							case 'changePwd' : {
-								const result = await this.roomService.addPwd(data.roomId, data.option.target);
-								if (result.status === false)
-									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-								break;
-							}
-							case 'addInvite' : {
-								const result = await this.roomService.addInvite(data.roomId);
-								if (result.status === false)
-									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-								break;
-							}
-							case 'rmInvite' : {
-								const result = await this.roomService.rmInvite(data.roomId);
-								if (result.status === false)
-									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-								// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-								break;
-							}
-							case 'delete' : {
-								this.roomService.clearUsersfromRoom(data.roomId);
-								const result = await this.roomService.deleteRoom(data.roomId); //vérifier qu'on a bien tout enlevé partout
-								if (result.status === false) {
-									this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(data.userId, 'error', result.msg));
-									// this.socketGateway.sendToClient(data.userId, 'error', result.msg);
-								}
-								break;
-							}
-							default:
-								break;
-						}
-					}
-				}
-			}
-			
-		}}
 		catch (error) {
 			console.log(error.message);
 			return "didn't work";
@@ -311,7 +296,6 @@ export class ChatService {
 		targetId: number
 	){
 		let conversation = await this.conversationsService.conversationExists(userId, targetId);
-		console.log(conversation);
 		if (conversation) {
 			return await this.messagesService.getMessagesfromConversation(userId, targetId);
 		}else {

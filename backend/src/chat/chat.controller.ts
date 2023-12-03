@@ -6,6 +6,7 @@ import { Request as ExpressRequest } from 'express';
 import { UsersService } from 'src/users_chat/DBusers.service';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { MessagesService } from 'src/messages/messages.service';
+import { Prisma } from '@prisma/client';
 
 interface convMessage {
     authorName: string,
@@ -56,7 +57,7 @@ export class ChatController {
 	/**
 	 * return : toutes les informations sur le channel, type messages, users et tout ça
 	 */
-	@Get('get-channel')
+	@Get('get-channelmessages')
 	async getChannelContext(
 		@Request() req: ExpressRequest
 	) {
@@ -80,10 +81,12 @@ export class ChatController {
 	) {
 		try {
 			// console.log(await this.chatService.chatRoom(data));
-			const join = await this.chatService.chatRoom({userId: 3, type: 'join', roomname: 'chan1', roomId: 2, option: ''});
-			console.log(join);
-			return 'worked';
+			const join = await this.chatService.chatRoom({userId: 6, type: 'join', roomname: 'chan3', roomId: 4, option: {invite: false, key: false, value: ""}});
+			return 'worked'; //Qu'est ce qu'il faut que je renvoie comme valeur ?
 		} catch (err) {
+			// if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+			// 	console.log(err.message);
+			// }
 			console.log(err.message);
 		}
 	}
@@ -101,7 +104,6 @@ export class ChatController {
 
             const convs: privMessageElem[] = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
-			console.log(userNames);
 			conversations.map((conv, index) => {
 				convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo});
 			});
@@ -112,7 +114,7 @@ export class ChatController {
         }
     }
 
-	@Get('private-conv')
+	@Get('get-privatemessages')
 	async privateConversation(
 		@Request() req: ExpressRequest
 	) {
@@ -133,7 +135,6 @@ export class ChatController {
 		try {
 			const friends = await this.userService.getFriends(Number(req.user.sub));
 			console.log(friends);
-			console.log("test");
 			return friends;
 		} catch (err) {console.log(err.message)}
 	}

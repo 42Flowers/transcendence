@@ -7,10 +7,15 @@ import RegisterForm from './components/RegisterForm/RegisterForm';
 import GameWrapper from './components/Game/GameWrapper';
 import PlayPage from './pages/PlayPage';
 import Profile from './components/Profile/Profile';
+import IntraRegisterForm from './components/IntraRegisterForm/IntraRegisterForm';
 export const router = createBrowserRouter([
     {
         path: '/auth/login',
         element: <Auth />,
+    },
+    {
+        path: '/auth/intra-register',
+        element: <IntraRegisterForm />
     },
     {
         path: '/auth/register',

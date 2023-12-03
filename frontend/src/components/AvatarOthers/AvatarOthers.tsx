@@ -50,16 +50,6 @@ const AvatarOthers: React.FC<Props> = ({ status }) => {
                 zIndex: 0,
                 top: '26px',
                 right: '14px',
-                '&::after': {
-                    position: 'absolute',
-                    top: '9px',
-                    right: '9px',
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '50%',
-                    animation: 'ripple 4.0s infinite ease-in-out',
-                    content: status === 'Add' ? 'none' : `"${status}"`,
-                },
                 },
                 '@keyframes ripple': {
                 '0%': {
@@ -83,7 +73,7 @@ const AvatarOthers: React.FC<Props> = ({ status }) => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 variant="dot"
             >
-                <Avatar alt="avatar" src="/static/images/avatar/1.jpg" />
+                <Avatar alt="avatar" src="" />
                 <Box position="absolute" bottom={-4} right={9.5} sx={{zIndex: 1,}}>
                     {statusImage}
                 </Box>

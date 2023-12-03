@@ -7,6 +7,7 @@ import RegisterForm from './components/RegisterForm/RegisterForm';
 import GameWrapper from './components/Game/GameWrapper';
 import PlayPage from './pages/PlayPage';
 import Profile from './components/Profile/Profile';
+
 export const router = createBrowserRouter([
     {
         path: '/auth/login',

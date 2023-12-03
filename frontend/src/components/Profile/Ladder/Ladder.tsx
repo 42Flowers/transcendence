@@ -84,7 +84,7 @@ const Ladder: React.FC = ({ currentPopup }) => {
 
 
     useEffect(() => {
-        fetch(`http://localhost:3000/api/profile/${userId}/ladder`)
+        fetch(`http://localhost:3000/api/profile/ladder`)
             .then(response => response.json())
             .then(data => {
                 setLadder(calculateRanking(calculateWinsAndLosses(data)));

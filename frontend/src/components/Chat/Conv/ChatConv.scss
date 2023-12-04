@@ -63,21 +63,23 @@
 .chat-box {
     display: flex;
     flex-direction: column;
-}
 
-.conv {
-    align-self: flex-start;
-    border: 2px solid white;
-    border-radius: 20px;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
-    background: transparent;
-    font-size: 1em;
-    color: white;
-            text-shadow: 0 0 4px var(--color-light-pink);
-    margin: 1%;
-    margin-right: 25%;
-    padding: 5px;
+    li {
+        list-style-type: none;
+        align-self: flex-start;
+        border: 2px solid white;
+        border-radius: 20px;
+        box-shadow: 0 0 30px 2px rgb(0, 0, 0, .3);
+        font-size: 1em;
+        color: white;
+        text-shadow: 0 0 4px var(--color-light-pink);
+        margin: 0.4em;
+        padding: 5px 10px;
+
+        &.is-right {
+            margin-left: auto;
+        }
+    }
 }
 
 .chat-msgs .conv-user {

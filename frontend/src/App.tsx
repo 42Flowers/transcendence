@@ -1,23 +1,16 @@
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClientProvider } from 'react-query';
 import { RouterProvider } from 'react-router-dom';
-import { AuthConsumer, AuthProvider } from './contexts/AuthContext';
-import { router } from './router';
-import { AvatarProvider } from './contexts/AvatarContext';
-import { PseudoProvider } from './contexts/PseudoContext';
 import { AchievementsListProvider } from './contexts/AchievementsListContext';
+import { AuthConsumer, AuthProvider } from './contexts/AuthContext';
+import { AvatarProvider } from './contexts/AvatarContext';
 import { LeaderProvider } from './contexts/LeaderContext';
 import { PerfectProvider } from './contexts/PerfectContext';
+import { PseudoProvider } from './contexts/PseudoContext';
+import { router } from './router';
 
 import { SnackbarProvider } from 'notistack';
 import './App.css';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 10000,
-    },
-  },
-});
+import { queryClient } from './query-client';
 
 const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>

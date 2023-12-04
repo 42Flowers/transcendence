@@ -5,6 +5,10 @@ import { GiPingPongBat } from 'react-icons/gi';
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import AvatarOthers from '../../AvatarOthers/AvatarOthers';
 import { useAuthContext } from '../../../contexts/AuthContext';
+import { MessageView } from '../MessageView';
+import { useMutation, useQuery } from 'react-query';
+import { ChannelMessage, fetchChannelMessages, postChannelMessage } from '../../../api';
+import { queryClient } from '../../../query-client';
 
 interface convMessage {
 	authorName: string,
@@ -27,27 +31,6 @@ interface convProps {
 	conversation: convElem,
 }
 
-interface displayConvProps {
-	messages: convMessage[],
-}
-
-const DisplayConv: React.FC<displayConvProps> = ({ messages }) => {
-	const auth = useAuthContext();
-
-	let listMessages = messages.map((msg) =>
-			<li key={msg.creationTime.getTime()} className='conv'>
-				<p>{msg.content}</p>
-			</li>
-	);
-
-	return (
-		<div className='chat-container'>
-			<ul className='chat-box'>
-				{ listMessages }
-			</ul>
-		</div>
-	)
-}
 
 type ConversationHeaderProps = {
 	title: string;
@@ -75,32 +58,60 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({ title }) => {
 	)
 }
 
+type ChatInputProps = {
+	onSend: (content: string) => void;
+}
+
+const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
+	const handleSubmit = React.useCallback((e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		const form = e.currentTarget;
+		const formData = new FormData(e.currentTarget);
+		const content = formData.get('message')?.toString();
+
+		if (!content || content.trim().length === 0)
+			return ;
+		
+		form.reset();
+
+		onSend(content);
+	}, [ onSend ]);
+
+	return (
+		<form className="chat-input" onSubmit={handleSubmit}>
+			<input type="text" name="message" />
+			<button type="submit">
+				<AiOutlineSend className="icon-send"/>
+			</button>
+		</form>
+	);
+};
+
 const ChatConv: React.FC<convProps> = ({ conversation }) => {
-	const msg = [
-		{
-			content: 'Bonjour',
-			creationTime: new Date(),
+	const messagesQueryKey = [ 'channel', 4, 'messages' ];
+
+	const messagesQuery = useQuery(messagesQueryKey, () => fetchChannelMessages(4));
+	const postMessageMutation = useMutation({
+		mutationFn: (content: string) => postChannelMessage(4, content),
+		onSuccess(data) {
+			console.log('oooooo', data);
+			queryClient.setQueryData<ChannelMessage[]>(messagesQueryKey, messages => ([
+				...(messages ?? []),
+				data,
+			]));
 		},
-		{
-			content: 'Bonjour',
-			creationTime: new Date(),
-		},
-		{
-			content: 'Bonjour',
-			creationTime: new Date(),
-		}	
-	];
+	});
+
+	const handleSend = React.useCallback((content: string) => {
+		postMessageMutation.mutate(content);
+	}, []);
 
 	return (
 		<div className="chat-msgs">
 			<ConversationHeader title="Friend Name" />
-			<DisplayConv messages={ [...msg] } />
-			<form className="chat-input">
-				<input type="text" />
-				<button type="submit">
-					<AiOutlineSend className="icon-send"/>
-				</button>
-			</form>
+			<MessageView messages={ messagesQuery.data || [] } />
+			<ChatInput onSend={handleSend} />
 		</div>
 	)
 }

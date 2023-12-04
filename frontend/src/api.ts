@@ -82,7 +82,20 @@ export interface Channel {
     name: string,
 }
 
+export interface ChannelMessage {
+    id: number;
+    content: string;
+    createdAt: Date;
+    author: {
+        id: number;
+        pseudo: string;
+        avatar: string | null;
+    };
+}
+
 export const fetchChannels = () => wrapResponse(authorizedGet<Channel[]>('/api/v1/channels'));
+export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet<ChannelMessage[]>(`/api/v1/channels/${channelId}/messages`));
+export const postChannelMessage = (channelId: number, content: string) => wrapResponse(authorizedPost<ChannelMessage>(`/api/v1/channels/${channelId}/messages`, { content }));
 
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 export const getChannels = () => wrapResponse(authorizedGet('/api/chat/get-channels'));

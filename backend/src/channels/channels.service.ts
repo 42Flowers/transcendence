@@ -65,4 +65,60 @@ export class ChannelsService {
 
         return memberships.map(({ channel }) => channel);
     }
+
+    async getChannelMessages(userId, channelId) {
+        const messages = await this.prismaService.message.findMany({
+            where: {
+                channelId,
+            },
+            select: {
+                author: {
+                    select: {
+                        pseudo: true,
+                        id: true,
+                        avatar: true,
+                    },
+                },
+                content: true,
+                id: true,
+                createdAt: true,
+            },
+        });
+
+        /* TODO check user to channel membership */
+
+        return messages;
+    }
+
+    async postMessage(userId: number, channelId: number, content: string) {
+        const message = await this.prismaService.message.create({
+            data: {
+                content,
+                author: {
+                    connect: {
+                        id: userId,
+                    },
+                },
+                channel: {
+                    connect: {
+                        id: channelId,
+                    },
+                },
+            },
+            select: {
+                author: {
+                    select: {
+                        pseudo: true,
+                        id: true,
+                        avatar: true,
+                    },
+                },
+                content: true,
+                id: true,
+                createdAt: true,
+            }
+        });
+
+        return message;
+    }
 }

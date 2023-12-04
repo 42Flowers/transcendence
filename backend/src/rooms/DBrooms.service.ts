@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { SocketService } from 'src/socket/socket.service';
@@ -9,6 +9,12 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 //  * TODO Mettre le masque des permissions quand création ou join de channel
 //	TODO les erreurs purée
 //  */
+
+const channelWithMemberships = Prisma.validator<Prisma.ChannelDefaultArgs>()({
+	include: { memberships: true },
+});
+  
+type ChannelWithMemberships = Prisma.ChannelGetPayload<typeof channelWithMemberships>;
 
 @Injectable()
 export class RoomService {
@@ -233,6 +239,36 @@ export class RoomService {
 			});
 			return users;
 		} catch (err) { throw new Error(err.message) }
+	}
+
+	/**
+	 * Returns the users in the channel channelId
+	 * If the channel is private and the user is not member of it, returns a 404.
+	 * 
+	 * Not a 403 because "Forbidden" implies that the resource exists but you are not allowed to.
+	 * 404 is returned no matter if the channel exists or the access is forbidden
+	 * @param userId 
+	 * @param channelId 
+	 */
+	async getChannelUsers(userId: number, channelId: number) {
+		const { memberships, ...channel }: ChannelWithMemberships = await this.prismaService.channel.findUnique({
+			where: {
+				id: channelId,
+			},
+			include: {
+				memberships: true,
+			},
+		});
+
+		const userBelongToChannel = memberships.find(ms => ms.userId === userId);
+
+		/* TODO check accessMask to determine if anonymous is allowed to retrieve channel participants */
+
+		if (!channel || !userBelongToChannel) {
+			throw new NotFoundException();
+		}
+
+		return memberships;
 	}
 	
 	async getRooms() : Promise<any> {

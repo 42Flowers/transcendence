@@ -1,3 +1,4 @@
+import { Channel } from '../../../api';
 import './ChatChannels.scss';
 import React, { useState } from 'react';
 
@@ -19,7 +20,7 @@ interface convElem {
 }
 
 interface channelsProp {
-	channels: convElem[],
+	channels: Channel[],
 	handleClickConv: (conv: convElem | null) => void,
 }
 
@@ -58,28 +59,32 @@ const AddChannel: React.FC = () => {
 	)
 }
 
-const DisplayChannels: React.FC<channelsProp> = ({ channels, handleClickConv }) => {
-	let listChannels = channels.map((channel) => 
-		<li key={ channel.channelId }>
-			<button className='channels-button' onClick={() => handleClickConv(channel)}>{ channel.channelName }</button>
-		</li>
-	);
+type ChannelListProps = {
+	channels: Channel[];
+	handleClickConv: (id: number) => void;
+};
 
-	return (
-		<ul className="display-channels" >
-			{ listChannels }
-		</ul>
-	)
-}
+const ChannelList: React.FC<ChannelListProps> = ({ channels, handleClickConv }) => (
+	<ul className="display-channels">
+		{
+			channels.map(({ id, name }) => (
+				<li key={id}>
+					<button className="channels-button">
+						{name}
+					</button>
+				</li>
+			))
+		}
+	</ul>
+);
 
 const ChatChannels: React.FC<channelsProp> = ({ channels, handleClickConv }) => {
-
 	return (
 		<div className="chat-channels">
 			<div className="chat-header">
 				<h3>Channels</h3>
 			</div>
-			<DisplayChannels channels={channels} handleClickConv={handleClickConv} />
+			<ChannelList channels={channels} handleClickConv={handleClickConv} />
 			<AddChannel />
 		</div>
 	);

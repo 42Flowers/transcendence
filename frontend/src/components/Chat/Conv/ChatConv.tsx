@@ -76,10 +76,25 @@ const ConversationHeader: React.FC<ConversationHeaderProps> = ({ title }) => {
 }
 
 const ChatConv: React.FC<convProps> = ({ conversation }) => {
+	const msg = [
+		{
+			content: 'Bonjour',
+			creationTime: new Date(),
+		},
+		{
+			content: 'Bonjour',
+			creationTime: new Date(),
+		},
+		{
+			content: 'Bonjour',
+			creationTime: new Date(),
+		}	
+	];
+
 	return (
 		<div className="chat-msgs">
 			<ConversationHeader title="Friend Name" />
-			<DisplayConv messages={ [] } />
+			<DisplayConv messages={ [...msg] } />
 			<form className="chat-input">
 				<input type="text" />
 				<button type="submit">

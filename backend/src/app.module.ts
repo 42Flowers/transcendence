@@ -10,6 +10,7 @@ import { ProfileModule } from './profile/profile.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ChannelsModule } from './channels/channels.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { JwtModule } from '@nestjs/jwt';
     FriendsModule,
     TestModule,
     PrismaModule,
+    ChannelsModule,
   ],
   controllers: [],
   providers: [],

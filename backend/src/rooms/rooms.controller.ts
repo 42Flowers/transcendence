@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, ParseIntPipe, Request } from '@nestjs/common';
 import { RoomService } from './DBrooms.service';
+import { Request as ExpressRequest } from 'express';
 
 @Controller("room")
 export class RoomController {
@@ -22,6 +23,15 @@ export class RoomController {
 		console.log(data.name);
 		console.log(this.roomService.getUsersfromRoom(data.id))
 		return this.roomService.getUsersfromRoom(data.id);
+	}
+
+	@Get(':id/users')
+	async getRoomUsers(
+		@Request() req: ExpressRequest,
+		@Param('id', ParseIntPipe) id: number) {
+			/* TODO put the real user id here */
+		const userId = 1; //Number(req.user.sub);
+		return await this.roomService.getChannelUsers(userId, id);
 	}
 	
 

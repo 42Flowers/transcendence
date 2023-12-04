@@ -3,7 +3,7 @@ import ChatChannels from './Channels/ChatChannels';
 import ChatConv from './Conv/ChatConv';
 import ChatPrivMessages from './PrivMessages/ChatPrivMessages';
 import './Chat.scss';
-import { getConversations } from '../../api';
+import { fetchChannels, getConversations } from '../../api';
 import { useQuery } from 'react-query';
 import { useAuthContext } from '../../contexts/AuthContext';
 
@@ -40,15 +40,11 @@ interface convElem {
 }
 
 const Chat: React.FC = () => {
+	const channelsQuery = useQuery('channels', fetchChannels);
+
 	const [selectedConv, setSelectedConv] = useState< convElem | null>(null);
 	const convs = useQuery('get-convs', getConversations);
 
-	const channels = React.useMemo(() => {
-		if (convs.isFetched) {
-			return (convs.data as convElem[]).filter(({ isChannel }) => isChannel);
-		}
-		return [];
-	}, [ convs ]);
 	const privateMessages = React.useMemo(() => {
 		if (convs.isFetched) {
 			return (convs.data as convElem[]).filter(({ isChannel }) => !isChannel);
@@ -62,7 +58,7 @@ const Chat: React.FC = () => {
 
 	return (
 		<div className="chat-wrapper">
-			<ChatChannels channels={channels} handleClickConv={ handleClickConv } />
+			<ChatChannels channels={channelsQuery.data || []} handleClickConv={ handleClickConv } />
 
 			{selectedConv && <ChatConv conversation={selectedConv} />}
 			

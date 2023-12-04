@@ -1,20 +1,26 @@
 import './ChatChannels.css';
 import React, { useState } from 'react';
 
-interface channelElem {
-	channelId: number,
-	channelName: string,
-	userPermissionMask: number,
+interface convMessage {
+	authorName: string,
+	authorId: number,
+	creationTime: Date,
+	content: string,
 }
 
-interface privMessageElem {
-	targetId: number,
-	targetName: string,
+interface convElem {
+	isChannel: boolean,
+	channelId?: number,
+	channelName?: string,
+	targetId?: number
+	targetName?: string,
+	userPermissionMask?: number,
+	messages: convMessage[],
 }
 
 interface channelsProp {
-	channels: channelElem[],
-	handleClickConv: (conv: channelElem | privMessageElem | null) => void,
+	channels: convElem[],
+	handleClickConv: (conv: convElem | null) => void,
 }
 
 const AddChannel: React.FC = () => {

@@ -583,6 +583,7 @@ export class GameService {
 		const state = currGame.state;
 
 		if (state.score.leftPlayer >= GAME_MAX_GOAL || state.score.rightPlayer >= GAME_MAX_GOAL) {
+			this.updateGameHistory(currGame);
 			this.socketGateway.server
 				.to(currGame.roomName)
 				.emit("gameFinished");
@@ -593,6 +594,42 @@ export class GameService {
 	}
 
 	// UTILS
+
+	async updateGameHistory(currGame: gameParam) {
+		const score = currGame.state.score;
+		const winnerId = score.leftPlayer > score.rightPlayer ? currGame.userIdLeft : currGame.userIdRight;
+		const looserId = score.leftPlayer < score.rightPlayer ? currGame.userIdLeft : currGame.userIdRight;
+
+		// I DONT KNOW WAT TO DO !
+		try {
+			const game = await this.prisma.game.create({
+				data: {
+					score1: currGame.state.score.leftPlayer,
+					score2: currGame.state.score.rightPlayer,
+					winnerId: winnerId,
+					looserId: looserId,
+				}
+			});
+	
+			// Game Participation Pair
+			await this.prisma.gameParticipation.create({
+				data: {
+					userId: currGame.userIdLeft,
+					opponentId: currGame.userIdRight,
+					gameId: game.id,
+				}
+			})
+			await this.prisma.gameParticipation.create({
+				data: {
+					userId: currGame.userIdRight,
+					opponentId: currGame.userIdLeft,
+					gameId: game.id,
+				}
+			})
+		} catch (e) {
+			return e;
+		}
+	}
 
 	isUserInGame(socket: Socket) {
 		for (let i = 0; i < this.randomGameList.length; ++i) {

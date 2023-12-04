@@ -10,13 +10,14 @@ import {
     TableHead, 
     TableRow 
 } from '@mui/material';
+import default_avatar from "../../../assets/images/default_avatar.png";
 
 import AvatarOthers from '../../AvatarOthers/AvatarOthers';
 
 import './Ladder.css';
 
 const Ladder: React.FC = ({ currentPopup }) => {
-    // const { setSmallLeader, setGreatLeader } = useContext(LeaderContext) as LeaderContextType;
+    const { setSmallLeader, setGreatLeader } = useContext(LeaderContext) as LeaderContextType;
 
     interface CellStyle {
         color: string,
@@ -74,11 +75,11 @@ const Ladder: React.FC = ({ currentPopup }) => {
             }
             return a.losses - b.losses;
         });
-        // if (ranking.length >= 3 && ranking[0].id == userId) {
-        //     setSmallLeader(true);
-        // } else if (ranking.length >= 10 && ranking[0].id == userId) {
-        //     setGreatLeader(true);
-        // }
+        if (ranking.length >= 3 && ranking[0].id == userId) {
+            setSmallLeader(true);
+        } else if (ranking.length >= 10 && ranking[0].id == userId) {
+            setGreatLeader(true);
+        }
         return ranking;
     };
 
@@ -90,11 +91,9 @@ const Ladder: React.FC = ({ currentPopup }) => {
                 setLadder(calculateRanking(calculateWinsAndLosses(data)));
             }
         );
-
         const currentDiv = tableBodyRef.current;
         const currentFirstRow = firstRowRef.current;
         const handleScroll = () => {
-            console.log(currentDiv!.scrollTop)
             if (currentDiv!.scrollTop > 0) {
                 currentFirstRow!.style.borderBottom = "5px solid #9747FF";
             } else {
@@ -155,7 +154,11 @@ const Ladder: React.FC = ({ currentPopup }) => {
                                     {user.losses}
                                 </TableCell>
                                 <TableCell id="cell-avatar-l">
-                                    <AvatarOthers status="Online"/>
+                                    {user.avatar ?
+                                        <AvatarOthers status="Online" avatar={`http://localhost:3000/static/${user.avatar}`} />
+                                        :
+                                        <AvatarOthers status="Online" avatar={default_avatar} />
+                                    }
                                 </TableCell>
                             </TableRow>
                         ))}

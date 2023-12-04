@@ -102,7 +102,7 @@ const Profile: React.FC<Props> = () => {
     const { setAchievementsList } = useContext(AchievementsListContext) as AchievementsListContextType;
     const { pseudo, setPseudo } = useContext(PseudoContext) as PseudoContextType;
     const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
-    const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType;
+    const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType; // TODO: voir avec Max
 
     const gamesWonFunc = ( userId: string, games: Game[] ): number => {
         let gamesWon = 0;
@@ -250,12 +250,12 @@ const Profile: React.FC<Props> = () => {
                     handleAchievement('You\'re playing a lot');
                 }
 
-                // if (smallLeader && data?.achievements['Small Leader'].users.length === 0) {
-                //     handleAchievement('Small Leader');
-                // }
-                // if (greatLeader && data?.achievements['Great Leader'].users.length === 0) {
-                //     handleAchievement('Great Leader');
-                // }
+                if (smallLeader && data?.achievements['Small Leader'].users.length === 0 && data?.gamesParticipated.length > 0) {
+                    handleAchievement('Small Leader');
+                }
+                if (greatLeader && data?.achievements['Great Leader'].users.length === 0 && data?.gamesParticipated.length > 0) {
+                    handleAchievement('Great Leader');
+                }
 
                 // if (perfectWin && data?.achievements['Perfect win'].users.length === 0) {
                 //     handleAchievement('Perfect win');
@@ -266,8 +266,11 @@ const Profile: React.FC<Props> = () => {
                 //TODO: New level, Level 21, You like to talk?, Chatterbox
             }
         };
+        // IF current user
         fetchData();
-    }, []);
+        // ELSE IF other user
+        //fetchDataPublic
+    }, [smallLeader, greatLeader]);
 
     const handleUploadAvatar = (e) => {
         e.preventDefault();
@@ -348,6 +351,7 @@ const Profile: React.FC<Props> = () => {
 
     return (
         <>
+        {/* IF current user */}
             <div className="overlay" style={{ display: currentPopup['Newwww Avatar'] ? 'block': 'none' }}></div>
             <div className="overlay" style={{ display: currentPopup['Newwww Pseudo'] ? 'block': 'none' }}></div>
             <div className="overlay" style={{ display: currentPopup['3 total'] ? 'block': 'none' }}></div>
@@ -368,6 +372,9 @@ const Profile: React.FC<Props> = () => {
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
                 <PseudoButton handleChangePseudo={handleChangePseudo} />
                 <Switch2FA />
+        {/* ELSE */}
+            {/* Add friend, block, unblock */}
+        {/* ENDIF */}
                 <Ladder />
                 <Stats userId={userId}/>
                 <MatchHistory />

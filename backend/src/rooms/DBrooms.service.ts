@@ -1,9 +1,9 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { SocketService } from 'src/socket/socket.service';
-import { Prisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Prisma } from '@prisma/client';
 
 // /**
 //  * TODO Mettre le masque des permissions quand création ou join de channel

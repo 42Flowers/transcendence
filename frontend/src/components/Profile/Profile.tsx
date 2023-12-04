@@ -18,6 +18,7 @@ import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 
 import './Profile.css';
 import { PerfectContext } from "../../contexts/PerfectContext";
+import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 
 interface Props {
     onRouteChange: (route: string) => void;
@@ -375,6 +376,7 @@ const Profile: React.FC<Props> = () => {
         {/* ELSE */}
             {/* Add friend, block, unblock */}
         {/* ENDIF */}
+                <FriendChoiceButtons  userId={userId} /*friendId={friendId} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
                 <Ladder />
                 <Stats userId={userId}/>
                 <MatchHistory />

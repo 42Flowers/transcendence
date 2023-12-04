@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import ChatChannels from './Channels/ChatChannels';
 import ChatConv from './Conv/ChatConv';
 import ChatPrivMessages from './PrivMessages/ChatPrivMessages';
-import './Chat.css';
+import './Chat.scss';
 import { getConversations } from '../../api';
 import { useQuery } from 'react-query';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -13,6 +13,21 @@ interface convMessage {
 	creationTime: Date,
 	content: string,
 }
+
+interface Conversation {
+	targetId: number;
+	targetName: string;
+}
+
+interface Channel {
+	channelId: number,
+	channelName: string,
+	targetId: number
+	targetName: string,
+	userPermissionMask: number,
+}
+
+type convElem2 = { isChannel: boolean; } & Partial<Conversation> & Partial<Channel>;
 
 interface convElem {
 	isChannel: boolean,
@@ -26,36 +41,34 @@ interface convElem {
 
 const Chat: React.FC = () => {
 	const [selectedConv, setSelectedConv] = useState< convElem | null>(null);
-	const auth = useAuthContext();
-
-	console.log('User ID: %s', auth.user!.id);
-
 	const convs = useQuery('get-convs', getConversations);
 
-	let channels: convElem[] = [];
-	let privateMessages: convElem[] = [];
-
-	if (convs.isFetched) {
-		for (let i = 0; i < convs.data.length; ++i) {
-			if (convs.data[i].isChannel)
-				channels.push(convs.data[i]);
-			else {
-				privateMessages.push(convs.data[i]);
-			}
+	const channels = React.useMemo(() => {
+		if (convs.isFetched) {
+			return (convs.data as convElem[]).filter(({ isChannel }) => isChannel);
 		}
-	}
+		return [];
+	}, [ convs ]);
+	const privateMessages = React.useMemo(() => {
+		if (convs.isFetched) {
+			return (convs.data as convElem[]).filter(({ isChannel }) => !isChannel);
+		}
+		return [];
+	}, [ convs ]);
 
 	const handleClickConv = useCallback((conv: convElem | null) => {
 		setSelectedConv(conv);
 	}, []);
 
 	return (
-		<div className='chat-wrapper' >
-			{convs.isFetched && <ChatChannels channels={ channels } handleClickConv={ handleClickConv } />}
-			{selectedConv && <ChatConv conversation={ selectedConv } />}
-			{convs.isFetched && <ChatPrivMessages privMessages={ privateMessages } handleClickConv={ handleClickConv } />}
+		<div className="chat-wrapper">
+			<ChatChannels channels={channels} handleClickConv={ handleClickConv } />
+
+			{selectedConv && <ChatConv conversation={selectedConv} />}
+			
+			<ChatPrivMessages privMessages={privateMessages} handleClickConv={ handleClickConv } />
 		</div>
-	)
+	);
 }
 
 export default Chat;

@@ -40,7 +40,7 @@ export class ChatController {
      * @returns list of channels the user can join, nom du channel, le channelId et les permissions que le user en question a dans le channel
      */
     @Get('get-channels')
-    async getChannels( 
+    async getChannels(
 		@Request() req: ExpressRequest
 	) {
 		try {

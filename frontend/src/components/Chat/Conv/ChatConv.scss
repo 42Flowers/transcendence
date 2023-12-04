@@ -1,0 +1,96 @@
+@charset 'utf-8';
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.chat-msgs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .chat-input {
+        display: flex;
+        justify-content: space-between;
+        align-items:center;
+        border: 2px solid white;
+        position: relative;
+        background: linear-gradient(to right, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+        padding: 1em;
+
+        input[type=text] {
+            font-family: "Short Stack";
+            border: 2px solid white;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+            background: transparent;
+            font-size: 1em;
+            color: white;
+            text-shadow: 0 0 4px var(--color-yellow);
+            padding: 5px;
+            flex: 1;
+        }
+
+        button {
+            border: none;
+            background-color: transparent;
+            outline: none;
+            display: flex;
+            color: white;
+            margin-left: 1em;
+            cursor: pointer;
+
+            svg {
+                width: 2em;
+                height: 2em;
+            }
+        }
+    }
+}
+
+.chat-container {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column-reverse;
+    border: 2px solid white;
+    padding: 10px;
+    flex: 1;
+    overflow-y: scroll;
+}
+
+.chat-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.conv {
+    align-self: flex-start;
+    border: 2px solid white;
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+    background: transparent;
+    font-size: 1em;
+    color: white;
+            text-shadow: 0 0 4px var(--color-light-pink);
+    margin: 1%;
+    margin-right: 25%;
+    padding: 5px;
+}
+
+.chat-msgs .conv-user {
+    align-self: flex-end;
+    border: 2px solid white;
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+    background: transparent;
+    font-size: 1em;
+    color: white;
+            text-shadow: 0 0 4px var(--color-blue);
+    margin: 1%;
+    margin-left: 25%;
+    padding: 5px;
+}

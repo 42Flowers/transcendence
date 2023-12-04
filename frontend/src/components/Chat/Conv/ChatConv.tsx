@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './ChatConv.css';
+import './ChatConv.scss';
 import { AiOutlineSend } from 'react-icons/ai';
 import { GiPingPongBat } from 'react-icons/gi';
 import { HiOutlineUserCircle } from "react-icons/hi2";
@@ -49,41 +49,26 @@ const DisplayConv: React.FC<displayConvProps> = ({ messages }) => {
 	)
 }
 
-function ChatInput() {
- const [maxLength, setMaxLength] = useState(0);
-
-	useEffect(() => {
-	const inputElement = document.querySelector('.chat-input') as HTMLInputElement;
-	const inputWidth = inputElement.offsetWidth;
-	const newMaxLength = Math.round(inputWidth / 8);
-	setMaxLength(newMaxLength);
-	}, []);
-
-	return (
-	<input
-		type="text"
-		maxLength={maxLength}
-		className='chat-input'
-	/>
-	);
+type ConversationHeaderProps = {
+	title: string;
 }
 
-const ConvFriend: React.FC = () => {
+const ConversationHeader: React.FC<ConversationHeaderProps> = ({ title }) => {
 	return (
-		<div className='small-box'>
-			<div className='nav-info'>
-				<AvatarOthers status='Online'/>
+		<div className="chat-header bg-inverted conv-header">
+			<div className="nav-item">
+				<AvatarOthers status="Online" />
 			</div>
-			<div className='nav-info'>
-				Friend Name
+			<div className="nav-item">
+				{title}
 			</div>
-			<div className='nav-info'>
-				<GiPingPongBat className="icon-button"/>
+			<div className="push-right nav-item">
+				<GiPingPongBat className="icon-button" />
 			</div>
-			<div className='nav-info'>
-				<HiOutlineUserCircle className="icon-button"/>
+			<div className="nav-item">
+				<HiOutlineUserCircle className="icon-button" />
 			</div>
-			<div className='nav-info'>
+			<div className="nav-item">
 				<p className="icon-button">Block</p>
 			</div>
 		</div>
@@ -92,13 +77,15 @@ const ConvFriend: React.FC = () => {
 
 const ChatConv: React.FC<convProps> = ({ conversation }) => {
 	return (
-		<div className='chat-msgs'>
-			<ConvFriend />
-			<DisplayConv messages={ conversation.messages } />
-			<div className='small-box'>
-				<ChatInput/>
-				<AiOutlineSend className="icon-send"/>
-			</div>
+		<div className="chat-msgs">
+			<ConversationHeader title="Friend Name" />
+			<DisplayConv messages={ [] } />
+			<form className="chat-input">
+				<input type="text" />
+				<button type="submit">
+					<AiOutlineSend className="icon-send"/>
+				</button>
+			</form>
 		</div>
 	)
 }

@@ -13,6 +13,23 @@ import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    {
+      ...JwtModule.registerAsync({
+      useFactory: (config: ConfigService) => ({
+          secret: config.getOrThrow<string>('JWT_SECRET'),
+          global: true,
+          signOptions: {
+
+          },
+      }),
+      inject: [ ConfigService ],
+    }),
+    global: true,
+  },
     AuthModule,
     GameModule,
     SocketModule,
@@ -21,23 +38,6 @@ import { JwtModule } from '@nestjs/jwt';
     FriendsModule,
     TestModule,
     PrismaModule,
-    EventEmitterModule.forRoot(),
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    {
-      ...JwtModule.registerAsync({
-        useFactory: (config: ConfigService) => ({
-            secret: config.getOrThrow<string>('JWT_SECRET'),
-            global: true,
-            signOptions: {
-
-            },
-        }),
-        inject: [ ConfigService ],
-      }),
-      global: true,
-    },
   ],
   controllers: [],
   providers: [],

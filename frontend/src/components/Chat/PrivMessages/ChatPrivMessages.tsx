@@ -1,20 +1,26 @@
-import "./ChatPrivMessages.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import "./ChatPrivMessages.scss";
 
-interface privMessageElem {
-	targetId: number,
-	targetName: string,
+interface convMessage {
+	authorName: string,
+	authorId: number,
+	creationTime: Date,
+	content: string,
 }
 
-interface channelElem {
-	channelId: number,
-	channelName: string,
-	userPermissionMask: number,
+interface convElem {
+	isChannel: boolean,
+	channelId?: number,
+	channelName?: string,
+	targetId?: number
+	targetName?: string,
+	userPermissionMask?: number,
+	messages: convMessage[],
 }
 
 interface privMessageProps {
-	privMessages: privMessageElem[],
-	handleClickConv: (conv: channelElem | privMessageElem | null) => void,
+	privMessages: convElem[],
+	handleClickConv: (conv: convElem | null) => void,
 }
 
 const AddPrivMessage: React.FC = () => {
@@ -39,32 +45,30 @@ const AddPrivMessage: React.FC = () => {
 	)
 }
 
-const DisplayPrivMessages: React.FC<privMessageProps> = ({ privMessages }) => {
-	let listFriends = privMessages.map((pm) =>
-		<li key={ pm.targetId }>
-			<button className="priv-messages-button">{ pm.targetName }</button>
-		</li>
-	);
-
+const DisplayPrivMessages: React.FC<privMessageProps> = ({ privMessages, handleClickConv }) => {
 	return (
-		<ul className="display-priv-messages" >
-			{ listFriends }
+		<ul className="display-priv-messages">
+			{
+				privMessages.map(pm => (
+					<li key={pm.targetId}>
+						<button className="priv-messages-button" onClick={() => handleClickConv(pm)}>
+							{pm.targetName}
+						</button>
+					</li>
+				))
+			}
 		</ul>
 	);
 }
 
-const ChatPrivMessages: React.FC<privMessageProps> = ({ privMessages, handleClickConv }) => {
-
-	return (
-		<div className="chat-priv-messages">
-			<div className='title'>
-				<h3>Friends</h3>
-			</div>
-			{privMessages && <DisplayPrivMessages privMessages={privMessages} handleClickConv={handleClickConv} />}
-			{!privMessages && <DisplayPrivMessages privMessages={[]} handleClickConv={handleClickConv} />}
-			<AddPrivMessage />
+const ChatPrivMessages: React.FC<privMessageProps> = ({ privMessages, handleClickConv }) => (
+	<div className="chat-priv-messages">
+		<div className="chat-header">
+			<h3>Private Messages</h3>
 		</div>
-	);
-}
+		<DisplayPrivMessages privMessages={privMessages} handleClickConv={handleClickConv} />
+		<AddPrivMessage />
+	</div>
+);
 
 export default ChatPrivMessages;

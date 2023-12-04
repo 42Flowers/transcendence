@@ -1,92 +1,91 @@
 import React, { useState, useEffect } from 'react';
-import './ChatConv.css';
+import './ChatConv.scss';
 import { AiOutlineSend } from 'react-icons/ai';
 import { GiPingPongBat } from 'react-icons/gi';
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import AvatarOthers from '../../AvatarOthers/AvatarOthers';
+import { useAuthContext } from '../../../contexts/AuthContext';
 
-const CHAT: React.FC = () => {
+interface convMessage {
+	authorName: string,
+	authorId: number,
+	creationTime: Date,
+	content: string,
+}
+
+interface convElem {
+	isChannel: boolean,
+	channelId?: number,
+	channelName?: string,
+	targetId?: number
+	targetName?: string,
+	permissionMask?: number,
+	messages: convMessage[],
+}
+
+interface convProps {
+	conversation: convElem,
+}
+
+interface displayConvProps {
+	messages: convMessage[],
+}
+
+const DisplayConv: React.FC<displayConvProps> = ({ messages }) => {
+	const auth = useAuthContext();
+
+	let listMessages = messages.map((msg) =>
+			<li key={msg.creationTime.getTime()} className='conv'>
+				<p>{msg.content}</p>
+			</li>
+	);
+
 	return (
 		<div className='chat-container'>
-			<div className='chat-box'>
-				<div className='conv'>
-					Hello
-				</div>
-				<div className='conv-user'>
-					Hi
-				</div>
-				<div className='conv-user'>
-					What about you?
-				</div>
-				<div className='conv'>
-					Lorem ipsum, dolor sit amet consectetur adipisicing elit. 
-				</div>
-				<div className='conv'>
-					Lorem ipsum dolor sit, amet consectetur adipisicing elit. Reprehenderit dolorum assumenda illo saepe expedita fugiat hic qui velit. In quo, quas voluptatibus dolor pariatur cum commodi harum dolores tenetur blanditiis?. 
-				</div>
-				<div className='conv'>
-					And you?
-				</div>
-				<div className='conv-user'>
-				Lorem ipsum phasmatos incendia 🔥, consectetur ada totam, assumenda.
-				Lorem ipsum phasmatos incendia ❤️ , consectetur ada totam, assumenda totalejnf
-				</div>
-				<div className='conv-user'>
-				Lorem ipsum phasmatos 🔥, consectetur ada totam, assumenda totalejnf
-				Lorem ipsum phasmatos ❤️ , consectetur ada totam, assumenda totalejnf
-				</div>
+			<ul className='chat-box'>
+				{ listMessages }
+			</ul>
+		</div>
+	)
+}
+
+type ConversationHeaderProps = {
+	title: string;
+}
+
+const ConversationHeader: React.FC<ConversationHeaderProps> = ({ title }) => {
+	return (
+		<div className="chat-header bg-inverted conv-header">
+			<div className="nav-item">
+				<AvatarOthers status="Online" />
+			</div>
+			<div className="nav-item">
+				{title}
+			</div>
+			<div className="push-right nav-item">
+				<GiPingPongBat className="icon-button" />
+			</div>
+			<div className="nav-item">
+				<HiOutlineUserCircle className="icon-button" />
+			</div>
+			<div className="nav-item">
+				<p className="icon-button">Block</p>
 			</div>
 		</div>
 	)
 }
 
-function ChatInput() {
- const [maxLength, setMaxLength] = useState(0);
-
-	useEffect(() => {
-	const inputElement = document.querySelector('.chat-input') as HTMLInputElement;
-	const inputWidth = inputElement.offsetWidth;
-	const newMaxLength = Math.round(inputWidth / 8);
-	setMaxLength(newMaxLength);
-	}, []);
-
+const ChatConv: React.FC<convProps> = ({ conversation }) => {
 	return (
-	<input
-		type="text"
-		maxLength={maxLength}
-		className='chat-input'
-	/>
-	);
-}
-
-const ChatConv: React.FC = () => {
-	return (
-		<div className='chat-msgs'>
-			<div className='small-box'>
-				<div className='nav-info'>
-					<AvatarOthers status='Online'/>
-				</div>
-				<div className='nav-info'>
-					Friend Name
-				</div>
-				<div className='nav-info'>
-					11 win / 3 loose
-				</div>
-				<div className='nav-info'>
-					<GiPingPongBat className="icon-button"/>
-				</div>
-				<div className='nav-info'>
-					<HiOutlineUserCircle className="icon-button"/>
-				</div>
-				<div className='nav-info'>
-					<p className="icon-button">Block</p>
-				</div>
-			</div>
-			<CHAT/>
-			<div className='small-box'>
-				<ChatInput/>
-				<AiOutlineSend className="icon-send"/>
-			</div>
+		<div className="chat-msgs">
+			<ConversationHeader title="Friend Name" />
+			<DisplayConv messages={ [] } />
+			<form className="chat-input">
+				<input type="text" />
+				<button type="submit">
+					<AiOutlineSend className="icon-send"/>
+				</button>
+			</form>
 		</div>
 	)
 }

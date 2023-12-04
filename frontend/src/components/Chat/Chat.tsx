@@ -1,81 +1,74 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import ChatChannels from './Channels/ChatChannels';
 import ChatConv from './Conv/ChatConv';
 import ChatPrivMessages from './PrivMessages/ChatPrivMessages';
-import './Chat.css';
-
-interface channelElem {
-	channelId: number,
-	channelName: string,
-	userPermissionMask: number,
-}
-
-interface privMessageElem {
-	targetId: number,
-	targetName: string,
-}
+import './Chat.scss';
+import { getConversations } from '../../api';
+import { useQuery } from 'react-query';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 interface convMessage {
 	authorName: string,
+	authorId: number,
 	creationTime: Date,
 	content: string,
 }
 
+interface Conversation {
+	targetId: number;
+	targetName: string;
+}
+
+interface Channel {
+	channelId: number,
+	channelName: string,
+	targetId: number
+	targetName: string,
+	userPermissionMask: number,
+}
+
+type convElem2 = { isChannel: boolean; } & Partial<Conversation> & Partial<Channel>;
+
+interface convElem {
+	isChannel: boolean,
+	channelId?: number,
+	channelName?: string,
+	targetId?: number
+	targetName?: string,
+	userPermissionMask?: number,
+	messages: convMessage[],
+}
+
 const Chat: React.FC = () => {
-	const [channels, setChannels] = useState<channelElem[]>([]);
-	const [privMessages, setPrivMessages] = useState<privMessageElem[]>([]);
-	const [selectedConv, setSelectedConv] = useState< convMessage | null>(null);
+	const [selectedConv, setSelectedConv] = useState< convElem | null>(null);
+	const convs = useQuery('get-convs', getConversations);
 
-	const userId = 1;
-
-	useEffect(() => {
-		const fetchData = async () => {
-			const response = await fetch(`http://localhost:3000/api/chat/get-channels/${userId}`);
-			const data = await response.json();
-			console.log("get channels: ", data);
-			setChannels(data);
-		};
-		fetchData();
-	}, []);
-
-	useEffect(() => {
-		const fetchData = async () => {
-			const response = await fetch(`http://localhost:3000/api/friends/${userId}`);
-			const data = await response.json();
-			console.log("get priv-messages: ", data);
-			setPrivMessages(data);
-		};
-		fetchData();
-	}, [])
-
-	const handleClickConv = useCallback((conv: channelElem | privMessageElem | null) => {
-		if (!conv)
-			return;
-		if ("permissionMask" in conv) {
-			const fetchData = async () => {
-				const response = await fetch(`http://localhost:3000/api/friends/${userId}`);
-				const data = await response.json();
-				setSelectedConv(data);
-			};
-			fetchData();
+	const channels = React.useMemo(() => {
+		if (convs.isFetched) {
+			return (convs.data as convElem[]).filter(({ isChannel }) => isChannel);
 		}
-		else if ("otherName" in conv) {
-			const fetchData = async () => {
-				const response = await fetch(`http://localhost:3000/api/friends/${userId}`);
-				const data = await response.json();
-				setSelectedConv(data);
-			};
-			fetchData();
+		return [];
+	}, [ convs ]);
+	const privateMessages = React.useMemo(() => {
+		if (convs.isFetched) {
+			return (convs.data as convElem[]).filter(({ isChannel }) => !isChannel);
 		}
+		return [];
+	}, [ convs ]);
+
+	const handleClickConv = useCallback((conv: convElem | null) => {
+		setSelectedConv(conv);
 	}, []);
 
 	return (
-		<div className='chat-wrapper' >
-			<ChatChannels channels={ channels } handleClickConv={handleClickConv} />
-			<ChatConv />
-            <ChatPrivMessages privMessages={ privMessages } handleClickConv={handleClickConv} />
+		<div className="chat-wrapper">
+			<ChatChannels channels={channels} handleClickConv={ handleClickConv } />
+
+			{selectedConv && <ChatConv conversation={selectedConv} />}
+			
+			<ChatPrivMessages privMessages={privateMessages} handleClickConv={ handleClickConv } />
 		</div>
-	)
+	);
 }
 
 export default Chat;

@@ -306,11 +306,12 @@ export class ChatService {
 	
 	}
 
-	async getPrivateConversations(
+	async getPrivateConversation(
 		userId: number,
 		targetId: number
 	){
-		const conversation = await this.conversationsService.conversationExists(userId, targetId);
+		let conversation = await this.conversationsService.conversationExists(userId, targetId);
+		console.log(conversation);
 		if (conversation) {
 			return await this.messagesService.getMessagesfromConversation(userId, targetId);
 		}else {

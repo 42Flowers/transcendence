@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useRef, useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { LeaderContext } from '../../../contexts/LeaderContext';
@@ -16,7 +17,7 @@ import AvatarOthers from '../../AvatarOthers/AvatarOthers';
 
 import './Ladder.css';
 
-const Ladder: React.FC = ({ currentPopup }) => {
+const Ladder: React.FC = () => {
     const { setSmallLeader, setGreatLeader } = useContext(LeaderContext) as LeaderContextType;
 
     interface CellStyle {
@@ -37,11 +38,20 @@ const Ladder: React.FC = ({ currentPopup }) => {
         }
     };
 
+    type Game = {
+        game: {
+            winnerId: number
+        }
+        userId: number
+    };
+
     type User = {
-        gameParticipation: never[]
-        avatar?: string
-        pseudo?: string
-        id?: number
+        gameParticipation: Game[]
+        avatar: string
+        pseudo: string
+        id: number
+        wins: number 
+        losses: number
     };
 
     const tableBodyRef = useRef<HTMLTableSectionElement>(null);
@@ -75,9 +85,9 @@ const Ladder: React.FC = ({ currentPopup }) => {
             }
             return a.losses - b.losses;
         });
-        if (ranking.length >= 3 && ranking[0].id == userId) {
+        if (ranking.length >= 3 && ranking[0].id === Number(userId)) {
             setSmallLeader(true);
-        } else if (ranking.length >= 10 && ranking[0].id == userId) {
+        } else if (ranking.length >= 10 && ranking[0].id === Number(userId)) {
             setGreatLeader(true);
         }
         return ranking;

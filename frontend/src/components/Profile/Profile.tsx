@@ -56,23 +56,27 @@ interface Achievement {
     createdAt: Date;
  }
  
- interface UserAchievement {
+interface UserAchievement {
     userId: number;
     achievement: Achievement;
- }
+}
+
+type Achievements {
+    achievements: Achievement[]
+}
 
 interface AchievementsListContextType {
     achievementsList: UserAchievement[];
     setAchievementsList: (achievementsList: UserAchievement[]) => void;
 }
 
-type GameResult = {
+type gamesParticipated = {
     winnerId: number
-    createdAd: Date
+    createdAt: Date
 };
    
 type Game = {
-    gameResult: GameResult;
+    game: gamesParticipated;
 };
 
 const Profile: React.FC<Props> = () => {
@@ -94,7 +98,7 @@ const Profile: React.FC<Props> = () => {
         'Perfect win': false,
         'You\'re a looser': false,
     });
-    const [popupQueue, setPopupQueue] = useState([]);
+    const [popupQueue, setPopupQueue] = useState<string[]>([]);
     const [isPseudoAdded, setIsPseudoAdded] = useState(false);
     const { userId } = useParams();
 
@@ -107,14 +111,14 @@ const Profile: React.FC<Props> = () => {
     const gamesWonFunc = ( userId: string, games: Game[] ): number => {
         let gamesWon = 0;
         games.map(game => {
-            if (game.game.winnerId == userId) {
+            if (game.game.winnerId === Number(userId)) {
                 gamesWon++;
             }
         });
         return gamesWon;
     };
 
-    const showPopup = (popup) => {
+    const showPopup = ( popup: string ) => {
         setCurrentPopup(prevPopup => ({
             ...prevPopup,
             [popup]: true
@@ -122,14 +126,14 @@ const Profile: React.FC<Props> = () => {
         setPopupQueue(prevQueue => [...prevQueue, popup]);
     }
 
-    const gamesWonInARowFunc = (userId: string, games): number => {
+    const gamesWonInARowFunc = (userId: string, games: Game[]): number => {
         games.sort((a, b) => new Date(a.game.createdAt).getTime() - new Date(b.game.createdAt).getTime());
 
         let maxConsecutiveWins = 0;
         let currentConsecutiveWins = 0;
 
         games.forEach((game) => {
-            if (userId == game.game.winnerId) {
+            if (Number(userId) === game.game.winnerId) {
                 currentConsecutiveWins++;
                 maxConsecutiveWins = Math.max(maxConsecutiveWins, currentConsecutiveWins);
             } else {
@@ -140,19 +144,19 @@ const Profile: React.FC<Props> = () => {
         return maxConsecutiveWins;
     };
 
-    const requestOptionsAchievements = useCallback((achievementName, data) => {
-        console.log("2", achievementName, data);
-        if (data !== undefined) {
+    const requestOptionsAchievements = useCallback((achievementName: string, achievements: ) => {
+        console.log("2", achievementName, achievements);
+        if (achievements !== undefined) {
             const requestOptionsGame = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ userId: Number(userId), achievementId: data.achievements[achievementName].id }),
+                body: JSON.stringify({ userId: Number(userId), achievementId: achievements[achievementName].id }),
             }
             return requestOptionsGame;
         }
-     }, [userId]);
+    }, [userId]);
      
      const addAchievement = useCallback(( requestOptions ) => {
         console.log("3", requestOptions);
@@ -174,18 +178,18 @@ const Profile: React.FC<Props> = () => {
             .catch((error) => {
                 console.error(error);
             });
-     }, [userId, setAchievementsList]);
+    }, [userId, setAchievementsList]);
 
      // Only with SQLite ? For Postgresql might need to change concurrency limite or pool size
-     const queue = async.queue((task, callback) => {
+    const queue = async.queue((task, callback) => {
         addAchievement(task.requestOptions)
-         .then(data => {
-           callback(null, data);
-         })
-         .catch(error => {
-           callback(error);
-         });
-       }, 1); // Set concurrency limit to 1
+        .then(data => {
+            callback(null, data);
+        })
+        .catch(error => {
+            callback(error);
+        });
+    }, 1); // Set concurrency limit to 1
  
     useEffect(() => {
         const fetchData = async () => {
@@ -210,7 +214,7 @@ const Profile: React.FC<Props> = () => {
             if (data !== null) {
                 const handleAchievement = (achievementName: string) => {
                     showPopup(achievementName);
-                    const requestOptions = requestOptionsAchievements(achievementName, data);
+                    const requestOptions = requestOptionsAchievements(achievementName, data.achievements);
                     queue.push({ requestOptions });
                 };
 
@@ -296,7 +300,7 @@ const Profile: React.FC<Props> = () => {
                 setAvatar(`http://localhost:3000/static/${data.avatar}`)
                 if (!profileInfos?.avatar) {
                     showPopup('Newwww Avatar');
-                    const requestOptions2 = requestOptionsAchievements("Newwww Avatar", profileInfos);
+                    const requestOptions2 = requestOptionsAchievements("Newwww Avatar", profileInfos.achievements);
                     addAchievement(requestOptions2);
                 }
             })
@@ -329,7 +333,7 @@ const Profile: React.FC<Props> = () => {
             if (!isPseudoAdded) {
                 setIsPseudoAdded(true);
                 showPopup('Newwww Pseudo');
-                const requestOptions = requestOptionsAchievements("Newwww Pseudo", profileInfos);
+                const requestOptions = requestOptionsAchievements("Newwww Pseudo", profileInfos.achievements);
                 addAchievement(requestOptions);
             }
         })
@@ -376,7 +380,7 @@ const Profile: React.FC<Props> = () => {
             {/* Add friend, block, unblock */}
         {/* ENDIF */}
                 <Ladder />
-                <Stats userId={userId}/>
+                <Stats userId={Number(userId)}/>
                 <MatchHistory />
                 <Achievements />
             </div>

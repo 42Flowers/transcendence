@@ -5,6 +5,29 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class FriendsService {
   constructor(private prisma: PrismaService) {}
 
+  async isBlockByOne(userId: number, friendId: number): Promise<boolean> {
+    const friendBlock = await this.prisma.blocked.findUnique({
+      where: {
+        userId_blockedId: {
+          userId: userId,
+          blockedId: friendId,
+        },
+      },
+    });
+    const userBlock = await this.prisma.blocked.findUnique({
+      where: {
+        userId_blockedId: {
+          userId: friendId,
+          blockedId: userId,
+        },
+      },
+    });
+    if (friendBlock || userBlock) {
+      return true;
+    }
+    return false;
+  }
+
   async getFriendsList(userId: number): Promise<any> {
     const friends = await this.prisma.friendship.findMany({
       where: {
@@ -21,6 +44,81 @@ export class FriendsService {
       },
     });
     return friends;
+  }
+
+  async getIsFriend(userId: number, friendId: number): Promise<any> {
+    const friend = await this.prisma.friendship.findUnique({
+      where: {
+        userId_friendId: {
+          userId: userId,
+          friendId: friendId,
+        },
+      },
+      select: {
+        status: true,
+        friend: {
+          select: {
+            id: true,
+            pseudo: true,
+          },
+        },
+      },
+    });
+    return friend;
+  }
+
+  async addFriend(userId: number, friendId: number): Promise<any> {
+    const friendshipUserToFriend = await this.prisma.friendship.findUnique({
+      where: {
+        userId_friendId: {
+          userId: userId,
+          friendId: friendId,
+        },
+      },
+      select: {
+        status: true,
+      },
+    });
+    const friendshipFriendToUser = await this.prisma.friendship.findUnique({
+      where: {
+        userId_friendId: {
+          userId: friendId,
+          friendId: userId,
+        },
+      },
+      select: {
+        status: true,
+      },
+    });
+    if ((!friendshipUserToFriend && !friendshipFriendToUser)) {
+      await this.prisma.friendship.create({
+        data: {
+          userId: userId,
+          friendId: friendId,
+          status: 0,
+        },
+      });
+      await this.prisma.friendship.create({
+        data: {
+          userId: friendId,
+          friendId: userId,
+          status: 1,
+        },
+      });
+    }
+    return this.getFriendsList(userId);
+  }
+
+  async getIsBlockByUser(userId: number, friendId: number): Promise<any> {
+    const friend = await this.prisma.blocked.findUnique({
+      where: {
+        userId_blockedId: {
+          userId: userId,
+          blockedId: friendId,
+        },
+      },
+    });
+    return friend;
   }
 
   async unblockFriend(userId: number, friendId: number): Promise<any> {

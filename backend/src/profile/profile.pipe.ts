@@ -44,10 +44,10 @@ export function IsNoSpecialCharacters(validationOptions?: ValidationOptions) {
         options: validationOptions,
         validator: {
             validate(value: any, args: ValidationArguments) {
-                return typeof value === 'string' && !/[!@#$%^&*(),.?":{}|<> ]/g.test(value);
+                return typeof value === 'string' && /^[a-zA-Z0-9-]+$/.test(value);
             },
             defaultMessage(args: ValidationArguments) {
-                return 'Special characters and spaces are not allowed';
+                return 'Only a to z, A to Z, 0 to 9, and "-" are allowed';
             }
         }
         });

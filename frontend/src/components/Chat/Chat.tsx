@@ -6,6 +6,8 @@ import './Chat.scss';
 import { fetchChannels, getConversations } from '../../api';
 import { useQuery } from 'react-query';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { useSocket } from '../Socket/Hooks/useSocket';
+import { useGatewayEvent } from '../../hooks/gateway';
 
 interface convMessage {
 	authorName: string,
@@ -39,8 +41,24 @@ interface convElem {
 	messages: convMessage[],
 }
 
+function useSocketEvent(evt: string, cb: () => void) {
+	const socket = useSocket('ws://localhost:3000');
+
+	React.useEffect(() => {
+		socket.on(evt, cb);
+
+		return () => {
+			socket.off(evt, cb);
+		};
+	}, [evt, cb]);
+}
+
 const Chat: React.FC = () => {
 	const channelsQuery = useQuery('channels', fetchChannels);
+
+	useGatewayEvent('lol', () => {
+		console.log('lol received');
+	});
 
 	const [selectedConv, setSelectedConv] = useState< convElem | null>(null);
 	const convs = useQuery('get-convs', getConversations);

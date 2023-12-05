@@ -1,5 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { ChatChannelMessageEvent2 } from 'src/events/chat/channelMessage2.event';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { SocketService } from 'src/socket/socket.service';
 
 export interface ChannelUser {
     id: number;
@@ -11,7 +14,9 @@ export interface ChannelUser {
 
 @Injectable()
 export class ChannelsService {
-    constructor(private readonly prismaService: PrismaService) {}
+    constructor(private readonly prismaService: PrismaService,
+        private readonly eventEmitter: EventEmitter2,
+        private readonly socketService: SocketService) {}
 
     async getChannelUsers(userId: number, channelId: number): Promise<ChannelUser[]> {
         const channel = await this.prismaService.channel.findUnique({
@@ -119,6 +124,41 @@ export class ChannelsService {
             }
         });
 
+        this.eventEmitter.emit(ChatChannelMessageEvent2.EVENT_NAME,
+            new ChatChannelMessageEvent2(message.id, userId, channelId, content));
+
         return message;
+    }
+
+    @OnEvent(ChatChannelMessageEvent2.EVENT_NAME)
+    async handleChannelMessagePosted({ authorId, channelId, content, id }: ChatChannelMessageEvent2) {
+        try {
+            /* Retrieve all channel members */
+            const members = await this.prismaService.channelMembership.findMany({
+                where: {
+                    channelId,
+                },
+            });
+
+            const membersToNotify = members.filter(member => {
+                /* TODO check notification options for this member */
+
+                /**
+                 * Just we don't send the notification to the user who posted the message,
+                 * he already received the message data (id, content) as the POST request's reponse.
+                 */
+                if (member.userId === authorId)
+                    return false;
+
+                return true; /* For now everybody received the notification */
+            });
+
+            /* Dispatch a message to every connected user that is part of this channel */
+            await Promise.all(membersToNotify.map(member => {
+
+            }));
+        } catch {
+
+        }
     }
 }

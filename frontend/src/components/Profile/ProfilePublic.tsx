@@ -7,6 +7,8 @@ import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { useParams } from "react-router-dom";
+import AvatarOthers from "../AvatarOthers/AvatarOthers";
+import default_avatar from '../../assets/images/default_avatar.png';
 
 import './Profile.css';
 
@@ -93,6 +95,12 @@ const ProfilePublic: React.FC = () => {
         <>
             <div className="Profile">
                 {/* <ChangeAvatar handleUploadAvatar={handleUploadAvatar} /> */}
+                {profileInfos?.avatar ?
+                    <AvatarOthers status="Online" avatar={`http://localhost:3000/static/${profileInfos.avatar}`} userId={profileInfos.id} />
+                    :
+                    <AvatarOthers status="Online" avatar={default_avatar} userId={profileInfos?.id} />
+                }                
+                <p>{profileInfos?.pseudo}</p>
                 <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(userId)} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons} /*handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(userId)} auth={Number(auth.user?.id)} />

@@ -283,8 +283,6 @@ const Profile: React.FC = () => {
         mutationFn: fetchChangePseudo,
         onSuccess(data) {
             setPseudo(data.pseudo);
-            console.log("HEY", isPseudoAdded);
-            console.log("HEYYY", profileInfos);
             if (!isPseudoAdded) {
                 setIsPseudoAdded(true);
                 showPopup('Newwww Pseudo');
@@ -294,8 +292,7 @@ const Profile: React.FC = () => {
             }
         },
         onError(e: AxiosError) {
-            console.log("HEY2", e);
-            alert("Min 3 characters and maximum 32 characters, no special characters except '-' or pseudo already in use");
+            alert("Min 3 characters and maximum 32 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
         }
     });
 
@@ -344,7 +341,7 @@ const Profile: React.FC = () => {
         {/* ELSE */}
             {/* Add friend, block, unblock */}
         {/* ENDIF */}
-                <FriendChoiceButtons  userId={userId} /*friendId={friendId} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
+                <FriendChoiceButtons  userId={Number(auth.user?.id)} /*friendId={friendId} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />

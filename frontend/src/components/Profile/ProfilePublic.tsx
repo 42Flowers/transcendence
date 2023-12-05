@@ -4,6 +4,7 @@ import Ladder from "./Ladder/Ladder";
 import MatchHistory from "./MatchHistory/MatchHistory";
 import Achievements from "./Achievements/Achievements";
 import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
+import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { useParams } from "react-router-dom";
 
@@ -66,6 +67,10 @@ type Game = {
 };
 
 const ProfilePublic: React.FC = () => {
+
+    const handleUploadFriendChoiceButtons = (data: FriendItem | null) => {
+        
+    };
     const [profileInfos, setProfileInfos] = useState(null);
     const { userId } = useParams();
     const auth = useAuthContext();
@@ -88,6 +93,7 @@ const ProfilePublic: React.FC = () => {
         <>
             <div className="Profile">
                 {/* <ChangeAvatar handleUploadAvatar={handleUploadAvatar} /> */}
+                <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(userId)} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons} /*handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(userId)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(userId)} auth={Number(auth.user?.id)} />

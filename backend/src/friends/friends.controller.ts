@@ -5,15 +5,61 @@ import { FriendsService } from './friends.service';
 export class FriendsController {
   constructor(private friendService: FriendsService) {}
 
+  async isBlockByOne(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('friendId', ParseIntPipe) friendId: number,
+  ) {
+    if (userId == friendId) {
+      return null;
+    }
+    return this.friendService.isBlockByOne(userId, friendId);
+  }
+
   @Get(':userId')
   async getFriendsList(@Param('userId', ParseIntPipe) userId: number) {
     return this.friendService.getFriendsList(userId);
+  }
+  @Get(':userId/isFriendWith/:friendId')
+  async getIsFriend(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('friendId', ParseIntPipe) friendId: number,
+  ) {
+    if (userId == friendId) {
+      return null;
+    }
+    return this.friendService.getIsFriend(userId, friendId);
+  }
+  @Post(':userId/add/:friendId')
+  async addFriend(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('friendId', ParseIntPipe) friendId: number,
+  ) {
+    if (userId == friendId) {
+      return null;
+    }
+    if ((await this.isBlockByOne(userId, friendId)) == true) {
+      return null;
+    }
+    return this.friendService.addFriend(userId, friendId);
+  }
+  @Get(':userId/isBlockWith/:friendId')
+  async getIsBlockByUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('friendId', ParseIntPipe) friendId: number,
+  ) {
+    if (userId == friendId) {
+      return null;
+    }
+    return this.friendService.getIsBlockByUser(userId, friendId);
   }
   @Post(':userId/unblock/:friendId')
   async unblockFriend(
     @Param('userId', ParseIntPipe) userId: number,
     @Param('friendId', ParseIntPipe) friendId: number,
   ) {
+    if (userId == friendId) {
+      return null;
+    }
     return this.friendService.unblockFriend(userId, friendId);
   }
   @Post(':userId/block/:friendId')
@@ -21,6 +67,9 @@ export class FriendsController {
     @Param('userId', ParseIntPipe) userId: number,
     @Param('friendId', ParseIntPipe) friendId: number,
   ) {
+    if (userId == friendId) {
+      return null;
+    }
     return this.friendService.blockFriend(userId, friendId);
   }
   @Post(':userId/delete/:friendId')
@@ -28,6 +77,9 @@ export class FriendsController {
     @Param('userId', ParseIntPipe) userId: number,
     @Param('friendId', ParseIntPipe) friendId: number,
   ) {
+    if (userId == friendId) {
+      return null;
+    }
     return this.friendService.deleteFriend(userId, friendId);
   }
   @Post(':userId/cancel/:friendId')
@@ -35,6 +87,9 @@ export class FriendsController {
     @Param('userId', ParseIntPipe) userId: number,
     @Param('friendId', ParseIntPipe) friendId: number,
   ) {
+    if (userId == friendId) {
+      return null;
+    }
     return this.friendService.cancelFriend(userId, friendId);
   }
   @Post(':userId/accept/:friendId')
@@ -42,6 +97,12 @@ export class FriendsController {
     @Param('userId', ParseIntPipe) userId: number,
     @Param('friendId', ParseIntPipe) friendId: number,
   ) {
+    if (userId == friendId) {
+      return null;
+    }
+    if ((await this.isBlockByOne(userId, friendId)) == true) {
+      return null;
+    }
     return this.friendService.acceptFriend(userId, friendId);
   }
   @Post(':userId/decline/:friendId')
@@ -49,6 +110,9 @@ export class FriendsController {
     @Param('userId', ParseIntPipe) userId: number,
     @Param('friendId', ParseIntPipe) friendId: number,
   ) {
+    if (userId == friendId) {
+      return null;
+    }
     return this.friendService.declineFriend(userId, friendId);
   }
 }

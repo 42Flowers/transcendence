@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Controller, Post, Body, Get, UseGuards, Request, ParseIntPipe, Param } from '@nestjs/common';
 import { RoomService } from '../rooms/DBrooms.service';
 import { ChatService } from './DBchat.service';
@@ -61,14 +62,14 @@ export class ChatController {
 		@Request() req: ExpressRequest
 	) {
 		try {
-		const channel = await this.messageService.getMessagesfromChannel(Number(req.user.sub), 1);
-		console.log(channel);
-		const messages: convMessage[] = [];
-		const userNames = await Promise.all(channel.map(conv => this.userService.getUserName(conv.authorId)));
-		channel.map((chan) => {
-			userNames.forEach(name => messages.push({authorName: name.pseudo, content: chan.content, creationTime: chan.createdAt}));
-		});
-		return messages;
+			const channel = await this.messageService.getMessagesfromChannel(Number(req.user.sub), 1);
+			console.log(channel);
+			const messages: convMessage[] = [];
+			const userNames = await Promise.all(channel.map(conv => this.userService.getUserName(conv.authorId)));
+			channel.map((chan) => {
+				userNames.forEach(name => messages.push({authorName: name.pseudo, content: chan.content, creationTime: chan.createdAt}));
+			});
+			return messages;
 		} catch (err) {
 			console.log(err.message);
 		}

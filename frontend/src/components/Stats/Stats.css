@@ -3,11 +3,12 @@
     right: 8px;
     font-size: 150%;
     color: white;
-    top: 8%;
+    top: 6%;
 }
 
 .Stats-wrapper {
     margin-top: 50px;
+    width: 600px;
 }
 
 .Stats-wrapper .title-s {
@@ -26,8 +27,6 @@
     backdrop-filter: blur(20px);
     box-shadow: 0 0 30px rgb(0, 0, 0, .5);
     display: flex;
-    /* overflow: hidden;
-    width: 40%; */
 }
 
 .Stats-wrapper .statt {

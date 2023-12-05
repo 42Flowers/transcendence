@@ -7,6 +7,7 @@ import { TestModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { FriendsModule } from './friends/friends.module';
 import { ProfileModule } from './profile/profile.module';
+import { ProfilePublicModule } from './profilePublic/profilePublic.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -36,6 +37,7 @@ import { ChannelsModule } from './channels/channels.module';
     SocketModule,
   	ChatModule,
     ProfileModule,
+    ProfilePublicModule,
     FriendsModule,
     TestModule,
     PrismaModule,

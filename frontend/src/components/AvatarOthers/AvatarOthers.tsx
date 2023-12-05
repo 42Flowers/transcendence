@@ -3,23 +3,21 @@ import { styled, useTheme } from '@mui/material/styles';
 import Badge from '@mui/material/Badge';
 import Avatar from '@mui/material/Avatar';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import { Box } from "@mui/material"
+import { Box } from "@mui/material";
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
-    // user: {
-    //     avatar: string;
-    //     lastName: string;
-    //     color: string;
-    //   };
     status: string;
+    avatar: string;
+    userId: number;
 }
 
-const AvatarOthers: React.FC<Props> = ({ status }) => {
+const AvatarOthers: React.FC<Props> = ({ status, avatar, userId }) => {
     interface StatusResult {
         statusColor: string;
         statusImage: JSX.Element | null;
     }
-
+    const navigate = useNavigate();
     const theme = useTheme();
 
     const statusInfo = (): StatusResult => {
@@ -38,7 +36,6 @@ const AvatarOthers: React.FC<Props> = ({ status }) => {
     }
 
     const StyledBadge = styled(Badge)(() => {
-
         const { statusColor } = statusInfo();
 
         return {
@@ -50,16 +47,6 @@ const AvatarOthers: React.FC<Props> = ({ status }) => {
                 zIndex: 0,
                 top: '26px',
                 right: '14px',
-                '&::after': {
-                    position: 'absolute',
-                    top: '9px',
-                    right: '9px',
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '50%',
-                    animation: 'ripple 4.0s infinite ease-in-out',
-                    content: status === 'Add' ? 'none' : `"${status}"`,
-                },
                 },
                 '@keyframes ripple': {
                 '0%': {
@@ -79,17 +66,18 @@ const AvatarOthers: React.FC<Props> = ({ status }) => {
     return (
         <>
             <StyledBadge
+                onClick={() => navigate(`/profile/${userId}`)}
                 overlap="circular"
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 variant="dot"
             >
-                <Avatar alt="avatar" src="/static/images/avatar/1.jpg" />
+                <Avatar alt="avatar" src={avatar} />
                 <Box position="absolute" bottom={-4} right={9.5} sx={{zIndex: 1,}}>
                     {statusImage}
                 </Box>
             </StyledBadge>
         </>
-        );
+    );
 };
 
 export default AvatarOthers;

@@ -96,6 +96,14 @@ export interface ChannelMessage {
 export const fetchChannels = () => wrapResponse(authorizedGet<Channel[]>('/api/v1/channels'));
 export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet<ChannelMessage[]>(`/api/v1/channels/${channelId}/messages`));
 export const postChannelMessage = (channelId: number, content: string) => wrapResponse(authorizedPost<ChannelMessage>(`/api/v1/channels/${channelId}/messages`, { content }));
+export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
+export const fetchAchievements = () => wrapResponse(authorizedGet('/api/profile/achievements'));
+export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
+export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
+export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats'));
+export const fetchAddAchievementToUser = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-achievement-to-user', payload));
+export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-avatar', payload));
+export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('/api/profile/change-pseudo', payload));
 
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 export const getChannels = () => wrapResponse(authorizedGet('/api/chat/get-channels'));

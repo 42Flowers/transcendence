@@ -56,7 +56,6 @@ model User {
 }
 
 model Friendship {
-
   status Int @default(0) //0 sender   /1 receiver  /2 accepted /3 blocked
 
   userId   Int
@@ -68,7 +67,6 @@ model Friendship {
 }
 
 model Blocked {
-
   userId    Int
   blockedId Int
   user      User @relation("users", fields: [userId], references: [id])
@@ -78,7 +76,6 @@ model Blocked {
 }
 
 model GameParticipation {
-
   opponentId Int
 
   userId Int
@@ -102,7 +99,6 @@ model Game {
 }
 
 model UserConversation {
-
   receiverId Int
 
   userId         Int
@@ -133,7 +129,6 @@ model PrivateMessage {
 }
 
 model ChannelMembership {
-
   permissionMask  Int @default(1) //1(simple member), 2(Administrator) or 4(owner)
   membershipState Int @default(1) //1 (ok), 2 (mute), 4 (ban)
 
@@ -182,7 +177,6 @@ model FortyTwoUser {
 }
 
 model UserAchievement {
-
   userId        Int
   achievementId Int
   createdAt     DateTime @default(now())

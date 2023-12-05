@@ -33,8 +33,8 @@ interface ballElem {
 
 // const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
 // const colorPurple = getComputedStyle(document.documentElement).getPropertyValue('--color-purple').trim();
-let leftPaddleColor = "purple";
-let rightPaddleColor = "purple";
+let leftPaddleColor = "yellow";
+let rightPaddleColor = "yellow";
 let dangerousBallColor = "black";
 let dangerousBall = false;
 
@@ -100,8 +100,8 @@ const Game: React.FC<gameProps> = (props) => {
 		
 		const { width, height } = ctx.canvas;
 		if (change && new Date().getTime() - lastTimeColorCheck > 1000) {
-			leftPaddleColor = purpleColor;
-			rightPaddleColor = purpleColor;
+			leftPaddleColor = yellowColor;
+			rightPaddleColor = yellowColor;
 			change = false;
 		}
 

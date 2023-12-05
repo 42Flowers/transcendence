@@ -1,6 +1,7 @@
 import SocketContext from '../Socket/Context/Context';
-import { useRef, useEffect, useContext, useCallback } from 'react';
+import { useRef, useEffect, useContext, useCallback, useState } from 'react';
 import Game from './Game';
+import "./GameWrapper.css"
 
 interface wrapperProps {
 	width: number,
@@ -8,34 +9,49 @@ interface wrapperProps {
 	specialMode: boolean,
 }
 
-interface playerData {
-	id: number,
-	pseudo: string,
-	avatar?: string, 
+interface playersData {
+	left: {
+		pseudo: string,
+		avatar?: string,
+	},
+	right: {
+		pseudo: string,
+		avatar?: string,
+	},
 }
 
 const GameWrapper: React.FC<wrapperProps> = (props) => {
 	const { SocketState } = useContext(SocketContext);
+	const [ playersData, setPlayersData ] = useState<playersData | null>(null);
 
-	const displayPlayerAvatar = useCallback((player: string, data: playerData) => {
-		if (player === "left") {
-
-		}
-		else if (player === "right") {
-
-		}
+	const displayPlayerData = useCallback((data: playersData) => {
+		console.log("HERE: ", data);
+		setPlayersData(data);
 	}, []);
 
 	useEffect(() => {
-		SocketState.socket?.on("avatar", displayPlayerAvatar);
+		SocketState.socket?.on("playerData", displayPlayerData);
 		
 		return () => {
-			SocketState.socket?.off("avatar", displayPlayerAvatar);
+			SocketState.socket?.off("playerData", displayPlayerData);
 		}
 	}, []);
 
 	return (
-		<div>
+		<div className="game-wrapper">
+			<div className="display-players" >
+				{playersData &&
+					<>
+						<div>
+							<p>{playersData.left.pseudo}</p>
+						</div>
+						<div>
+							<p>{playersData.right.pseudo}</p>
+						</div>
+					</>
+				}
+				{!playersData && <p style={{ color: 'white' }}>Waiting for players data ...</p>}
+			</div>
 			<Game className="gameCanvas" width={props.width} height={props.height} specialMode={props.specialMode} />
 		</div>
 	)

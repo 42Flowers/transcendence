@@ -1,5 +1,4 @@
-import { Socket } from "socket.io";
 
-export class ChatExitChannelEvent {
+export class ChatDeleteChannelEvent {
 	constructor(public userId: number, public channelName: string, public channelId: number) {}
 }

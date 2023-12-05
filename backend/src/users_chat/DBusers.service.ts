@@ -135,8 +135,9 @@ export class UsersService {
 		try {
 			if (id != undefined) {
 				const user = await this.prismaService.user.findUnique({
-					where: {id : id}
-				});
+					where: {id : id},
+					include : {channelMemberships: true}
+				},);
 				return user;
 			}
 		} catch (err) {

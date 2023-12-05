@@ -101,7 +101,11 @@ const ProfilePublic: React.FC = () => {
                     <AvatarOthers status="Online" avatar={default_avatar} userId={profileInfos?.id} />
                 }                
                 <p>{profileInfos?.pseudo}</p>
-                <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(userId)} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons} /*handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
+                { Number(auth.user?.id) === Number(userId) ?
+                    ''
+                    :
+                    <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(userId)} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons} /*handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
+                }
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(userId)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(userId)} auth={Number(auth.user?.id)} />

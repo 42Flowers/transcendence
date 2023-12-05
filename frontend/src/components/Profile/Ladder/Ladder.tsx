@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useRef, useEffect, useState, useContext } from 'react';
+import React, { useRef, useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { LeaderContext } from '../../../contexts/LeaderContext';
 import { LeaderContextType } from '../Profile';
@@ -16,9 +16,20 @@ import default_avatar from "../../../assets/images/default_avatar.png";
 import AvatarOthers from '../../AvatarOthers/AvatarOthers';
 
 import './Ladder.css';
+import { fetchLadder } from '../../../api';
+import { useQuery } from 'react-query';
 
-const Ladder: React.FC = () => {
+type LadderProps = {
+    auth: number;
+}
+
+const Ladder: React.FC<LadderProps> = ({ auth }) => {
     const { setSmallLeader, setGreatLeader } = useContext(LeaderContext) as LeaderContextType;
+    const q = useQuery('ladder', fetchLadder, {
+        onSuccess(data) {
+            setLadder(calculateRanking(calculateWinsAndLosses(data)));
+        },
+    });
 
     interface CellStyle {
         color: string,
@@ -85,22 +96,16 @@ const Ladder: React.FC = () => {
             }
             return a.losses - b.losses;
         });
-        if (ranking.length >= 3 && ranking[0].id === Number(userId)) {
+        if (ranking.length >= 3 && ranking[0].id === Number(auth)) {
             setSmallLeader(true);
-        } else if (ranking.length >= 10 && ranking[0].id === Number(userId)) {
+        } else if (ranking.length >= 10 && ranking[0].id === Number(auth)) {
             setGreatLeader(true);
         }
         return ranking;
     };
 
 
-    useEffect(() => {
-        fetch(`http://localhost:3000/api/profile/ladder`)
-            .then(response => response.json())
-            .then(data => {
-                setLadder(calculateRanking(calculateWinsAndLosses(data)));
-            }
-        );
+    React.useEffect(() => {
         const currentDiv = tableBodyRef.current;
         const currentFirstRow = firstRowRef.current;
         const handleScroll = () => {
@@ -165,9 +170,9 @@ const Ladder: React.FC = () => {
                                 </TableCell>
                                 <TableCell id="cell-avatar-l">
                                     {user.avatar ?
-                                        <AvatarOthers status="Online" avatar={`http://localhost:3000/static/${user.avatar}`} />
+                                        <AvatarOthers status="Online" avatar={`http://localhost:3000/static/${user.avatar}`} userId={user.id} />
                                         :
-                                        <AvatarOthers status="Online" avatar={default_avatar} />
+                                        <AvatarOthers status="Online" avatar={default_avatar} userId={user.id} />
                                     }
                                 </TableCell>
                             </TableRow>

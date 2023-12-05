@@ -17,6 +17,7 @@ interface FriendElem {
 	friend: {
 		id: number,
 		pseudo: string,
+		avatar: string,
 	}
 }
 
@@ -26,11 +27,11 @@ const FriendList: React.FC = () => {
 			
 	useEffect(() => {
 		const fetchData = async () => {
-		const response = await fetch(`http://localhost:3000/api/friends/${userId}`);
-		const data = await response.json();
-		setFriendList(data);
-	};
-	fetchData();
+			const response = await fetch(`http://localhost:3000/api/friends/${userId}`);
+			const data = await response.json();
+			setFriendList(data);
+		};
+		fetchData();
 	}, []); 
 
 	const ParentRerender = (data: FriendElem[] | null) => {
@@ -61,8 +62,8 @@ const FriendList: React.FC = () => {
 				<div className="box">
 					<h2>Friendship received</h2>
 					{
-						friendList && Array.prototype.map.call(friendsListReceiver || [], ({ status, friend: { id, pseudo } }) => (
-							<FriendItem key={id} userId={userId} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
+						friendList && Array.prototype.map.call(friendsListReceiver || [], ({ status, friend: { id, pseudo, avatar } }) => (
+							<FriendItem key={id} userId={userId} avatar={avatar} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
 						)) as React.ReactNode[]
 					}
 				</div>

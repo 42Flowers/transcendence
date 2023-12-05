@@ -16,6 +16,7 @@ export class FriendsService {
           select: {
             id: true,
             pseudo: true,
+            avatar: true,
           },
         },
       },

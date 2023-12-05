@@ -5,10 +5,6 @@ import { IsNoSpecialCharacters } from './profile.pipe';
 export class CreateUserAchievementDto {
     @IsNotEmpty()
     @IsInt()
-    userId: number;
-
-    @IsNotEmpty()
-    @IsInt()
     achievementId: number;
 }
 

@@ -19,6 +19,7 @@ import { PerfectContext } from "../../contexts/PerfectContext";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { fetchAddAchievementToUser, fetchProfile, fetchAchievements, fetchAddAvatar, fetchChangePseudo } from "../../api";
 import { useMutation } from "react-query";
+import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 
 import { AxiosError } from 'axios';
 import { queryClient } from "../../query-client";
@@ -343,6 +344,7 @@ const Profile: React.FC = () => {
         {/* ELSE */}
             {/* Add friend, block, unblock */}
         {/* ENDIF */}
+                <FriendChoiceButtons  userId={userId} /*friendId={friendId} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />

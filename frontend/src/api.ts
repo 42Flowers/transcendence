@@ -75,5 +75,13 @@ export const registerUser = (payload: any) => wrapResponse(client.post('/api/v1/
 
 export const fetchUserProfile = (profile: string) => wrapResponse(authorizedGet<UserProfileResponse>(`/api/v1/users/${profile}`));
 
+export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
+export const fetchAchievements = () => wrapResponse(authorizedGet('/api/profile/achievements'));
+export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
+export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
+export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats'));
+export const fetchAddAchievementToUser = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-achievement-to-user', payload));
+export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-avatar', payload));
+export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('/api/profile/change-pseudo', payload));
 
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));

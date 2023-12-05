@@ -2,16 +2,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-
-/**
- * The user token payload directly extracted from the JWT token
- */
-interface UserPayload {
-    /**
-     * The user ID as a string.
-     */
-    sub: string;
-}
+import { UserPayload } from './user.payload';
 
 declare global {
     namespace Express {
@@ -34,7 +25,7 @@ export class AuthGuard implements CanActivate {
         }
 
         try {
-            const payload = await this.jwtService.verifyAsync(token);
+            const payload = await this.jwtService.verifyAsync<UserPayload>(token);
 
             request['user'] = payload;
         } catch (e) {

@@ -35,6 +35,7 @@ import { JwtModule } from '@nestjs/jwt';
     SocketModule,
   	ChatModule,
     ProfileModule,
+    ProfilePublicModule,
     FriendsModule,
     TestModule,
     PrismaModule,

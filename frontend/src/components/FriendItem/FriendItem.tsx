@@ -101,9 +101,11 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 					<div className="input-box">
 						<AvatarOthers status='Online'/>
 						<p>{friendName}</p>
-						<MainButton buttonName='Play' />
-						<MainButton buttonName='MSG' />
-						<MainButton buttonName='Block' onClick={() => handleBlock()} />
+					</div>
+					<div className='buttons'>
+							<MainButton buttonName='Play' />
+							<MainButton buttonName='MSG' />
+							<MainButton buttonName='Block' onClick={() => handleBlock()} />
 					</div>
 				</div>
 			</div>
@@ -117,6 +119,8 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 					<div className="input-box">
 						<AvatarOthers status='Offline'/>
 						<p>{friendName}</p>
+					</div>
+					<div className='buttons'>
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
 						<MainButton buttonName='Delete' onClick={() => handleDelete()} />
 					</div>
@@ -132,6 +136,8 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 					<div className="input-box">
 						<AvatarOthers status='Online'/>
 						<p>{friendName}</p>
+					</div>
+					<div className='buttons'>
 						<MainButton buttonName='Cancel' onClick={() => handleCancel()} />
 					</div>
 				</div>
@@ -146,6 +152,8 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 					<div className="input-box">
 						<AvatarOthers status='Online'/>
 						<p>{friendName}</p>
+					</div>
+					<div className='buttons'>
 						<MainButton buttonName='Accept' onClick={() => handleAccept()} />
 						<MainButton buttonName='Decline'onClick={() => handleDecline()}  />
 					</div>

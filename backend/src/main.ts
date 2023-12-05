@@ -2,11 +2,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { VersioningType } from '@nestjs/common';
+import { VersioningType, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
+	app.useGlobalPipes(new ValidationPipe()); // ensuring all endpoints are protected from receiving incorrect data.
 	app.setGlobalPrefix('api'); /* Starts every route with /api and then api version (eg. /api/v1/users/@me) */
 	app.enableVersioning({
 		type: VersioningType.URI,

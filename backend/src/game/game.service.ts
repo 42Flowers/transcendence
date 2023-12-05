@@ -144,10 +144,13 @@ export class GameService {
 			if (currGame.mode !== gameMode)
 				continue;
 			if (currGame.isRunning == false && currGame.isFull == false) {
-				if (!currGame.socketLeft)
+				if (!currGame.socketLeft) {
 					currGame.socketLeft = socket;
+					currGame.userIdLeft = Number(socket.user.sub);
+				}
 				else {
 					currGame.socketRight = socket;
+					currGame.userIdRight = Number(socket.user.sub);
 				}
 				socket.join(currGame.roomName);
 				currGame.isFull = true;
@@ -164,7 +167,7 @@ export class GameService {
 			isRunning: false,
 			startTime: null,
 			countdown: 3,
-			userIdLeft: null,
+			userIdLeft: Number(socket.user.sub),
 			userIdRight: null,
 			socketLeft: socket,
 			socketRight: null,
@@ -570,12 +573,12 @@ export class GameService {
 	checkGoal(currGame: gameParam, gameIndex: number) {
 		const state = currGame.state;
 
-		if (state.ball.x - state.ball.radius <= 0) {
+		if (state.ball.x <= 0) {
 			state.score.rightPlayer++;
 			this.socketGateway.server.to(currGame.roomName).emit("updateScore", state.score);
 			this.resetGamePosition(currGame);
 		}
-		else if (state.ball.x + state.ball.radius >= BOARD_WIDTH) {
+		else if (state.ball.x >= BOARD_WIDTH) {
 			state.score.leftPlayer++;
 			this.socketGateway.server.to(currGame.roomName).emit("updateScore", state.score);
 			this.resetGamePosition(currGame);
@@ -586,6 +589,7 @@ export class GameService {
 		const state = currGame.state;
 
 		if (state.score.leftPlayer >= GAME_MAX_GOAL || state.score.rightPlayer >= GAME_MAX_GOAL) {
+			this.updateGameHistory(currGame);
 			this.socketGateway.server
 				.to(currGame.roomName)
 				.emit("gameFinished");
@@ -597,33 +601,55 @@ export class GameService {
 
 	// UTILS
 
-	isUserInGame(socket: Socket) {
+	async updateGameHistory(currGame: gameParam) {
+		const score = currGame.state.score;
+		const winnerId = score.leftPlayer > score.rightPlayer ? currGame.userIdLeft : currGame.userIdRight;
+		const looserId = score.leftPlayer < score.rightPlayer ? currGame.userIdLeft : currGame.userIdRight;
 
-		// CHECK FOR ALL SOCKETS OF THIS USER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// I DONT KNOW WAT TO DO !
+		try {
+			const game = await this.prisma.game.create({
+				data: {
+					score1: currGame.state.score.leftPlayer,
+					score2: currGame.state.score.rightPlayer,
+					winnerId: winnerId,
+					looserId: looserId,
+				}
+			});
+	
+			// Game Participation Pair
+			await this.prisma.gameParticipation.create({
+				data: {
+					userId: currGame.userIdLeft,
+					opponentId: currGame.userIdRight,
+					gameId: game.id,
+				}
+			})
+			await this.prisma.gameParticipation.create({
+				data: {
+					userId: currGame.userIdRight,
+					opponentId: currGame.userIdLeft,
+					gameId: game.id,
+				}
+			})
+		} catch (e) {
+			return e;
+		}
+	}
+
+	isUserInGame(socket: Socket) {
 		for (let i = 0; i < this.randomGameList.length; ++i) {
 			const currGame = this.randomGameList[i];
 
-			if ((currGame.socketLeft && socket.id == currGame.socketLeft.id)
-					|| (currGame.socketRight && socket.id == currGame.socketRight.id))
+			if ((currGame.userIdLeft && Number(socket.user.sub) == currGame.userIdLeft)
+					|| (currGame.userIdRight && Number(socket.user.sub) == currGame.userIdRight))
 				return true;
 		}
 		for (let i = 0; i < this.friendsGameList.length; ++i) {
 			const currGame = this.friendsGameList[i];
 
-			if ((currGame.socketLeft && socket.id == currGame.socketLeft.id)
-					|| (currGame.socketRight && socket.id == currGame.socketRight.id))
+			if ((currGame.userIdLeft && Number(socket.user.sub) == currGame.userIdLeft)
+					|| (currGame.userIdRight && Number(socket.user.sub) == currGame.userIdRight))
 				return true;
 		}
 

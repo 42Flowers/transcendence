@@ -17,7 +17,7 @@ interface AvatarContextType {
     setAvatar: (avatar: string) => void;
 }
 
-const Navigation: React.FC<Props> = ({ /*onRouteChange,*/ isSignedIn }) => {
+const Navigation: React.FC<Props> = ({ isSignedIn }) => {
     const navigate = useNavigate();
     const [avatarEl, setAvatarEl] = React.useState<HTMLDivElement | null>(null);
     const { signOut } = useAuthContext();
@@ -67,7 +67,7 @@ const Navigation: React.FC<Props> = ({ /*onRouteChange,*/ isSignedIn }) => {
                 >
                     <List disablePadding>
                         <ListItem disablePadding>
-                            <ListItemButton onClick={() => navigate('/profile/1')}>
+                            <ListItemButton onClick={() => navigate('/profile')}>
                                 <ListItemText primary="Profile"/>
                             </ListItemButton>
                         </ListItem>

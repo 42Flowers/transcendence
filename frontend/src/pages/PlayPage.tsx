@@ -92,7 +92,7 @@ const PlayPage: React.FC = () => {
                         { !waiting && <SelectFriend></SelectFriend>}
                         { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-normal") }}/> }
                     </div>
-                    <div className="controlers">
+                    <div className="controls_info">
                         <p style={{color: 'white', paddingTop: '-1000px'}}>
                             Controls: use "ARROW UP" to move your paddle up and "ARROW DOWN" to move your paddle down
                         </p>
@@ -115,7 +115,7 @@ const PlayPage: React.FC = () => {
                         { !waiting && <SelectFriend></SelectFriend>}
                         { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-special") }}/> }
                     </div>
-                    <div className="controlers">
+                    <div className="controls_info">
                         <p style={{color: 'white', paddingTop: '-1000px'}}>
                             Use the "SPACE" key just before you hit the ball to protect the paddle and speed up the ball !
                             <br/>

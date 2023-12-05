@@ -1,20 +1,26 @@
-import './ChatChannels.css';
+import './ChatChannels.scss';
 import React, { useState } from 'react';
 
-interface channelElem {
-	channelId: number,
-	channelName: string,
-	userPermissionMask: number,
+interface convMessage {
+	authorName: string,
+	authorId: number,
+	creationTime: Date,
+	content: string,
 }
 
-interface privMessageElem {
-	targetId: number,
-	targetName: string,
+interface convElem {
+	isChannel: boolean,
+	channelId?: number,
+	channelName?: string,
+	targetId?: number
+	targetName?: string,
+	userPermissionMask?: number,
+	messages: convMessage[],
 }
 
 interface channelsProp {
-	channels: channelElem[],
-	handleClickConv: (conv: channelElem | privMessageElem | null) => void,
+	channels: convElem[],
+	handleClickConv: (conv: convElem | null) => void,
 }
 
 const AddChannel: React.FC = () => {
@@ -69,12 +75,11 @@ const DisplayChannels: React.FC<channelsProp> = ({ channels, handleClickConv }) 
 const ChatChannels: React.FC<channelsProp> = ({ channels, handleClickConv }) => {
 
 	return (
-		<div className='chat-channels' >
-			<div className='title'>
+		<div className="chat-channels">
+			<div className="chat-header">
 				<h3>Channels</h3>
 			</div>
-			{channels && <DisplayChannels channels={channels} handleClickConv={handleClickConv} />}
-			{!channels && <DisplayChannels channels={[]} handleClickConv={handleClickConv} />}
+			<DisplayChannels channels={channels} handleClickConv={handleClickConv} />
 			<AddChannel />
 		</div>
 	);

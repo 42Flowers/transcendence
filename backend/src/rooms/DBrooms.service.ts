@@ -398,16 +398,21 @@ export class RoomService {
 
 	async getPublicRooms(userId: number) : Promise<any> {
 		try {
-			const channels =  await this.prismaService.channel.findMany({
-				where: {
-					accessMask: 1,
-					memberships: {
-						none: { //! Refaire ça pour que ça renvoie les channels dont on fait partie
-							userId,
-						},
-					},
-				},
+			const channels = await this.prismaService.channelMembership.findMany({
+				where: {userId: userId}
 			});
+
+			// const channels =  await this.prismaService.channel.findMany({
+			// 	where: {
+			// 		accessMask: 1,
+			// 		memberships: {
+			// 			every: {
+			// 			userId: {
+			// 				equals: userId,
+			// 			}, }
+			// 		},
+			// 	},
+			// });
 			console.log(channels);
 			return channels;
 		} catch (err) {

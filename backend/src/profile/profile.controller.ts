@@ -1,16 +1,19 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Post, Param, Body, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Request, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
 import { UseInterceptors, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfileService } from './profile.service';
 import { CreateUserAchievementDto, ChangePseudoDto, AvatarDto } from './profile.dto';
 import { CheckIntPipe } from './profile.pipe';
 import { diskStorage } from 'multer';
+import { Request as ExpressRequest } from 'express';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
+import { AuthGuard } from 'src/auth/auth.guard';
 import sizeOf from 'image-size';
 
 @Controller('profile')
+@UseGuards(AuthGuard)
 export class ProfileController {
     constructor( 
         private readonly profileService: ProfileService
@@ -26,22 +29,22 @@ export class ProfileController {
         return ladder;
     }
 
-    @Get(':userId')
-    async getProfileInfos(@Param('userId', CheckIntPipe) userId: number) {
-        return this.profileService.getProfileInfos(userId); // TODO: await ??
+    @Get()
+    async getProfileInfos(@Request() req: ExpressRequest) {
+        return this.profileService.getProfileInfos(Number(req.user.sub)); // TODO: await ??
     }
 
-    @Post(':userId/change-pseudo')
-    async changePseudo(@Body() dto: ChangePseudoDto, @Param('userId', CheckIntPipe) userId: number): Promise<any> {
-        return await this.profileService.changePseudo(dto, userId);
+    @Post('change-pseudo')
+    async changePseudo(@Body() dto: ChangePseudoDto, @Request() req: ExpressRequest): Promise<any> {
+        return await this.profileService.changePseudo(dto, Number(req.user.sub));
     }
 
-    @Post(':userId/add-achievement-to-user')
-    async addAchievementToUser(@Body() dto: CreateUserAchievementDto): Promise<any> {
-        return this.profileService.addAchievementToUser(dto);
+    @Post('add-achievement-to-user')
+    async addAchievementToUser(@Body() dto: CreateUserAchievementDto, @Request() req: ExpressRequest): Promise<any> {
+        return this.profileService.addAchievementToUser(dto, Number(req.user.sub));
     }
 
-    @Post(':userId/add-avatar')
+    @Post('add-avatar')
     @UseInterceptors(FileInterceptor('file', { 
         storage: diskStorage({
             destination: './uploads',
@@ -53,19 +56,6 @@ export class ProfileController {
                 callback(null, newFileName);
             }
         }),
-        // fileFilter: (req, file, callback) => {
-        //     const allowedMimeTypes = ['image/jpeg', 'image/png'];
-
-        //     if (allowedMimeTypes.includes(file.mimetype)) {
-        //         callback(null, true);
-        //     } else {
-        //         callback(new Error('Invalid file type'), false);
-        //     }
-        //     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-        //         callback(new Error('Invalid file extension'), false);
-        //     }
-        //     callback(null, true);
-        // }
     }))
     async uploadAvatar(@UploadedFile(
         new ParseFilePipeBuilder()
@@ -78,9 +68,9 @@ export class ProfileController {
             .build({
                 errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),
         )
-        avatar: Express.Multer.File, @Param('userId', CheckIntPipe) userId: number) {
+        avatar: Express.Multer.File, @Request() req: ExpressRequest) {
         // Transform the plain JavaScript object into an instance of the AvatarDto class
-        const AvatarDtoTransformed = plainToClass(AvatarDto, { filename: avatar.filename, userId: userId });
+        const AvatarDtoTransformed = plainToClass(AvatarDto, { filename: avatar.filename, userId: Number(req.user.sub) });
         // Validate the AvatarDtoTransformed instance
         const errors = await validate(AvatarDtoTransformed);
         if (errors.length > 0) {
@@ -95,30 +85,26 @@ export class ProfileController {
             if (dimensions.width > 1000 || dimensions.height > 1000) {
                 throw new BadRequestException('Invalid image dimensions');
             }
-            // Check image size
-            // if (avatar.size > 100000) {
-            //     throw new BadRequestException('Image is too large');
-            // }
             try {
-                return this.profileService.addAvatar(avatar.filename, userId);
+                return this.profileService.addAvatar(avatar.filename, Number(req.user.sub));
             } catch (error) {
                 throw error; // TODO: correct ?
             }
         }
     }
 
-    @Get(':userId/matchhistory')
-    async getMatchHistory(@Param('userId', CheckIntPipe) userId: number): Promise<any> {
-        return this.profileService.getMatchHistory(userId);
+    @Get('matchhistory')
+    async getMatchHistory(@Request() req: ExpressRequest): Promise<any> {
+        return this.profileService.getMatchHistory(Number(req.user.sub));
     }
 
-    @Get(':userId/stats')
-    async getStats(@Param('userId', CheckIntPipe) userId: number): Promise<any> {
-        return this.profileService.getStats(userId);
+    @Get('stats')
+    async getStats(@Request() req: ExpressRequest): Promise<any> {
+        return this.profileService.getStats(Number(req.user.sub));
     }
 
-    @Get(':userId/achievements')
-    async getAchievements(@Param('userId', CheckIntPipe) userId: number): Promise<any> {
-        return this.profileService.getAchievements(userId);
+    @Get('achievements')
+    async getAchievements(@Request() req: ExpressRequest): Promise<any> {
+        return this.profileService.getAchievements(Number(req.user.sub));
     }
 }

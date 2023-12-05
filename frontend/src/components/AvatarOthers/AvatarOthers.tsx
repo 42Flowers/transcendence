@@ -4,18 +4,20 @@ import Badge from '@mui/material/Badge';
 import Avatar from '@mui/material/Avatar';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { Box } from "@mui/material";
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
     status: string;
     avatar: string;
+    userId: number;
 }
 
-const AvatarOthers: React.FC<Props> = ({ status, avatar }) => {
+const AvatarOthers: React.FC<Props> = ({ status, avatar, userId }) => {
     interface StatusResult {
         statusColor: string;
         statusImage: JSX.Element | null;
     }
-
+    const navigate = useNavigate();
     const theme = useTheme();
 
     const statusInfo = (): StatusResult => {
@@ -34,7 +36,6 @@ const AvatarOthers: React.FC<Props> = ({ status, avatar }) => {
     }
 
     const StyledBadge = styled(Badge)(() => {
-
         const { statusColor } = statusInfo();
 
         return {
@@ -65,6 +66,7 @@ const AvatarOthers: React.FC<Props> = ({ status, avatar }) => {
     return (
         <>
             <StyledBadge
+                onClick={() => navigate(`/profile/${userId}`)}
                 overlap="circular"
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 variant="dot"
@@ -75,7 +77,7 @@ const AvatarOthers: React.FC<Props> = ({ status, avatar }) => {
                 </Box>
             </StyledBadge>
         </>
-        );
+    );
 };
 
 export default AvatarOthers;

@@ -18,13 +18,14 @@ interface FriendElem {
 
 interface Props {
 	userId: number;
+	avatar: string;
 	friendName: string;
 	status: number;
 	friendId: number;
 	parentRerender: (data: FriendElem[] | null) => void;
 }
 
-const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, parentRerender}) => {
+const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friendId, parentRerender}) => {
 
 	const handleUnblock = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/unblock/${friendId}`, {
@@ -99,7 +100,7 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online'/>
+						<AvatarOthers status='Online' avatar={avatar} userId={userId}/>
 						<p>{friendName}</p>
 						<MainButton buttonName='Play' />
 						<MainButton buttonName='MSG' />
@@ -115,7 +116,7 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Offline'/>
+						<AvatarOthers status='Offline' avatar={avatar} userId={userId}/>
 						<p>{friendName}</p>
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
 						<MainButton buttonName='Delete' onClick={() => handleDelete()} />
@@ -130,7 +131,7 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online'/>
+						<AvatarOthers status='Online' avatar={avatar} userId={userId}/>
 						<p>{friendName}</p>
 						<MainButton buttonName='Cancel' onClick={() => handleCancel()} />
 					</div>
@@ -144,7 +145,7 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online'/>
+						<AvatarOthers status='Online' avatar={avatar} userId={userId}/>
 						<p>{friendName}</p>
 						<MainButton buttonName='Accept' onClick={() => handleAccept()} />
 						<MainButton buttonName='Decline'onClick={() => handleDecline()}  />

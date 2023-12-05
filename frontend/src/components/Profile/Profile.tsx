@@ -1,6 +1,4 @@
-import React from "react";
-import { useState, useEffect, useContext, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import { AvatarContext } from "../../contexts/AvatarContext";
 import { PseudoContext } from "../../contexts/PseudoContext";
 import { AchievementsListContext } from "../../contexts/AchievementsListContext";
@@ -18,11 +16,13 @@ import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 
 import './Profile.css';
 import { PerfectContext } from "../../contexts/PerfectContext";
+import { useAuthContext } from "../../contexts/AuthContext";
+import { fetchAddAchievementToUser, fetchProfile, fetchAchievements, fetchAddAvatar, fetchChangePseudo } from "../../api";
+import { useMutation } from "react-query";
 import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 
-interface Props {
-    onRouteChange: (route: string) => void;
-}
+import { AxiosError } from 'axios';
+import { queryClient } from "../../query-client";
 
 export interface AvatarContextType {
     avatar: string;
@@ -57,26 +57,32 @@ interface Achievement {
     createdAt: Date;
  }
  
- interface UserAchievement {
+interface UserAchievement {
     userId: number;
     achievement: Achievement;
- }
+}
+
+type Achievements = {
+    achievements: Achievement[]
+}
 
 interface AchievementsListContextType {
     achievementsList: UserAchievement[];
     setAchievementsList: (achievementsList: UserAchievement[]) => void;
 }
 
-type GameResult = {
+type gamesParticipated = {
     winnerId: number
-    createdAd: Date
+    createdAt: Date
 };
    
 type Game = {
-    gameResult: GameResult;
+    game: gamesParticipated;
 };
 
-const Profile: React.FC<Props> = () => {
+const Profile: React.FC = () => {
+    const auth = useAuthContext();
+
     const [profileInfos, setProfileInfos] = useState(null);
     const [currentPopup, setCurrentPopup] = useState({
         'Newwww Avatar': false,
@@ -95,9 +101,8 @@ const Profile: React.FC<Props> = () => {
         'Perfect win': false,
         'You\'re a looser': false,
     });
-    const [popupQueue, setPopupQueue] = useState([]);
+    const [popupQueue, setPopupQueue] = useState<string[]>([]);
     const [isPseudoAdded, setIsPseudoAdded] = useState(false);
-    const { userId } = useParams();
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
     const { setAchievementsList } = useContext(AchievementsListContext) as AchievementsListContextType;
@@ -105,17 +110,17 @@ const Profile: React.FC<Props> = () => {
     const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
     const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType; // TODO: voir avec Max
 
-    const gamesWonFunc = ( userId: string, games: Game[] ): number => {
+    const gamesWonFunc = ( userId: number, games: Game[] ): number => {
         let gamesWon = 0;
         games.map(game => {
-            if (game.game.winnerId == userId) {
+            if (game.game.winnerId === userId) {
                 gamesWon++;
             }
         });
         return gamesWon;
     };
 
-    const showPopup = (popup) => {
+    const showPopup = ( popup: string ) => {
         setCurrentPopup(prevPopup => ({
             ...prevPopup,
             [popup]: true
@@ -123,14 +128,14 @@ const Profile: React.FC<Props> = () => {
         setPopupQueue(prevQueue => [...prevQueue, popup]);
     }
 
-    const gamesWonInARowFunc = (userId: string, games): number => {
+    const gamesWonInARowFunc = (userId: number, games: Game[]): number => {
         games.sort((a, b) => new Date(a.game.createdAt).getTime() - new Date(b.game.createdAt).getTime());
 
         let maxConsecutiveWins = 0;
         let currentConsecutiveWins = 0;
 
         games.forEach((game) => {
-            if (userId == game.game.winnerId) {
+            if (userId === game.game.winnerId) {
                 currentConsecutiveWins++;
                 maxConsecutiveWins = Math.max(maxConsecutiveWins, currentConsecutiveWins);
             } else {
@@ -140,58 +145,31 @@ const Profile: React.FC<Props> = () => {
 
         return maxConsecutiveWins;
     };
-
-    const requestOptionsAchievements = useCallback((achievementName, data) => {
-        console.log("2", achievementName, data);
-        if (data !== undefined) {
-            const requestOptionsGame = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId: Number(userId), achievementId: data.achievements[achievementName].id }),
-            }
-            return requestOptionsGame;
-        }
-     }, [userId]);
      
-     const addAchievement = useCallback(( requestOptions ) => {
-        console.log("3", requestOptions);
-        return fetch(`http://localhost:3000/api/profile/${userId}/add-achievement-to-user`, requestOptions)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Bad Request');
-                }
-                return response.json();
-            })
+     const addAchievement = useCallback(achievement => {
+        return fetchAddAchievementToUser(achievement)
             .then((data) => {
-                console.log('Success:', data);
-                return fetch(`http://localhost:3000/api/profile/${userId}/achievements`)
-                    .then(response => response.json())
-                    .then(data => {
-                       setAchievementsList(data);
-                    });
+                queryClient.setQueryData('achievements', old => ([ ...(old ?? []), data ]));
             })
             .catch((error) => {
                 console.error(error);
             });
-     }, [userId, setAchievementsList]);
+    }, []);
 
      // Only with SQLite ? For Postgresql might need to change concurrency limite or pool size
-     const queue = async.queue((task, callback) => {
-        addAchievement(task.requestOptions)
-         .then(data => {
-           callback(null, data);
-         })
-         .catch(error => {
-           callback(error);
-         });
-       }, 1); // Set concurrency limit to 1
+    const queue = async.queue((task, callback) => {
+        addAchievement(task)
+            .then(data => {
+                callback(null, data);
+            })
+            .catch(error => {
+                callback(error);
+            });
+    }, 1); // Set concurrency limit to 1
  
     useEffect(() => {
         const fetchData = async () => {
-            const response = await fetch(`http://localhost:3000/api/profile/${userId}`);
-            const data = await response.json();
+            const data = await fetchProfile();
             if (data.avatar !== avatar) {
                 setAvatar(`http://localhost:3000/static/${data.avatar}`);
             }
@@ -211,11 +189,12 @@ const Profile: React.FC<Props> = () => {
             if (data !== null) {
                 const handleAchievement = (achievementName: string) => {
                     showPopup(achievementName);
-                    const requestOptions = requestOptionsAchievements(achievementName, data);
-                    queue.push({ requestOptions });
+                    queue.push({
+                        achievementId: data.achievements[achievementName].id,
+                    });
                 };
 
-                const gamesWon = gamesWonFunc(userId, data?.gamesParticipated);
+                const gamesWon = gamesWonFunc(auth.user.id, data?.gamesParticipated);
                 if (gamesWon >= 3 && data?.achievements['3 total'].users.length === 0) {
                     handleAchievement('3 total');
                 }
@@ -226,7 +205,7 @@ const Profile: React.FC<Props> = () => {
                     handleAchievement('100 total');
                 }
 
-                const gamesWonInARow = gamesWonInARowFunc(userId, data?.gamesParticipated);
+                const gamesWonInARow = gamesWonInARowFunc(auth.user.id, data?.gamesParticipated);
                 if (gamesWonInARow >= 3 && data?.achievements['3'].users.length === 0) {
                     handleAchievement('3');
                 }
@@ -238,10 +217,7 @@ const Profile: React.FC<Props> = () => {
                 }
 
                 const gameParticipations = data?.gamesParticipated.length;
-                let inc = 0;
                 if (gameParticipations >= 1 && data?.achievements['First Game'].users.length === 0) {
-                    inc++;
-                    console.log("inc", inc);
                     handleAchievement('First Game');
                 }
                 if (gameParticipations >= 10 && data?.achievements['You\'re getting used to Pong'].users.length === 0) {
@@ -273,70 +249,62 @@ const Profile: React.FC<Props> = () => {
         //fetchDataPublic
     }, [smallLeader, greatLeader]);
 
+    const uploadAvatarMutation = useMutation({
+        mutationFn: fetchAddAvatar,
+        onError(e: AxiosError) {
+            if (e.response?.status === 422) {
+                alert('Only jpg, jpeg, png file. Maximum dimension 1000x1000. Maximum size 1000042 bytes');
+            } else {
+                alert(e.message);
+            }
+        },
+        onSuccess(data) {
+            setAvatar(`http://localhost:3000/static/${data.avatar}`)
+            if (!profileInfos?.avatar) {
+                showPopup('Newwww Avatar');
+                addAchievement({
+                    achievementId: profileInfos.achievements['Newwww Avatar'].id,
+                });
+            }
+        }
+    });
+
     const handleUploadAvatar = (e) => {
         e.preventDefault();
 
         const file = e.target.files[0];
-        console.log(file);
         const formData = new FormData();
         formData.append('file', file);
 
-        const requestOptions = {
-            method: 'POST',
-            body: formData
-        }
-
-        fetch(`http://localhost:3000/api/profile/${userId}/add-avatar`, requestOptions)
-            .then(response =>  {
-                if (response.status === 422) {
-                    throw new Error('Only jpg, jpeg, png file. Maximum dimension 1000x1000. Maximum size 1000042 bytes');
-                }
-                return response.json();
-            })
-            .then(data => {
-                setAvatar(`http://localhost:3000/static/${data.avatar}`)
-                if (!profileInfos?.avatar) {
-                    showPopup('Newwww Avatar');
-                    const requestOptions2 = requestOptionsAchievements("Newwww Avatar", profileInfos);
-                    addAchievement(requestOptions2);
-                }
-            })
-            .catch(error => {
-                alert(error);
-            });
+        uploadAvatarMutation.mutate(formData);
     }
+
+    const changeUsernameMutation = useMutation({
+        mutationFn: fetchChangePseudo,
+        onSuccess(data) {
+            setPseudo(data.pseudo);
+            console.log("HEY", isPseudoAdded);
+            console.log("HEYYY", profileInfos);
+            if (!isPseudoAdded) {
+                setIsPseudoAdded(true);
+                showPopup('Newwww Pseudo');
+                addAchievement({
+                    achievementId: profileInfos.achievements['Newwww Pseudo'].id,
+                });
+            }
+        },
+        onError(e: AxiosError) {
+            console.log("HEY2", e);
+            alert("Min 3 characters and maximum 32 characters, no special characters except '-' or pseudo already in use");
+        }
+    });
 
     const handleChangePseudo = async (e) => {
         e.preventDefault();
 
         const pseudo = (e.target.elements as HTMLFormControlsCollection)['outlined-basic'].value;
-        const data = { pseudo: pseudo };
 
-        fetch(`http://localhost:3000/api/profile/${userId}/change-pseudo`, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Min 3 characters and maximum 32 characters, no special characters except '-' or pseudo already in use");
-            }
-            return response.json();
-        })
-        .then(result => {
-            setPseudo(result.pseudo);
-            if (!isPseudoAdded) {
-                setIsPseudoAdded(true);
-                showPopup('Newwww Pseudo');
-                const requestOptions = requestOptionsAchievements("Newwww Pseudo", profileInfos);
-                addAchievement(requestOptions);
-            }
-        })
-        .catch(error => {
-            alert(error);
-        });
+        changeUsernameMutation.mutate({ pseudo });
     }
 
     const closePopup = () => {
@@ -369,7 +337,7 @@ const Profile: React.FC<Props> = () => {
             <div className="overlay" style={{ display: currentPopup['Perfect win'] ? 'block': 'none' }}></div>
             <div className="overlay" style={{ display: currentPopup['You\'re a looser'] ? 'block': 'none' }}></div>
             <div className="Profile">
-                {popupQueue.length > 0 && <PopUp userId={Number(userId)} infos={profileInfos?.achievements[popupQueue[0]]} onClose={closePopup}/>}
+                {popupQueue.length > 0 && <PopUp userId={Number(auth.user?.id)} infos={profileInfos?.achievements[popupQueue[0]]} onClose={closePopup}/>}
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
                 <PseudoButton handleChangePseudo={handleChangePseudo} />
                 <Switch2FA />
@@ -377,10 +345,10 @@ const Profile: React.FC<Props> = () => {
             {/* Add friend, block, unblock */}
         {/* ENDIF */}
                 <FriendChoiceButtons  userId={userId} /*friendId={friendId} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
-                <Ladder />
-                <Stats userId={userId}/>
-                <MatchHistory />
-                <Achievements />
+                <Ladder auth={Number(auth.user?.id)} />
+                <Stats userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
+                <MatchHistory userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
+                <Achievements userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
             </div>
         </>
     )

@@ -1,6 +1,6 @@
 import React, { PropsWithChildren } from 'react';
 import { getAuthenticationToken } from '../storage';
-import { fetchUserProfile } from '../api';
+import { UserProfileResponse, fetchUserProfile } from '../api';
 
 const HANDLERS = {
   INITIALIZE: 'INITIALIZE' as const,
@@ -10,7 +10,7 @@ const HANDLERS = {
   REFRESH_ACK: 'REFRESH_ACK' as const,
 };
 
-type AuthUserInfo = Record<string, any>;
+type AuthUserInfo = UserProfileResponse;
 
 type AuthenticationState<P extends {} = AuthUserInfo > = {
   isAuthenticated: boolean;

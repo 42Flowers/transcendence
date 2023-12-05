@@ -289,9 +289,13 @@ const Game: React.FC<gameProps> = (props) => {
 			if (!gameEnd) {
 				window.requestAnimationFrame(gameLoop);
 			}
+			else {
+				return ;
+			}
 		};
 
 		let frameId = window.requestAnimationFrame(gameLoop);
+		console.log("Quit game canvas")
 
 		return () => {
 			window.cancelAnimationFrame(frameId)

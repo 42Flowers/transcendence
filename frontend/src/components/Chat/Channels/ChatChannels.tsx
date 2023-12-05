@@ -1,4 +1,4 @@
-import './ChatChannels.css';
+import './ChatChannels.scss';
 import React, { useState } from 'react';
 
 interface convMessage {
@@ -75,12 +75,11 @@ const DisplayChannels: React.FC<channelsProp> = ({ channels, handleClickConv }) 
 const ChatChannels: React.FC<channelsProp> = ({ channels, handleClickConv }) => {
 
 	return (
-		<div className='chat-channels' >
-			<div className='title'>
+		<div className="chat-channels">
+			<div className="chat-header">
 				<h3>Channels</h3>
 			</div>
-			{channels && <DisplayChannels channels={channels} handleClickConv={handleClickConv} />}
-			{!channels && <DisplayChannels channels={[]} handleClickConv={handleClickConv} />}
+			<DisplayChannels channels={channels} handleClickConv={handleClickConv} />
 			<AddChannel />
 		</div>
 	);

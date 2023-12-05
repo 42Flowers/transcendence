@@ -92,6 +92,11 @@ const PlayPage: React.FC = () => {
                         { !waiting && <SelectFriend></SelectFriend>}
                         { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-normal") }}/> }
                     </div>
+                    <div>
+                        <p style={{color: 'white'}}>
+                            Controls:  "UP ARROW" to make the paddle go up and "DOWN ARROW" to make the paddle go down
+                        </p>
+                    </div>
                     {/* { isSuccess && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-normal") }}/> } */}
                 </div>
             </div>
@@ -111,8 +116,8 @@ const PlayPage: React.FC = () => {
                         { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-special") }}/> }
                     </div>
                     <div>
-                        <p style={{color: 'white', paddingTop: '-1000px'}}>
-                            Use the "SPACE" key just before you hit the ball to protect the paddle and speed up the ball !
+                        <p style={{color: 'white'}}>
+                            Use the "SPACE" key just before you hit the ball to protect the paddle, it will become "RED", and speed up the ball !
                             <br/>
                             Tips: If the ball goes too fast an unprotected paddle might break
                         </p>

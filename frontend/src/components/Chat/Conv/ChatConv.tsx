@@ -9,6 +9,8 @@ import { MessageView } from '../MessageView';
 import { useMutation, useQuery } from 'react-query';
 import { ChannelMessage, fetchChannelMessages, postChannelMessage } from '../../../api';
 import { queryClient } from '../../../query-client';
+import { useGatewayEvent } from '../../../hooks/gateway';
+import { insertMessage, useChannelMessages, usePostChannelMessage } from '../chat-system';
 
 interface convMessage {
 	authorName: string,
@@ -89,19 +91,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
 };
 
 const ChatConv: React.FC<convProps> = ({ conversation }) => {
-	const messagesQueryKey = [ 'channel', 4, 'messages' ];
+	const channelId = 1;
 
-	const messagesQuery = useQuery(messagesQueryKey, () => fetchChannelMessages(4));
-	const postMessageMutation = useMutation({
-		mutationFn: (content: string) => postChannelMessage(4, content),
-		onSuccess(data) {
-			console.log('oooooo', data);
-			queryClient.setQueryData<ChannelMessage[]>(messagesQueryKey, messages => ([
-				...(messages ?? []),
-				data,
-			]));
-		},
-	});
+	const messagesQuery = useChannelMessages(channelId);
+	const postMessageMutation = usePostChannelMessage(channelId);
 
 	const handleSend = React.useCallback((content: string) => {
 		postMessageMutation.mutate(content);

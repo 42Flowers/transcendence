@@ -8,7 +8,7 @@ const SocketContextComponent: React.FunctionComponent<ISocketContextComponentPro
 
 	// return children;
 	const [SocketState, SocketDispatch] = useReducer(SocketReducer, defaultSocketContextState);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 
 	const socket = useSocket('ws://localhost:3000', {
 		reconnectionAttempts: 5,
@@ -18,7 +18,7 @@ const SocketContextComponent: React.FunctionComponent<ISocketContextComponentPro
 
 	useEffect(() => {
 		/**Connect to the web socket */
-		socket.connect()
+		//socket.connect()
 		/*Save the socket  in context*/
 		console.log({current: socket.id});
 		console.log('sympa', socket);

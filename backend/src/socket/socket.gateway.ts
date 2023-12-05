@@ -55,25 +55,21 @@ export class SocketGateway implements
 		private readonly jwtService: JwtService
 		) {}
 
-	afterInit() {
-		console.log("Init socket Gateway")
+	afterInit(server: Server) {
+		server.use((socket, next) => {
+			const token = socket.handshake.auth['token'];
+
+			this.jwtService.verifyAsync<UserPayload>(token)
+				.then(payload => {
+					socket.user = payload;
+					next();
+				})
+				.catch(err => next(err));
+		});
 	}
 
 	async handleConnection(client: Socket) {
-		const { authorization: token } = client.handshake.headers;
-		
-		try {
-			const payload = await this.jwtService.verifyAsync<UserPayload>(token);
-
-			client.user = payload;
-		} catch {
-			console.warn('Socket %s disconnected : bad token', client.id);
-			client.disconnect(true);
-			return ;
-		}
-
-		console.log(`Client connected: ${client.id}`);
-
+		console.log('Client connected', client.id);
 		client.join('server');
 		this.socketService.addSocket(client);
 	}
@@ -86,7 +82,6 @@ export class SocketGateway implements
 		client.leave('server');
 		this.socketService.removeSocket(client);
 		console.log(`Client disconnected: ${client.id}`);
-		// this.socketService.removeSocket(token.id, client);
 		
 	}
 

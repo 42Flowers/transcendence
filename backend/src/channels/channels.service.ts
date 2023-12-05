@@ -18,6 +18,11 @@ export class ChannelsService {
         private readonly eventEmitter: EventEmitter2,
         private readonly socketService: SocketService) {}
 
+    /**
+     * Retrieve the list of members in the specified channel
+     * @param userId The requesting user (used for permissions checking)
+     * @param channelId The channel id where you want to list members
+     */
     async getChannelUsers(userId: number, channelId: number): Promise<ChannelUser[]> {
         const channel = await this.prismaService.channel.findUnique({
             where: {
@@ -71,7 +76,7 @@ export class ChannelsService {
         return memberships.map(({ channel }) => channel);
     }
 
-    async getChannelMessages(userId, channelId) {
+    async getChannelMessages(userId: number, channelId: number) {
         const messages = await this.prismaService.message.findMany({
             where: {
                 channelId,
@@ -90,7 +95,7 @@ export class ChannelsService {
             },
         });
 
-        /* TODO check user to channel membership */
+        /* TODO check user <-> channel membership */
 
         return messages;
     }
@@ -125,40 +130,33 @@ export class ChannelsService {
         });
 
         this.eventEmitter.emit(ChatChannelMessageEvent2.EVENT_NAME,
-            new ChatChannelMessageEvent2(message.id, userId, channelId, content));
+            { ...message, channelId });
 
         return message;
     }
 
     @OnEvent(ChatChannelMessageEvent2.EVENT_NAME)
-    async handleChannelMessagePosted({ authorId, channelId, content, id }: ChatChannelMessageEvent2) {
+    async handleChannelMessagePosted(payload: ChatChannelMessageEvent2) {
         try {
             /* Retrieve all channel members */
             const members = await this.prismaService.channelMembership.findMany({
                 where: {
-                    channelId,
+                    channelId: payload.channelId,
                 },
             });
 
             const membersToNotify = members.filter(member => {
                 /* TODO check notification options for this member */
 
-                /**
-                 * Just we don't send the notification to the user who posted the message,
-                 * he already received the message data (id, content) as the POST request's reponse.
-                 */
-                if (member.userId === authorId)
-                    return false;
-
                 return true; /* For now everybody received the notification */
             });
 
             /* Dispatch a message to every connected user that is part of this channel */
-            await Promise.all(membersToNotify.map(member => {
-
-            }));
+            membersToNotify.forEach(member => {
+                this.socketService.emitToUserSockets(member.userId, 'channel.message', payload);
+            });
         } catch {
-
+            /* Ignore the error here because we're not supposed to throw */
         }
     }
 }

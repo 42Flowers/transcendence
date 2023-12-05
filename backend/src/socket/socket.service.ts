@@ -23,6 +23,7 @@ export class SocketService {
 	}
 
 	emitToUserSockets(userId: number, ev: string, ...args: any[]) {
+		console.log(this.connectedUsers[userId].length, "sockets");
 		this.foreachUserSocket(userId, client => client.emit(ev, ...args));
 	}
 

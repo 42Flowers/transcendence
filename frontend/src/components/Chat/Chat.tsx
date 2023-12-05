@@ -3,11 +3,15 @@ import ChatChannels from './Channels/ChatChannels';
 import ChatConv from './Conv/ChatConv';
 import ChatPrivMessages from './PrivMessages/ChatPrivMessages';
 import './Chat.scss';
-import { fetchChannels, getConversations } from '../../api';
+import { ChannelMessage, fetchChannels, getConversations } from '../../api';
 import { useQuery } from 'react-query';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useSocket } from '../Socket/Hooks/useSocket';
 import { useGatewayEvent } from '../../hooks/gateway';
+import { queryClient } from '../../query-client';
+import uniq from 'lodash/uniq';
+import sortBy from 'lodash/sortBy';
+import { insertMessage } from './chat-system';
 
 interface convMessage {
 	authorName: string,
@@ -41,26 +45,22 @@ interface convElem {
 	messages: convMessage[],
 }
 
-function useSocketEvent(evt: string, cb: () => void) {
-	const socket = useSocket('ws://localhost:3000');
-
-	React.useEffect(() => {
-		socket.on(evt, cb);
-
-		return () => {
-			socket.off(evt, cb);
-		};
-	}, [evt, cb]);
+/**
+ * The payload of the 'channel.message' event received from the gateway,
+ * here we include to channelId to notify other channels than the currently selected.
+ */
+interface ChannelMessageEventPayload extends ChannelMessage {
+	channelId: number;
 }
 
 const Chat: React.FC = () => {
 	const channelsQuery = useQuery('channels', fetchChannels);
 
-	useGatewayEvent('lol', () => {
-		console.log('lol received');
+	useGatewayEvent<ChannelMessageEventPayload>('channel.message', ({ channelId, ...payload }) => {
+		insertMessage(channelId, payload);
 	});
 
-	const [selectedConv, setSelectedConv] = useState< convElem | null>(null);
+	const [selectedConv, setSelectedConv] = useState<convElem | null>(null);
 	const convs = useQuery('get-convs', getConversations);
 
 	const privateMessages = React.useMemo(() => {

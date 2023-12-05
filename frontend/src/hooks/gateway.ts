@@ -1,24 +1,11 @@
 import React from 'react';
-import { io } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 
 /* TODO put this in the env file */
 const GATEWAY_URL = 'ws://localhost:3000';
 
-const gatewaySocket = io(GATEWAY_URL, {
-    transports: [ 'websocket' ],
-    extraHeaders: {
-        'Authorization': localStorage.getItem('token') ?? '',
-    },
-    autoConnect: false,
-});
-
+let gatewaySocket: Socket | null = null;
 let socketInitialized = false;
-
-gatewaySocket.io.on('open', () => {
-    gatewaySocket.emit('handshake', () => {
-        console.log('Handshake received');
-    });
-});
 
 // /**Reconnect Event */
 // socket.io.on('reconnect', (attempt: number) => {
@@ -41,17 +28,35 @@ gatewaySocket.io.on('open', () => {
 // });
 
 export const useGateway = () => {
-    React.useEffect(() => {
-        if (!socketInitialized) {
-            socketInitialized = true;
-            gatewaySocket.connect();
-        }
-    }, []);
+    if (!socketInitialized) {
+        socketInitialized = true;
 
-    return gatewaySocket;
+        gatewaySocket = io(GATEWAY_URL, {
+            transports: [ 'websocket' ],
+            withCredentials: true,
+            autoConnect: false,
+            auth(sendConnectPacket) {
+                sendConnectPacket({
+                    token: localStorage.getItem('token') ?? ''
+                });
+            }
+        });
+
+        gatewaySocket.io.on('open', () => {
+            console.log('[Gateway] Connected, sending handshake');
+            gatewaySocket!.emit('handshake', () => {
+            console.log('[Gateway] Handshake received');
+            });
+        });
+
+        console.log('[Gateway] Connecting');
+        gatewaySocket.connect();
+    }
+
+    return gatewaySocket!;
 };
 
-export const useGatewayEvent = (ev: string, cb: () => void) => {
+export const useGatewayEvent = <T = any>(ev: string, cb: (payload: T) => void) => {
     const gateway = useGateway();
     
     React.useEffect(() => {

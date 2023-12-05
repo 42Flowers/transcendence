@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { SocketService } from 'src/socket/socket.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 
 
 @Injectable()
@@ -135,8 +135,9 @@ export class UsersService {
 		try {
 			if (id != undefined) {
 				const user = await this.prismaService.user.findUnique({
-					where: {id : id}
-				});
+					where: {id : id},
+					include : {channelMemberships: true}
+				},);
 				return user;
 			}
 		} catch (err) {

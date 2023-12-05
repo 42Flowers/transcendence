@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
+import { MessagesModule } from 'src/messages/messages.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { SocketModule } from 'src/socket/socket.module';
 import { RoomController } from './rooms.controller';
 import { RoomService } from './DBrooms.service';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { MessagesModule } from 'src/messages/messages.module';
-import { SocketModule } from 'src/socket/socket.module';
+import { Module } from '@nestjs/common';
 
 @Module({
 	exports: [RoomService],

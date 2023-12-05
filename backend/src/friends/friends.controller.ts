@@ -50,7 +50,8 @@ export class FriendsController {
     if (userId == friendId) {
       return null;
     }
-    return this.friendService.getIsBlockByUser(userId, friendId);
+    const friend = await this.friendService.getIsBlockByUser(userId, friendId);
+    return friend ? friend : null;
   }
   @Post(':userId/unblock/:friendId')
   async unblockFriend(

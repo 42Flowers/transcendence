@@ -53,10 +53,10 @@
 
 .random-choice {
 	padding-top: 10%;
+
 }
 
 .friend-choice {
-	height: 50%;
 	border-top: 2px solid white;
 	padding-top: 20%;
 }
@@ -64,7 +64,10 @@
 .no-border {
 	border-top: none;
    }
-   
+
+.controlers {
+	height: 20%;
+}
 
 .friendList {
 	font-family: "Short Stack";

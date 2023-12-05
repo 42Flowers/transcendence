@@ -1,6 +1,7 @@
 import './FriendItem.css';
 import MainButton from '../MainButton/MainButton'
 import AvatarOthers from '../AvatarOthers/AvatarOthers';
+import default_avatar from '../../assets/images/default_avatar.png'
 
 const SENDER = 0;
 const RECEIVER = 1;
@@ -20,12 +21,14 @@ interface Props {
 	userId: number;
 	friendName: string;
 	status: number;
+	avatar: string;
 	friendId: number;
 	parentRerender: (data: FriendElem[] | null) => void;
 }
 
-const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, parentRerender}) => {
+const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friendId, parentRerender}) => {
 
+	console.log("Hey", userId, friendId);
 	const handleUnblock = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/unblock/${friendId}`, {
 			method: 'POST',
@@ -99,7 +102,12 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online'/>
+						{ 
+							avatar ?
+								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+							:
+								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+						}
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>
@@ -117,7 +125,12 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Offline'/>
+					{ 
+							avatar ?
+								<AvatarOthers status="Offline" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+							:
+								<AvatarOthers status="Offline" avatar={default_avatar} userId={friendId} />
+						}
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>
@@ -134,7 +147,12 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online'/>
+					{ 
+							avatar ?
+								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+							:
+								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+						}
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>
@@ -150,7 +168,12 @@ const FriendItem: React.FC<Props> = ({userId, friendName, status, friendId, pare
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online'/>
+						{ 
+							avatar ?
+								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+							:
+								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+						}
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>

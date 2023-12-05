@@ -65,7 +65,6 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId, handleUploadFri
 	};
 	fetchData();
 	}, [buttonClicked, setButtonClicked]);
- 
 
 	const handleAdd = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/add/${friendId}`, {

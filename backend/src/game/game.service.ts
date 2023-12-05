@@ -519,12 +519,15 @@ export class GameService {
 
 				if (currGame.mode == SPECIAL_MODE && Math.abs(new Date().getTime() - leftPad.activate) < SHIELD_MAX_INTERVAL) {
 					server.to(currGame.roomName).emit("shield", "left");
+					if (ball.speedModifyer + 0.2 >= SPEED_THRESHOLD) {
+						server.to(currGame.roomName).emit("dangerousBall");
+					}
 					ball.speedModifyer += 0.2;
 					ball.speed.x *= -1;
 					ball.speed.y = ball.speed.x * BALL_SPEED_Y * (relativeBallPos / leftPad.length / 2);
 				}
-				else if (currGame.mode == SPECIAL_MODE && ball.speedModifyer > 3 && Math.abs(currTime - rightPad.activate) >= 400) {
-					// destroy paddle
+				else if (currGame.mode == SPECIAL_MODE && ball.speedModifyer > SPEED_THRESHOLD && Math.abs(currTime - rightPad.activate) >= 400) {
+					server.to(currGame.roomName).emit("breakPaddle", "right");
 				}
 				else {
 					ball.speed.x *= -1;
@@ -539,12 +542,15 @@ export class GameService {
 
 				if (currGame.mode == SPECIAL_MODE && Math.abs(currTime - rightPad.activate) < SHIELD_MAX_INTERVAL) {
 					server.to(currGame.roomName).emit("shield", "right");
+					if (ball.speedModifyer + 0.2 >= SPEED_THRESHOLD) {
+						server.to(currGame.roomName).emit("dangerousBall");
+					}
 					ball.speedModifyer += 0.2;
 					ball.speed.x *= -1;
 					ball.speed.y = ball.speed.x * (BALL_SPEED_Y * -1) * (relativeBallPos / rightPad.length / 2);
 				}
 				else if (currGame.mode == SPECIAL_MODE && ball.speedModifyer > SPEED_THRESHOLD && Math.abs(currTime - rightPad.activate) >= 400) {
-					// destroy paddle
+					server.to(currGame.roomName).emit("breakPaddle", "right");
 				}
 				else {
 					ball.speed.x *= -1;

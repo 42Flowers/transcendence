@@ -1,6 +1,7 @@
 import './Game.css'
 import SocketContext from '../Socket/Context/Context';
 import { useRef, useEffect, useContext, useCallback } from 'react';
+import { red } from '@mui/material/colors';
 
 const BALL_DEFAULT_RADIUS = 15;
 
@@ -29,6 +30,19 @@ interface ballElem {
 	y: number,
 	radius: number,
 }
+
+// const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
+// const colorPurple = getComputedStyle(document.documentElement).getPropertyValue('--color-purple').trim();
+let leftPaddleColor = "yellow";
+let rightPaddleColor = "yellow";
+let dangerousBallColor = "black";
+let dangerousBall = false;
+
+let yellowColor = "yellow";
+let purpleColor = "purple";
+let redColor = "red";
+let lastTimeColorCheck = 0;
+let change = false;
 
 //////////////////////////////
 //           GAME           //
@@ -85,55 +99,55 @@ const Game: React.FC<gameProps> = (props) => {
 	function drawGame(ctx: CanvasRenderingContext2D): void {
 		
 		const { width, height } = ctx.canvas;
-		const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
-		const colorPurple = getComputedStyle(document.documentElement).getPropertyValue('--color-purple').trim();
+		if (change && new Date().getTime() - lastTimeColorCheck > 1000) {
+			leftPaddleColor = yellowColor;
+			rightPaddleColor = yellowColor;
+			change = false;
+		}
 
 		// draw ball
 		const gradientball = ctx.createLinearGradient(0, 0, 0, height);
-		gradientball.addColorStop(1, colorYellow);
-		gradientball.addColorStop(0, colorPurple);
-		ctx.fillStyle = gradientball;
+		gradientball.addColorStop(1, yellowColor);
+		gradientball.addColorStop(0, purpleColor);
+		if (dangerousBall)
+			ctx.fillStyle = dangerousBallColor;
+		else
+			ctx.fillStyle = gradientball;
 		ctx.beginPath();
 		ctx.arc(ball.x, ball.y, ball.radius, 0, 2*Math.PI);
 		ctx.closePath();
 		ctx.fill();
 		
 		// draw left paddle
-		const gradientleft = ctx.createLinearGradient(0, 0, 0, height);
-		gradientleft.addColorStop(0, colorYellow);
-		gradientleft.addColorStop(1, colorPurple);
-		ctx.fillStyle = gradientleft;
+		
+		ctx.fillStyle = leftPaddleColor;
 		ctx.fillRect(leftPad.x, leftPad.y, leftPad.width, leftPad.length);
 		
 		// draw right paddle
-		const gradientright = ctx.createLinearGradient(0, 0, 0, height);
-		gradientright.addColorStop(0, colorYellow);
-		gradientright.addColorStop(1, colorPurple);
-		ctx.fillStyle = gradientright;
+		
+		ctx.fillStyle = rightPaddleColor;
 		ctx.fillRect(rightPad.x, rightPad.y, rightPad.width, rightPad.length);
 		
 		// score
-		ctx.fillStyle = colorYellow;
+		ctx.fillStyle = purpleColor;
 		ctx.font = "40px Short Stack";
 		ctx.fillText(score.leftPlayer, Math.round(width / 2 / 2), Math.round(height / 8));
 		ctx.fillText(score.rightPlayer,Math.round(width / 2 * 1.5), Math.round(height / 8));
 	};
 
 	function drawStart(ctx: CanvasRenderingContext2D, count: number): void {
-		const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
 		const { width, height } = ctx.canvas;
 
-		ctx.fillStyle = colorYellow;
+		ctx.fillStyle = yellowColor;
 		ctx.font = "40px Short Stack";
 		ctx.fillText("Get READY !", Math.round(width / 3), Math.round(height / 8));
 		ctx.fillText(count.toString(), Math.round(width / 2), Math.round(height / 2));
 	};
 
 	function drawEnd(ctx: CanvasRenderingContext2D): void {
-		const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
 		const { width, height } = ctx.canvas;
 
-		ctx.fillStyle = colorYellow;
+		ctx.fillStyle = yellowColor;
 		ctx.font = "40px Short Stack";
 		ctx.fillText("Game is Over", Math.round(width / 3), Math.round(height / 2));
 		ctx.fillText(score.leftPlayer, Math.round(props.width / 2 / 2), Math.round(height / 8));
@@ -154,6 +168,16 @@ const Game: React.FC<gameProps> = (props) => {
 	};
 
 	const activateShield = useCallback((side: string) => {
+		if (side == "left") {
+			leftPaddleColor = redColor
+			lastTimeColorCheck = new Date().getTime();
+			change = true;
+		}
+		else if (side == "right") {
+			rightPaddleColor = redColor;
+			lastTimeColorCheck = new Date().getTime();
+			change = true;
+		}
 	}, []);
 
 	// const calculateWinsAndLosses = (data: User[]) => {
@@ -206,12 +230,12 @@ const Game: React.FC<gameProps> = (props) => {
         //         calculateRanking(calculateWinsAndLosses(data));
         //     }
         // );
-		console.log("finish game event");
 	}, []);
 
 	const updateScore = useCallback((newScore: {leftPlayer: string, rightPlayer: string}) => {
 		score.leftPlayer = newScore.leftPlayer.toString();
 		score.rightPlayer = newScore.rightPlayer.toString();
+		dangerousBall = false;
 	}, []);
 
 	const updateGame = useCallback((newLeftPad: paddleElem, newRightPad: paddleElem, newBall: ballElem) => {
@@ -227,20 +251,30 @@ const Game: React.FC<gameProps> = (props) => {
 			gameStart = true;
 	}, []);
 
+	const activateBall = useCallback(() => {
+		dangerousBall = true;
+	}, [])
+
 	useEffect(() => {
 
 		SocketState.socket?.on("countdown", countdown);
 		SocketState.socket?.on("gameFinished", finishGame);
 		SocketState.socket?.on("updateScore", updateScore);
 		SocketState.socket?.on("updateGame", updateGame);
-		SocketState.socket?.on("shield", activateShield);
+		if (props.specialMode) {
+			SocketState.socket?.on("shield", activateShield);
+			SocketState.socket?.on("dangerousBall", activateBall);
+		}
 		
 		return () => {
 			SocketState.socket?.off("countdown", countdown);
 			SocketState.socket?.off("gameFinished", finishGame);
 			SocketState.socket?.off("updateScore", updateScore);
 			SocketState.socket?.off("updateGame", updateGame);
-			SocketState.socket?.off("shield", activateShield);
+			if (props.specialMode) {
+				SocketState.socket?.off("shield", activateShield);
+				SocketState.socket?.off("dangerousBall", activateBall);
+			}
 		};
 	}, [SocketState.socket]);
 
@@ -251,15 +285,17 @@ const Game: React.FC<gameProps> = (props) => {
 		document.addEventListener('keyup', handleKeyUp);
 
 		const gameLoop = () => {
-
 			renderFrame(context, count);
-
 			if (!gameEnd) {
 				window.requestAnimationFrame(gameLoop);
+			}
+			else {
+				return ;
 			}
 		};
 
 		let frameId = window.requestAnimationFrame(gameLoop);
+		console.log("Quit game canvas")
 
 		return () => {
 			window.cancelAnimationFrame(frameId)

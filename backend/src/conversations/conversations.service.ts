@@ -1,6 +1,6 @@
+import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from 'uuid';
-import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ConversationsService {
@@ -125,8 +125,10 @@ export class ConversationsService {
 				include : {userConversations:true}
 			});
 			console.log(conversations.userConversations);
-			console.log("coucou");
 			return conversations.userConversations;
-		} catch (err) {throw err}
+		} catch (err) {
+			console.log("par ici");
+			throw err;
+		}
 	}
 }

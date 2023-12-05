@@ -32,7 +32,7 @@ const GameWrapper: React.FC<wrapperProps> = (props) => {
 		return () => {
 			SocketState.socket?.off("avatar", displayPlayerAvatar);
 		}
-	}, []);
+	}, [SocketState.socket]);
 
 	return (
 		<div>

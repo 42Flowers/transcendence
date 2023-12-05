@@ -1,6 +1,7 @@
 import './FriendList.css';
 import FriendItem from '../FriendItem/FriendItem';
 import { useCallback, useEffect, useState } from 'react';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const SENDER_PAGE = 0;
 const RECEIVER_PAGE = 1;
@@ -23,11 +24,11 @@ interface FriendElem {
 
 const FriendList: React.FC = () => {
 	const [friendList, setFriendList] = useState< FriendElem[] | null>(null);
-	const userId = 1;
+	const auth = useAuthContext();
 			
 	useEffect(() => {
 		const fetchData = async () => {
-			const response = await fetch(`http://localhost:3000/api/friends/${userId}`);
+			const response = await fetch(`http://localhost:3000/api/friends/${Number(auth.user?.id)}`);
 			const data = await response.json();
 			setFriendList(data);
 		};
@@ -63,7 +64,7 @@ const FriendList: React.FC = () => {
 					<h2>Friendship received</h2>
 					{
 						friendList && Array.prototype.map.call(friendsListReceiver || [], ({ status, friend: { id, pseudo, avatar } }) => (
-							<FriendItem key={id} userId={userId} avatar={avatar} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
+							<FriendItem key={id} userId={Number(auth.user?.id)} avatar={avatar} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
 						)) as React.ReactNode[]
 					}
 				</div>
@@ -84,8 +85,8 @@ const FriendList: React.FC = () => {
 					<div className="box">
 						<h2>Friendship sent</h2>
 						{
-							friendList && Array.prototype.map.call(friendsListSender || [], ({ status, friend: { id, pseudo } }) => (
-							<FriendItem key={id} userId={userId} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
+							friendList && Array.prototype.map.call(friendsListSender || [], ({ status, friend: { id, pseudo, avatar } }) => (
+							<FriendItem key={id} userId={Number(auth.user?.id)} avatar={avatar} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
 							)) as React.ReactNode[]
 						}
 					</div>
@@ -106,8 +107,8 @@ const FriendList: React.FC = () => {
 					<div className="box">
 						<h2>Blocked friends</h2>
 						{
-							friendList && Array.prototype.map.call(friendsListBlocked || [], ({ status, friend: { id, pseudo } }) => (
-							<FriendItem key={id} userId={userId} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
+							friendList && Array.prototype.map.call(friendsListBlocked || [], ({ status, friend: { id, pseudo, avatar } }) => (
+							<FriendItem key={id} userId={Number(auth.user?.id)} avatar={avatar} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
 							)) as React.ReactNode[]
 						}
 					</div>
@@ -128,8 +129,8 @@ const FriendList: React.FC = () => {
 					<div className="box">
 						<h2>Friends</h2>
 						{
-							friendList && Array.prototype.map.call(friendsListFriends || [], ({ status, friend: { id, pseudo } }) => (
-							<FriendItem key={id} userId={userId} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
+							friendList && Array.prototype.map.call(friendsListFriends || [], ({ status, friend: { id, pseudo, avatar } }) => (
+							<FriendItem key={id} userId={Number(auth.user?.id)} avatar={avatar} friendName={pseudo} status={status} friendId={id} parentRerender={ParentRerender} />
 							)) as React.ReactNode[]
 						}
 					</div>

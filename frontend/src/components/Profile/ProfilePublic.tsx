@@ -60,7 +60,7 @@ type gamesParticipated = {
     winnerId: number
     createdAt: Date
 };
-   
+
 type Game = {
     game: gamesParticipated;
 };

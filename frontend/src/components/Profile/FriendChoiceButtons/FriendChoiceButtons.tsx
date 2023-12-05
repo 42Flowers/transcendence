@@ -45,7 +45,7 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId, handleUploadFri
 		setIsBlock(data);
 		};
 		fetchData();
-	}, []); 
+	}, []);
 
 	const handleAdd = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/add/${friendId}`, {

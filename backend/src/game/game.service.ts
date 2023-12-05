@@ -526,7 +526,7 @@ export class GameService {
 					ball.speed.x *= -1;
 					ball.speed.y = ball.speed.x * BALL_SPEED_Y * (relativeBallPos / leftPad.length / 2);
 				}
-				else if (currGame.mode == SPECIAL_MODE && ball.speedModifyer > 3 && Math.abs(currTime - rightPad.activate) >= 400) {
+				else if (currGame.mode == SPECIAL_MODE && ball.speedModifyer > SPEED_THRESHOLD && Math.abs(currTime - rightPad.activate) >= 400) {
 					server.to(currGame.roomName).emit("breakPaddle", "right");
 				}
 				else {

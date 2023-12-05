@@ -10,6 +10,7 @@ import { GameModule } from './game/game.module';
 import { ChatModule } from './chat/chat.module';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { ProfilePublicModule } from './profilePublic/profilePublic.module';
 
 @Module({
   imports: [

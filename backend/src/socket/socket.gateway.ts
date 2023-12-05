@@ -122,11 +122,20 @@ export class SocketGateway implements
 		@MessageBody('') data: {userId: number, type: string, to: string, channelId: number, message: string, options: string},
 		@ConnectedSocket() client : Socket 
 	) {
+		console.log("arrive", client.id);
 		try {
 			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.type, data.to, data.channelId, data.message, data.options));
 		} catch(error) {
 			console.log(error.message);
 		}
+	}
+
+	@SubscribeMessage('channelmanage')
+	handleMuteOnChannel(
+		@MessageBody('') data: {userId: number, type: string, channelName: string, channelId: number, options: any},
+		@ConnectedSocket() client: Socket	
+	) {
+		
 	}
 
 	// @SubscribeMessage('room')

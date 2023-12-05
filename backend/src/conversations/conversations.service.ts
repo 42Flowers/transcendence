@@ -125,8 +125,10 @@ export class ConversationsService {
 				include : {userConversations:true}
 			});
 			console.log(conversations.userConversations);
-			console.log("coucou");
 			return conversations.userConversations;
-		} catch (err) {throw err}
+		} catch (err) {
+			console.log("par ici");
+			throw err;
+		}
 	}
 }

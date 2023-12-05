@@ -8,23 +8,6 @@ import { ChatService } from './DBchat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { Prisma } from '@prisma/client';
 
-// interface convMessage {
-//     authorName: string,
-//     creationTime: Date,
-//     content: string,
-// }
-
-// interface channelElem {
-//     channelId: number,
-//     channelName: string,
-//     userPermissionMask: number,
-// }
-
-// interface privMessageElem {
-//     targetId: number,
-//     targetName: string,
-// }
-
 interface convElem {
     isChannel: boolean,
     channelId?: number,
@@ -200,19 +183,3 @@ export class ChatController {
 		}
 	}
 }
-
-// isChannel: boolean,
-// channelId?: number,
-// channelName?: string,
-// targetId?: number
-// targetName?: string,
-// userPermissionMask?: number,
-// messages: convMessage[],
-
-
-// interface convMessage {
-//     authorName: string,
-//     authorId: number,
-//     creationTime: Date,
-//     content: string,
-// }

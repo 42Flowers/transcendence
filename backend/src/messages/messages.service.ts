@@ -38,14 +38,14 @@ export class MessagesService {
 		}
 	}
 
-	async newChannelMessage(user: any, channelId: number, message: any) : Promise<any> {
+	async newChannelMessage(userId: number, channelId: number, message: any) : Promise<any> {
 		try {
 			const channel = await this.prismaService.channel.findUnique({
 				where: 
 				{id : channelId}});
 			if (channel != null){
 				return await this.prismaService.message.create({data: {
-					authorId: user.id,
+					authorId: userId,
 					content: message,
 					channelId: channel.id
 				}})

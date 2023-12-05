@@ -113,7 +113,7 @@ export class ChatService {
 	async chatChannelMessages(
 		event: ChatChannelMessageEvent
 	) {
-		const user = await this.usersService.getUserById(event.curruser.id);
+		const user = await this.usersService.getUserById(event.userId);
 		if (await this.roomService.roomExists(event.channelId)) {
 			if (await this.roomService.isUserinRoom(user.id, event.channelId)) {
 				const room = await this.roomService.getRoom(event.channelId);

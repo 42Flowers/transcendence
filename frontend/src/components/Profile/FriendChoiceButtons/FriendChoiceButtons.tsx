@@ -29,29 +29,43 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId, handleUploadFri
 	const [isFriend, setIsFriend] = useState< FriendElem | null>(null);
 	const [isBlock, setIsBlock] = useState< FriendElem | null>(null);
 
-	// const handleUploadFriendChoiceButtons = (data) => {
-    //     setFriendChoiceButtons(data);
-    // };
-			
 	useEffect(() => {
 		const fetchData = async () => {
-			const response = await fetch(`http://localhost:3000/api/friends/${userId}/isFriendwith/${friendId}`);
-			const data = await response.json();
+		const response = await fetch(`http://localhost:3000/api/friends/${userId}/isFriendwith/${friendId}`);
+		if (response.ok) {
+		const text = await response.text();
+		if (text) {
+			const data = JSON.parse(text);
 			setIsFriend(data);
-		};
-		fetchData();
+		} else {
+			setIsFriend(null);
+		}
+		} else {
+			setIsFriend(null);
+		}
+	};
+	fetchData();
 	}, [buttonClicked, setButtonClicked]);
+
 
 	useEffect(() => {
 		const fetchData = async () => {
-			const response = await fetch(`http://localhost:3000/api/friends/${userId}/isBlockWith/${friendId}`);
-			console.log("HEY", response);
-			const data = await response.json();
-			console.log("HEY2", response);
+		const response = await fetch(`http://localhost:3000/api/friends/${userId}/isBlockWith/${friendId}`);
+		if (response.ok) {
+		const text = await response.text();
+		if (text) {
+			const data = JSON.parse(text);
 			setIsBlock(data);
-		};
-		fetchData();
-	}, [buttonClicked]);
+		} else {
+			setIsBlock(null);
+		}
+		} else {
+			setIsBlock(null);
+		}
+	};
+	fetchData();
+	}, [buttonClicked, setButtonClicked]);
+ 
 
 	const handleAdd = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/add/${friendId}`, {

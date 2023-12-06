@@ -172,11 +172,12 @@ export class ChatService {
 		event: ChatJoinChannelEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		const join = this.roomService.joinRoom(user.id, event.channelId, event.channelName, event.pwd);
-		if (join != undefined) {
-			const users = await this.roomService.getUsersfromRoom(event.channelId);
-			this.socketService.joinChannel(user.id, event.channelName);
-			//TODO prévenir les autres qu'il est entré dans la room.
+		if (user != null) {
+			const join = await this.roomService.joinRoom(user.id, event.channelId, event.channelName, event.pwd);
+			if (join != undefined) {
+				this.socketService.joinChannel(user.id, event.channelName);
+				this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'channel', user.pseudo + " joined this channel"));
+			}
 		}
 	}
 
@@ -192,9 +193,10 @@ export class ChatService {
 				if (member !== null && member.membershipState !== 4) {
 					this.roomService.removeUserfromRoom(user.id, event.channelId);
 					this.socketService.leaveChannel(user.id, event.channelName);
-					this.eventEmitter.emit('chat.sendToChannel', new ChatSendToChannelEvent(room.name, 'channel', user.name + " has left this channel"));
-				} else
+					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.name + " has left this channel"));
+				} else {
 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave this channel"));
+				}
 			} else this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "This channel does not exsits"));
 		}
 	}

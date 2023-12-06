@@ -207,7 +207,8 @@ export class ProfilePublicService {
             },
           },
         });
-        return target ? true : false;
+        return target ? true : target;
+        // return target ? true : false;
     }
     
     async getIsBlockByUser(userId: number, friendId: number): Promise<any> {

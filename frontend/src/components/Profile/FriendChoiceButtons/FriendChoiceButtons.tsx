@@ -51,7 +51,8 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
 		})
 			.then(response => response.json())
 			.then(data => {
-				setIsFriended(data);
+				// setIsFriended(data);
+				setIsFriended(true);
 			})
 			.catch((error) => {
 				console.error('Error:', error);
@@ -94,6 +95,7 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
 					<div className='friend-choice-buttons'>
 						{/* <MainButton buttonName='Add' onClick={() => handleAdd()} /> */}
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
+						isnot fri b
 					</div>
 				</div>
 			);
@@ -105,6 +107,7 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
 					<div className='friend-choice-buttons'>
 						<MainButton buttonName='Add' onClick={() => handleAdd()} />
 						<MainButton buttonName='Block' onClick={() => handleBlock()} />
+						isnot fri not b
 					</div>
 				</div>
 			);
@@ -118,6 +121,7 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
 				<div className='parent-friend-choice-buttons'>
 					<div className='friend-choice-buttons'>
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
+						is fr b
 					</div>
 				</div>
 			);
@@ -128,6 +132,7 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
 				<div className='parent-friend-choice-buttons'>
 					<div className='friend-choice-buttons'>
 						<MainButton buttonName='Block' onClick={() => handleBlock()} />
+						is fr not b
 					</div>
 				</div>
 			);

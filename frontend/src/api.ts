@@ -57,6 +57,13 @@ function authorizedPost<P = any>(url: string, data: any, config: AxiosRequestCon
     });
 }
 
+function authorizedPatch<P = any>(url: string, data: any, config: AxiosRequestConfig = {}) {
+    return client.patch<P>(url, data, {
+        ...config,
+        headers: injectAuthorizationHeader(config.headers ?? {}),
+    });
+}
+
 function authorizedGet<P = any>(url: string, config: AxiosRequestConfig = {}) {
     return client.get<P>(url, {
         ...config,
@@ -85,3 +92,7 @@ export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/ap
 export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('/api/profile/change-pseudo', payload));
 
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
+
+/* ==== MFA ==== */
+export const generateSecretKey = () => wrapResponse(authorizedPost('/api/v1/auth/mfa/generate', ''));
+export const updateMfaState = (state: boolean, code: string) => wrapResponse(authorizedPatch('/api/v1/auth/mfa', { state, code }));

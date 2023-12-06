@@ -246,6 +246,7 @@ export class AuthService {
         const tokenVerified = speakeasy.totp.verify({
             secret: user.totpSecret,
             token: code,
+            encoding: 'base32',
         });
 
         if (!tokenVerified) {
@@ -259,6 +260,7 @@ export class AuthService {
             },
             data: {
                 totpEnabled: state,
+                totpSecret: null,
             },
         });
     }

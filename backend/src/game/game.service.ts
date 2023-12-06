@@ -349,11 +349,13 @@ export class GameService {
 	}
 
 	async sendPlayersData(currGame: gameParam) {
-		const playerData = await this.getPlayersData(currGame.userIdLeft, currGame.userIdRight);
+		setTimeout(async () => {
+			const playerData = await this.getPlayersData(currGame.userIdLeft, currGame.userIdRight);
 
-		this.socketGateway.server
-			.to(currGame.roomName)
-			.emit("playerData", playerData);
+			this.socketGateway.server
+				.to(currGame.roomName)
+				.emit("playerData", playerData)
+		}, 2000)
 	}
 
 	updateRandomGames() {
@@ -653,7 +655,6 @@ export class GameService {
 				},
 				select: {
 					pseudo: true,
-					avatar:true,
 				}
 			});
 			const rightUserData = await this.prisma.user.findUnique({
@@ -662,7 +663,6 @@ export class GameService {
 				},
 				select: {
 					pseudo: true,
-					avatar:true,
 				}
 			});
 	

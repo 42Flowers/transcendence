@@ -1,11 +1,11 @@
 import React from 'react';
 import './RegisterForm.scss';
 import MainButton from '../MainButton/MainButton'
-import { IoMailOutline } from "react-icons/io5";
-import { IoLockClosedOutline } from "react-icons/io5";
-import { IoPawOutline } from "react-icons/io5";
-import { GiFireflake } from "react-icons/gi";
-import { HiOutlineUserCircle } from "react-icons/hi2";
+// import { IoMailOutline } from "react-icons/io5";
+// import { IoLockClosedOutline } from "react-icons/io5";
+// import { IoPawOutline } from "react-icons/io5";
+// import { GiFireflake } from "react-icons/gi";
+// import { HiOutlineUserCircle } from "react-icons/hi2";
 import { Stack } from '@mui/material';
 import { Input } from '../Form/Input';
 import { Link } from 'react-router-dom';
@@ -88,7 +88,7 @@ const RegisterForm: React.FC = () => {
 					<h2>Register</h2>
 					<Input
 						label="Username"
-						icon={<HiOutlineUserCircle />}
+						// icon={<HiOutlineUserCircle />}
 						name="username"
 						autoComplete="off"
 						type="text"
@@ -96,7 +96,7 @@ const RegisterForm: React.FC = () => {
 						/>
 					<Input
 						label="Email"
-						icon={<IoMailOutline />}
+						// icon={<IoMailOutline />}
 						name="email"
 						type="email"
 						autoComplete="email"
@@ -114,14 +114,14 @@ const RegisterForm: React.FC = () => {
 					</div> */}
 					<Input
 						label="Password"
-						icon={<IoLockClosedOutline />}
+						// icon={<IoLockClosedOutline />}
 						name="password"
 						type="password"
 						required
 						/>
 					<Input
 						label="Confirm Password"
-						icon={<IoPawOutline />}
+						// icon={<IoPawOutline />}
 						name="password_confirm"
 						type="password"
 						required

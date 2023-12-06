@@ -12,11 +12,9 @@ interface wrapperProps {
 interface playersData {
 	left: {
 		pseudo: string,
-		avatar?: string,
 	},
 	right: {
 		pseudo: string,
-		avatar?: string,
 	},
 }
 
@@ -25,7 +23,6 @@ const GameWrapper: React.FC<wrapperProps> = (props) => {
 	const [ playersData, setPlayersData ] = useState<playersData | null>(null);
 
 	const displayPlayerData = useCallback((data: playersData) => {
-		console.log("HERE: ", data);
 		setPlayersData(data);
 	}, []);
 
@@ -35,7 +32,7 @@ const GameWrapper: React.FC<wrapperProps> = (props) => {
 		return () => {
 			SocketState.socket?.off("playerData", displayPlayerData);
 		}
-	}, []);
+	}, [SocketState.socket, displayPlayerData]);
 
 	return (
 		<div className="game-wrapper">

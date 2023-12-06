@@ -41,20 +41,6 @@ export class VerifyOtpDto {
     code: string;
 }
 
-export class VerifyEmailDto {
-    @IsString()
-    ticket: string;
-
-    @Length(6, 6)
-    @IsNumberString()
-    code: string;
-}
-
-export class SendVerificationMailDto {
-    @IsString()
-    ticket: string;
-}
-
 @Controller({
     version: '1',
     path: 'auth',

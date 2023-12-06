@@ -167,7 +167,7 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.joinchannel') //TODO a revoir
+	@OnEvent('chat.joinchannel')
 	async joinRoom(
 		event: ChatJoinChannelEvent
 	) {
@@ -190,7 +190,7 @@ export class ChatService {
 			const room = await this.roomService.roomExists(event.channelId);
 			if (room != null ){
 				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-				if (member !== null && member.membershipState !== 4) {
+				if (member !== undefined && member.membershipState !== 4) {
 					this.roomService.removeUserfromRoom(user.id, event.channelId);
 					this.socketService.leaveChannel(user.id, event.channelName);
 					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.name + " has left this channel"));
@@ -213,7 +213,7 @@ export class ChatService {
 				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
 				if (member && (member.permissionMask >= 2) && (member.membershipState !== 4)) {
 					const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (targetmember != null) {
+					if (targetmember != undefined) {
 						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'invite', event.targetId + ' is already in ' + event.channelName));
 						return;
 					} else {

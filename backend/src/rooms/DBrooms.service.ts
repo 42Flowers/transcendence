@@ -102,7 +102,6 @@ export class RoomService {
 					return null;
 				}
 				try {
-					console.log('salut tout le monde');
 					const channelMembership = await this.prismaService.channelMembership.create({
 					data: {
 						user : {
@@ -126,7 +125,7 @@ export class RoomService {
 					}
 					else {
 						this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: 'You are already in this channel'});
-						console.log(error.msg);
+						throw new Error("User already in channel");
 						return;
 					}
 				}

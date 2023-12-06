@@ -25,6 +25,7 @@ import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.
 import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
 import { UserPayload } from "src/auth/user.payload";
 import { JwtService } from "@nestjs/jwt";
+import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -110,6 +111,12 @@ export class SocketGateway implements
 	@OnEvent('chat.sendchannelmessage')
 	sendChannelMessage(event: ChatSendChannelMessageEvent) {
 		this.server.to(event.channelName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
+	}
+
+	@OnEvent('chat.sendtochannel')
+	sendToChannel(event: ChatSendToChannelEvent) {
+		console.log(event);
+		this.server.to(event.channelName).emit('info', {type: event.type, message: event.message});
 	}
 	// CHAT EVENTS
 	

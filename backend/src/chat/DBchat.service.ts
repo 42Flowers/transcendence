@@ -29,6 +29,7 @@ import { UsersService } from '../users_chat/DBusers.service';
 import { SocketService } from 'src/socket/socket.service';
 import { RoomService } from '../rooms/DBrooms.service';
 import { Injectable } from '@nestjs/common';
+import { ChatSendToChannelEvent } from 'src/events/chat/sendToChannel.event';
 
 /**
  * TODO revoir tous les arguments des events, rien ne va.
@@ -171,27 +172,33 @@ export class ChatService {
 		event: ChatJoinChannelEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		const join = this.roomService.joinRoom(user.id, event.channelId, event.channelName, event.pwd);
-		if (join != undefined) {
-			const users = await this.roomService.getUsersfromRoom(event.channelId);
-			this.socketService.joinChannel(user.id, event.channelName);
-			//TODO prévenir les autres qu'il est entré dans la room.
+		if (user != null) {
+			const join = await this.roomService.joinRoom(user.id, event.channelId, event.channelName, event.pwd);
+			if (join != undefined) {
+				this.socketService.joinChannel(user.id, event.channelName);
+				this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'channel', user.pseudo + " joined this channel"));
+			}
 		}
 	}
 
-	@OnEvent('chat.exitchannel') //TODO a revoir
+	@OnEvent('chat.exitchannel')
 	async exitRoom(
 		event: ChatExitChannelEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		if (this.roomService.roomExists(event.channelId)){
-			if (this.roomService.isUserinRoom(user.id, event.channelId)) {
-				this.roomService.removeUserfromRoom(user.id, event.channelId);
-				this.socketService.leaveChannel(user.id, event.channelName);
-				//TODO prévenir les autres qu'il est parti.
-			} else
-				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room"));
-		} else this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "This channel does not exsits"));
+		if (user != null) {
+			const room = await this.roomService.roomExists(event.channelId);
+			if (room != null ){
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member !== null && member.membershipState !== 4) {
+					this.roomService.removeUserfromRoom(user.id, event.channelId);
+					this.socketService.leaveChannel(user.id, event.channelName);
+					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.name + " has left this channel"));
+				} else {
+					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave this channel"));
+				}
+			} else this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "This channel does not exsits"));
+		}
 	}
 
 	@OnEvent('chat.invitechannel')

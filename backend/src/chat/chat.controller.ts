@@ -98,20 +98,21 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			console.log("coucou");
-			this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
-			// const join = await this.chatService.chatRoom({userId: 6, type: 'join', roomname: 'chan3', roomId: 4, option: {invite: false, key: false, value: ""}});
+			this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(6, "channel", 9, "coucou"));
+			// this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
 		} catch (err) {
 			console.log(err.message);
 		}
 	}
 
-	@Get('exit-channel')
+	@Post('exit-channel')
 	async exitChannel(
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
+			console.log("top");
+			this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(2, "channel", 9));
+			// this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
 		} catch(err) {
 			console.log(err.message);
 		}

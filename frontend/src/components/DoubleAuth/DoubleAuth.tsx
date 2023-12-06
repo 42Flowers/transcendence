@@ -2,11 +2,11 @@ import React, { PropsWithChildren, useRef } from 'react';
 import { Stack, styled } from '@mui/material';
 import { AxiosError } from 'axios';
 import { useSnackbar } from 'notistack';
-import { BsQrCode } from "react-icons/bs";
-import { FaCommentSms } from "react-icons/fa6";
-import { HiOutlineArrowCircleLeft } from "react-icons/hi";
-import { IoMailOutline } from "react-icons/io5";
-import { SiLetsencrypt } from "react-icons/si";
+// import { BsQrCode } from "react-icons/bs";
+// import { FaCommentSms } from "react-icons/fa6";
+// import { HiOutlineArrowCircleLeft } from "react-icons/hi";
+// import { IoMailOutline } from "react-icons/io5";
+// import { SiLetsencrypt } from "react-icons/si";
 import { useMutation } from 'react-query';
 import { AuthorizationTokenPayload, submitOtp } from '../../api';
 import { AuthReducerProps, setAuthToken, setResendTime } from '../Auth/auth-reducer';
@@ -34,7 +34,7 @@ type AuthenticationMethodDescriptorTable = {
 
 const methodsList: AuthenticationMethodDescriptorTable = {
 	[AuthenticationMode.AuthCode]: {
-		icon: <SiLetsencrypt className="icon" />,
+		// icon: <SiLetsencrypt className="icon" />,
 		name: 'Code',
 		title: 'Open your app and enter the Code',
 		async submitCode({ ticket, code }) {
@@ -42,7 +42,7 @@ const methodsList: AuthenticationMethodDescriptorTable = {
 		}
 	},
 	[AuthenticationMode.Sms]: {
-		icon: <FaCommentSms className="icon" />,
+		// icon: <FaCommentSms className="icon" />,
 		name: 'SMS',
 		title: 'Enter the code you received by SMS',
 		async submitCode(payload) {
@@ -53,7 +53,7 @@ const methodsList: AuthenticationMethodDescriptorTable = {
 		},
 	},
 	[AuthenticationMode.QrCode]: {
-		icon: <BsQrCode className="icon" />,
+		// icon: <BsQrCode className="icon" />,
 		name: 'QR Code',
 		title: 'Open your app and enter the Code',
 		async submitCode(payload) {
@@ -61,7 +61,7 @@ const methodsList: AuthenticationMethodDescriptorTable = {
 		},
 	},
 	[AuthenticationMode.Email]: {
-		icon: <IoMailOutline className="icon" />,
+		// icon: <IoMailOutline className="icon" />,
 		name: 'Email',
 		title: 'Enter the code you received in your Email',
 		async submitCode(payload) {
@@ -197,7 +197,7 @@ export const AuthenticationPanel: React.FC<PropsWithChildren<AuthenticationPanel
 	return (
 		<>
 			<span className="icon-close" onClick={onBack}>
-				<HiOutlineArrowCircleLeft />
+				{/* <HiOutlineArrowCircleLeft /> */}
 			</span>
 			<form action="#" onSubmit={handleSubmit}>
 				<h2>{title}</h2>

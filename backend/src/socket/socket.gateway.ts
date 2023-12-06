@@ -98,6 +98,10 @@ export class SocketGateway implements
 		});
 	}
 
+	/**
+	 * 
+	 * TODO Faire que ces deux fonctions renvoient le même format au front
+	 */
 	@OnEvent('chat.sendprivatemessage')
 	sendPrivateMessage(event: ChatSendPrivateMessageEvent) {
 		this.server.to(event.conversationName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
@@ -133,11 +137,12 @@ export class SocketGateway implements
 
 	@SubscribeMessage('privatemessage')
 	handlePrivateMessage(
-		@MessageBody('') data: {userId: number, type: string, to: string, channelId: number, message: string, options: string},
+		@MessageBody() data: {userId: number, targetId: number, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
 		try {
-			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.type, data.to, data.channelId, data.message, data.options));
+			console.log(data);
+			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message));
 		} catch (error) {
 			console.log(error.message);
 		}
@@ -145,12 +150,12 @@ export class SocketGateway implements
 
 	@SubscribeMessage('channelmessage')
 	handleChannelMessage(
-		@MessageBody('') data: {userId: number, type: string, to: string, channelId: number, message: string, options: string},
+		@MessageBody('') data: {userId: number, channelId: number, channelName: string, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
 		console.log("arrive", client.id);
 		try {
-			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.type, data.to, data.channelId, data.message, data.options));
+			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.channelId, data.channelName, data.message));
 		} catch(error) {
 			console.log(error.message);
 		}

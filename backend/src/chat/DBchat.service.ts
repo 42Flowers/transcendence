@@ -166,7 +166,7 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.joinchannel')
+	@OnEvent('chat.joinchannel') //TODO a revoir
 	async joinRoom(
 		event: ChatJoinChannelEvent
 	) {
@@ -179,7 +179,7 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.exitchannel')
+	@OnEvent('chat.exitchannel') //TODO a revoir
 	async exitRoom(
 		event: ChatExitChannelEvent
 	) {
@@ -194,30 +194,32 @@ export class ChatService {
 		} else this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "This channel does not exsits"));
 	}
 
-	// @OnEvent('chat.invitechannel')
-	// async inviteInChannel(
-		// event: ChatInviteInChannelEvent
-	// ) {
-	// 	const user = await this.usersService.getUserById(event.userId);
-	// 	if (await this.roomService.roomExists(event.roomId)) {
-	// 		if (await this.roomService.isUserinRoom(user.id, event.roomId)) {
-	// 			if (this.roomService.isUserinRoom(event.option.target, event.roomId)) {
-	// 				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'invite', event.option.target + ' is already in ' + data.roomname));
-	// 				return;
-	// 			} else {
-	// 				if (await this.roomService.isBan(event.option.targetId, event.roomId) === true) {
-	// 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'ban', event.option.target + " is banned from " + data.roomname));
-	// 					return;
-	// 				}
-	// 				const membership = await this.roomService.joinByInvite(user.id, event.roomId, event.roomname);
-	// 				if (membership === null) {
-	// 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', "Server error, please retry later"));
-	// 					return;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
+	@OnEvent('chat.invitechannel')
+	async inviteInChannel(
+		event: ChatInviteInChannelEvent
+	) {
+		const user = await this.usersService.getUserById(event.userId);
+		const target = await this.usersService.getUserById(event.targetId);
+		if (user != null && target != null) {
+			const room = await this.roomService.getRoom(event.channelId);
+			if (room != undefined) {
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member && (member.permissionMask >= 2) && (member.membershipState !== 4)) {
+					const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
+					if (targetmember != null) {
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'invite', event.targetId + ' is already in ' + event.channelName));
+						return;
+					} else {
+						const membership = await this.roomService.joinByInvite(target.id, event.channelId, event.channelName);
+						if (membership === null) {
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', "Server error, please retry later"));
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	@OnEvent('chat.mute')
 	async muteOnChannel(
@@ -334,18 +336,23 @@ export class ChatService {
 		event: ChatAddAdminToChannelEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		const target = await this.usersService.getUserById(event.userId);
-		if (await this.roomService.roomExists(event.channelId)) {
-			const member = user.channelMemberships.find(channel => channel.id === event.channelId);
-			if (member && member.permissionMask === 4) {
-				const targetmember = target.channelMemeberships.find(channel => channel.id === event.channelId);
-				if (targetmember && (targetmember.permissionMask < member.permissionMask)) {
-					const result = await this.roomService.addAdmin(event.targetId, event.channelId);
-					if (result.status === false)
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+		const target = await this.usersService.getUserById(event.targetId);
+		if (user != null && target != null) {
+			const room = await this.roomService.roomExists(event.channelId);
+			if (room != null) {
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member && member.permissionMask === 4) {
+					console.log(target);
+					const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
+					console.log("coucou");
+					if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
+						const result = await this.roomService.addAdmin(event.targetId, event.channelId);
+						if (result.status === false)
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+					}
+				} else {
+					console.log("pas owner");
 				}
-			} else {
-				console.log("pas owner");
 			}
 		}
 	}
@@ -355,18 +362,22 @@ export class ChatService {
 		event: ChatRemoveAdminFromChannelEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		const target = await this.usersService.getUserById(event.userId);
-		if (await this.roomService.roomExists(event.channelId)) {
-			const member = user.channelMemberships.find(channel => channel.id === event.channelId);
-			if (member && member.permissionMask === 4) {
-				const targetmember = target.channelMemeberships.find(channel => channel.id === event.channelId);
-				if (targetmember && (targetmember.permissionMask < member.permissionMask)) {
-					const result = await this.roomService.rmvAdmin(event.targetId, event.channelId);
-					if (result.status === false)
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+		const target = await this.usersService.getUserById(event.targetId);
+		if (user != null && target != null) {
+			const room = await this.roomService.roomExists(event.channelId);
+			if (room != null) {
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member && member.permissionMask === 4) {
+					console.log(target);
+					const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
+					if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
+						const result = await this.roomService.rmAdmin(event.targetId, event.channelId);
+						if (result.status === false)
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+					}
+				} else {
+					console.log("pas owner");
 				}
-			} else {
-				console.log("pas owner");
 			}
 		}
 	}
@@ -376,14 +387,17 @@ export class ChatService {
 		event: ChatAddPasswordEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		if (await this.roomService.roomExists(event.channelId)) {
-			const member = user.channelMemberships.find(channel => channel.id === event.channelId);
-			if (member && member.permissionMask === 4) {
-					const result = await this.roomService.addPwd(event.channelId, event.pwd);
-					if (result.status === false)
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-				} else {
-				console.log("pas owner");
+		if (user != null) {
+			const room = await this.roomService.roomExists(event.channelId);
+			if (room != null) {
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member && member.permissionMask === 4) {
+						const result = await this.roomService.addPwd(event.channelId, event.pwd);
+						if (result.status === false)
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+					} else {
+					console.log("pas owner");
+				}
 			}
 		}
 	}
@@ -393,14 +407,17 @@ export class ChatService {
 		event: ChatRemovePasswordEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		if (await this.roomService.roomExists(event.channelId)) {
-			const member = user.channelMemberships.find(channel => channel.id === event.channelId);
-			if (member && member.permissionMask === 4) {
-				const result = await this.roomService.rmPwd(event.channelId);
-				if (result.status === false)
-					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-			} else {
-				console.log("pas owner");
+		if (user != null) {
+			const room = await this.roomService.roomExists(event.channelId);
+			if (room != null) {
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member && member.permissionMask === 4) {
+						const result = await this.roomService.rmPwd(event.channelId);
+						if (result.status === false)
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+					} else {
+					console.log("pas owner");
+				}
 			}
 		}
 	}
@@ -410,14 +427,17 @@ export class ChatService {
 		event: ChatChangePasswordEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		if (await this.roomService.roomExists(event.channelId)) {
-			const member = user.channelMemberships.find(channel => channel.id === event.channelId);
-			if (member && member.permissionMask === 4) {
-				const result = await this.roomService.addPwd(event.channelId, event.pwd);
-				if (result.status === false)
-					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-			} else {
-				console.log("pas owner");
+		if (user != null) {
+			const room = await this.roomService.roomExists(event.channelId);
+			if (room != null) {
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member && member.permissionMask === 4) {
+						const result = await this.roomService.addPwd(event.channelId, event.pwd);
+						if (result.status === false)
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+					} else {
+					console.log("pas owner");
+				}
 			}
 		}
 	}
@@ -427,18 +447,18 @@ export class ChatService {
 		event: ChatAddInviteEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		if (await this.roomService.roomExists(event.channelId)) {
-			const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-			console.log(member);
-			if (member != undefined && member.permissionMask == 4) {
-				const result = await this.roomService.addInvite(event.channelId);
-				if (result.status === false) {
-					console.log("ici");
-					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-				} 
-				console.log(member);
-			} else {
-				console.log("pas owner");
+		if (user != null) {
+			const room = await this.roomService.roomExists(event.channelId);
+			if (room != null) {
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member != undefined && member.permissionMask == 4) {
+					const result = await this.roomService.addInvite(event.channelId);
+					if (result.status === false) {
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+					} 
+				} else {
+					console.log("pas owner ou pas dans le channel");
+				}
 			}
 		}
 	}
@@ -448,14 +468,18 @@ export class ChatService {
 		event: ChatRemoveInviteEvent
 	) {
 		const user = await this.usersService.getUserById(event.userId);
-		if (await this.roomService.roomExists(event.channelId)) {
-			const member = user.channelMemberships.find(channel => channel.id === event.channelId);
-			if (member && member.permissionMask === 4) {
-				const result = await this.roomService.rmInvite(event.channelId);
-				if (result.status === false)
-					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-			} else {
-				console.log("pas owner");
+		if (user != null) {
+			const room = await this.roomService.roomExists(event.channelId);
+			if (room != null) {
+				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (member != undefined && member.permissionMask == 4 && room.accessMask == 2) {
+					const result = await this.roomService.rmInvite(event.channelId);
+					if (result.status === false) {
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+					} 
+				} else {
+					console.log("pas owner ou pas dans le channel");
+				}
 			}
 		}
 	}

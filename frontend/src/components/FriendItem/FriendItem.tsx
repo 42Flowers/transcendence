@@ -28,7 +28,6 @@ interface Props {
 
 const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friendId, parentRerender}) => {
 
-	console.log("Hey", userId, friendId);
 	const handleUnblock = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/unblock/${friendId}`, {
 			method: 'POST',

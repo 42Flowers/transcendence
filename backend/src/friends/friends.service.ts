@@ -88,58 +88,37 @@ export class FriendsService {
         },
       },
     });
-    // if (uniqueBlock) {
-    //   if (friendshipUserToFriend && friendshipUserToFriend.status == 3) {
-    //     await this.prisma.friendship.update({
-    //       where: {
-    //         userId_friendId: {
-    //           userId: userId,
-    //           friendId: friendId,
-    //         },
-    //       },
-    //       data: {
-    //         status: 2,
-    //       },
-    //     });
-    //     await this.prisma.blocked.delete({
-    //       where: {
-    //         userId_blockedId: {
-    //           userId: userId,
-    //           blockedId: friendId,
-    //         },
-    //       },
-    //     });
-    //   } else if (!friendshipUserToFriend) {
-    //     await this.prisma.blocked.delete({
-    //       where: {
-    //         userId_blockedId: {
-    //           userId: userId,
-    //           blockedId: friendId,
-    //         },
-    //       },
-    //     });
-    //   }
-    // }
-    if (uniqueBlock && friendshipUserToFriend.status == 3) {
-      await this.prisma.friendship.update({
-        where: {
-          userId_friendId: {
-            userId: userId,
-            friendId: friendId,
+    if (uniqueBlock) {
+      if (friendshipUserToFriend && friendshipUserToFriend.status == 3) {
+        await this.prisma.friendship.update({
+          where: {
+            userId_friendId: {
+              userId: userId,
+              friendId: friendId,
+            },
           },
-        },
-        data: {
-          status: 2,
-        },
-      });
-      await this.prisma.blocked.delete({
-        where: {
-          userId_blockedId: {
-            userId: userId,
-            blockedId: friendId,
+          data: {
+            status: 2,
           },
-        },
-      });
+        });
+        await this.prisma.blocked.delete({
+          where: {
+            userId_blockedId: {
+              userId: userId,
+              blockedId: friendId,
+            },
+          },
+        });
+      } else if (!friendshipUserToFriend) {
+        await this.prisma.blocked.delete({
+          where: {
+            userId_blockedId: {
+              userId: userId,
+              blockedId: friendId,
+            },
+          },
+        });
+      }
     }
     return this.getFriendsList(userId);
   }
@@ -170,54 +149,34 @@ export class FriendsService {
         },
       },
     });
-    // if (!uniqueBlock) {
-    //   if (friendshipUserToFriend && friendshipUserToFriend.status !== 3) {
-    //     await this.prisma.friendship.update({
-    //       where: {
-    //         userId_friendId: {
-    //           userId: userId,
-    //           friendId: friendId,
-    //         },
-    //       },
-    //       data: {
-    //         status: 3,
-    //       },
-    //     });
-    //     await this.prisma.blocked.create({
-    //       data: {
-    //         userId: userId,
-    //         blockedId: friendId,
-    //       },
-    //     });
-    //   } else if (!friendshipUserToFriend) {
-    //     await this.prisma.blocked.create({
-    //       data: {
-    //         userId: userId,
-    //         blockedId: friendId,
-    //       },
-    //     });
-    //   }
-    // }
-    if (!uniqueBlock && friendshipUserToFriend.status !== 3) {
-      await this.prisma.friendship.update({
-        where: {
-          userId_friendId: {
-            userId: userId,
-            friendId: friendId,
+    if (!uniqueBlock) {
+      if (friendshipUserToFriend && friendshipUserToFriend.status !== 3) {
+        await this.prisma.friendship.update({
+          where: {
+            userId_friendId: {
+              userId: userId,
+              friendId: friendId,
+            },
           },
-        },
-        data: {
-          status: 3,
-        },
-      });
-      await this.prisma.blocked.create({
-        data: {
-          userId: userId,
-          blockedId: friendId,
-        },
-      });
+          data: {
+            status: 3,
+          },
+        });
+        await this.prisma.blocked.create({
+          data: {
+            userId: userId,
+            blockedId: friendId,
+          },
+        });
+      } else if (!friendshipUserToFriend) {
+        await this.prisma.blocked.create({
+          data: {
+            userId: userId,
+            blockedId: friendId,
+          },
+        });
+      }
     }
-
     return this.getFriendsList(userId);
   }
 

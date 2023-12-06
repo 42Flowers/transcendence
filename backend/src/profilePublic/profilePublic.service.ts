@@ -207,8 +207,9 @@ export class ProfilePublicService {
             },
           },
         });
-        return target ? true : target;
-        // return target ? true : false;
+        return {
+          isFriended: !!target,
+        }
     }
     
     async getIsBlockByUser(userId: number, friendId: number): Promise<any> {
@@ -229,7 +230,9 @@ export class ProfilePublicService {
             },
           },
         });
-        return target ? true : false;
+        return {
+          isBlocked: !!target,
+        };
     }
       
     async addFriend(userId: number, friendId: number): Promise<any> {

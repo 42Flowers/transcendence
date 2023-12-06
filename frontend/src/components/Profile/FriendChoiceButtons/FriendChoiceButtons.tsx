@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+// import React, { useEffect, useState } from 'react';
 import MainButton from '../../MainButton/MainButton';
 import './FriendChoiceButtons.css';
+import { useMutation, useQuery } from 'react-query';
+import { addUser, blockUser, fetchIsBlocked, fetchIsFriended, unblockUser } from '../../../api';
+import { queryClient } from '../../../query-client';
 
 interface Props {
 	userId: number;
@@ -8,92 +11,80 @@ interface Props {
 }
 
 const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
-	const [ isBlocked, setIsBlocked ] = useState<boolean | null>(null);
-	const [ isFriended, setIsFriended ] = useState<boolean | null>(null);
 
-	useEffect(() => {
-		const fetchData = async () => {
-			const response = await fetch(`http://localhost:3000/api/profile/${userId}/isFriendwith/${friendId}`);
-			if (response.ok) {
-				const text = await response.text();
-				if (text) {
-					setIsFriended(true);
-				} else {
-					setIsFriended(false);
-				}
-			} else {
-				setIsFriended(false);
-			}
-		};
-		fetchData();
-	}, []);
+	const isFriendedKey = [ userId, 'is_friended_with', friendId ];
+	const isBlockedKey = [ userId, 'has_blocked', friendId ];
 
-	useEffect(() => {
-		const fetchData = async () => {
-			const response = await fetch(`http://localhost:3000/api/profile/${userId}/isBlockWith/${friendId}`);
-			if (response.ok) {
-				const text = await response.text();
-				if (text) {
-					setIsBlocked(true);
-				} else {
-					setIsBlocked(false);
-				}
-			} else {
-				setIsBlocked(false);
-			}
-		};
-		fetchData();
-	}, []);
+	const isFriended = useQuery(isFriendedKey, () => fetchIsFriended(userId, friendId));
+	const isBlocked = useQuery(isBlockedKey, () => fetchIsBlocked(userId, friendId));
+
+	const addMutation = useMutation<unknown, unknown, Props>({
+		mutationFn: ({userId, friendId}) => addUser(userId, friendId),
+		onSuccess(data) {
+			queryClient.setQueryData(isFriendedKey, {
+				isFriended: true,
+			})
+		}
+	})
+	const blockMutation = useMutation<unknown, unknown, Props>({
+		mutationFn: ({ userId, friendId }) => blockUser(userId, friendId),
+		onSuccess(data) {
+			queryClient.setQueryData(isBlockedKey, {
+				isBlocked: true,
+			});
+		}
+	});
+	const unblockMutation = useMutation<unknown, unknown, Props>({
+		mutationFn: ({ userId, friendId }) => unblockUser(userId, friendId),
+		onSuccess(data) {
+			queryClient.setQueryData(isBlockedKey, {
+				isBlocked: false,
+			});
+		}
+	});
 
 	const handleAdd = () => {
-		fetch(`http://localhost:3000/api/profile/${userId}/add/${friendId}`, {
-			method: 'POST',
-		})
-			.then(response => response.json())
-			.then(data => {
-				// setIsFriended(data);
-				setIsFriended(true);
-			})
-			.catch((error) => {
-				console.error('Error:', error);
-			});
+		addMutation.mutate({ userId, friendId});
 	}
 
 	const handleBlock = () => {
-		fetch(`http://localhost:3000/api/profile/${userId}/block/${friendId}`, {
-			method: 'POST',
-		})
-			.then(response => response.json())
-			.then(data => {
-				setIsBlocked(true);
-
-			})
-			.catch((error) => {
-				console.error('Error:', error);
-			});
+		blockMutation.mutate({ userId, friendId });
 	}
-
+	
 	const handleUnblock = () => {
-		fetch(`http://localhost:3000/api/profile/${userId}/unblock/${friendId}`, {
-			method: 'POST',
-		})
-			.then(response => response.json())
-			.then(data => {
-				setIsBlocked(false);
-			})
-			.catch((error) => {
-				console.error('Error:', error);
-			});
+		unblockMutation.mutate({ userId, friendId })
 	}
-
-	if (isFriended == false)
+	
+	if (isFriended.data?.isFriended)
 	{
-		if (isBlocked)
+		if (isBlocked.data?.isBlocked)
 		{
 			return (
 				<div className='parent-friend-choice-buttons'>
 					<div className='friend-choice-buttons'>
-						{/* <MainButton buttonName='Add' onClick={() => handleAdd()} /> */}
+						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
+					</div>
+				</div>
+			);
+		}
+		else
+		{
+			return (
+				<div className='parent-friend-choice-buttons'>
+					<div className='friend-choice-buttons'>
+						<MainButton buttonName='Block' onClick={() => handleBlock()} />
+					</div>
+				</div>
+			);
+		}
+	}
+	else if (isFriended.data?.isFriended === false)
+	{
+		if (isBlocked.data?.isBlocked)
+		{
+			return (
+				<div className='parent-friend-choice-buttons'>
+					<div className='friend-choice-buttons'>
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
 						isnot fri b
 					</div>
@@ -107,32 +98,6 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
 					<div className='friend-choice-buttons'>
 						<MainButton buttonName='Add' onClick={() => handleAdd()} />
 						<MainButton buttonName='Block' onClick={() => handleBlock()} />
-						isnot fri not b
-					</div>
-				</div>
-			);
-		}
-	}
-	else if (isFriended)
-	{
-		if (isBlocked)
-		{
-			return (
-				<div className='parent-friend-choice-buttons'>
-					<div className='friend-choice-buttons'>
-						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
-						is fr b
-					</div>
-				</div>
-			);
-		}
-		else
-		{
-			return (
-				<div className='parent-friend-choice-buttons'>
-					<div className='friend-choice-buttons'>
-						<MainButton buttonName='Block' onClick={() => handleBlock()} />
-						is fr not b
 					</div>
 				</div>
 			);

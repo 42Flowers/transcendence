@@ -1,7 +1,7 @@
 import './Game.css'
 import SocketContext from '../Socket/Context/Context';
 import { useRef, useEffect, useContext, useCallback } from 'react';
-import { red } from '@mui/material/colors';
+// import { red } from '@mui/material/colors';
 
 const BALL_DEFAULT_RADIUS = 15;
 

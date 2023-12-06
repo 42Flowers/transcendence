@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { GiWingedSword } from "react-icons/gi";
-import { BsStars } from "react-icons/bs";
+// import { GiWingedSword } from "react-icons/gi";
+// import { BsStars } from "react-icons/bs";
 import './Stats.css';
 import { fetchStats } from '../../api';
 import { useQuery } from 'react-query';
@@ -95,7 +95,7 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
                     <div className='statt'>
                         <p className='title'>Win streak</p>
                         <div className='middle'>{streak}</div>
-                            <GiWingedSword className="icon"/>
+                            {/* <GiWingedSword className="icon"/> */}
                         </div>
                     <div className='statt'>
                         <p className='title'>Ratio</p>
@@ -104,7 +104,7 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
                                 <p className='win'>Wins: <span>{result.wins}</span></p>
                                 <p className='lose'>Losses: <span>{result.losses}</span></p>
                             </div>
-                            <BsStars className="icon"/>
+                            {/* <BsStars className="icon"/> */}
                     </div>
                 </div>
             </div>
@@ -120,7 +120,7 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
                     <div className='statt'>
                         <p className='title'>Win streak</p>
                         <div className='middle'>{streak}</div>
-                            <GiWingedSword className="icon"/>
+                            {/* <GiWingedSword className="icon"/> */}
                         </div>
                     <div className='statt'>
                         <p className='title'>Ratio</p>
@@ -129,7 +129,7 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
                                 <p className='win'>Wins: <span>{result.wins}</span></p>
                                 <p className='lose'>Losses: <span>{result.losses}</span></p>
                             </div>
-                            <BsStars className="icon"/>
+                            {/* <BsStars className="icon"/> */}
                     </div>
                 </div>
             </div>
@@ -145,7 +145,7 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
                     <div className='statt'>
                         <p className='title'>Win streak</p>
                         <div className='middle'>0</div>
-                        <GiWingedSword className="icon"/>
+                        {/* <GiWingedSword className="icon"/> */}
                     </div>
                     <div className='statt'>
                         <p className='title'>Ratio</p>
@@ -154,7 +154,7 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
                             <p className='win'>Wins: <span>0</span></p>
                             <p className='lose'>Losses: <span>0</span></p>
                         </div>
-                        <BsStars className="icon"/>
+                        {/* <BsStars className="icon"/> */}
                     </div>
                 </div>
             </div>

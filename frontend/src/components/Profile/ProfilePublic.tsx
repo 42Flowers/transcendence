@@ -74,12 +74,21 @@ const ProfilePublic: React.FC = () => {
         
     };
     const [profileInfos, setProfileInfos] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const { userId } = useParams();
     const auth = useAuthContext();
  
     useEffect(() => {
         const fetchData = async () => {
             const response = await fetch(`http://localhost:3000/api/profile/${userId}`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    setError('User not found');
+                } else {
+                    setError('An error occurred');
+                }
+                return;
+            }
             const data = await response.json();
             setProfileInfos(prevState => {
                 if (JSON.stringify(data) !== JSON.stringify(prevState)) {
@@ -89,7 +98,15 @@ const ProfilePublic: React.FC = () => {
             });
         };
         fetchData();
-    }, []);
+    }, [userId, auth]);
+
+    if (error) {
+        return <p>Error: {error}</p>;
+    }
+      
+    if (!profileInfos) {
+        return <p>Loading...</p>;
+    }
 
     return (
         <>
@@ -101,7 +118,11 @@ const ProfilePublic: React.FC = () => {
                     <AvatarOthers status="Online" avatar={default_avatar} userId={profileInfos?.id} />
                 }                
                 <p>{profileInfos?.pseudo}</p>
-                <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(userId)} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons} /*handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
+                { Number(auth.user?.id) === Number(userId) ?
+                    ''
+                    :
+                    <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(userId)} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons} /*handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
+                }
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(userId)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(userId)} auth={Number(auth.user?.id)} />

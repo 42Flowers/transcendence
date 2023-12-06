@@ -15,9 +15,8 @@ import PseudoButton from "./PseudoButton/PseudoButton";
 import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 
 import './Profile.css';
-import { PerfectContext } from "../../contexts/PerfectContext";
 import { useAuthContext } from "../../contexts/AuthContext";
-import { fetchAddAchievementToUser, fetchProfile, fetchAchievements, fetchAddAvatar, fetchChangePseudo } from "../../api";
+import { fetchAddAchievementToUser, fetchProfile, fetchAddAvatar, fetchChangePseudo } from "../../api";
 import { useMutation } from "react-query";
 
 import { AxiosError } from 'axios';
@@ -263,10 +262,7 @@ const Profile: React.FC = () => {
                 }
             }
         };
-        // IF current user
         fetchData();
-        // ELSE IF other user
-        //fetchDataPublic
     }, [smallLeader, greatLeader]);
 
     const uploadAvatarMutation = useMutation({

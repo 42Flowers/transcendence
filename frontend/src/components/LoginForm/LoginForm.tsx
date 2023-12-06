@@ -1,5 +1,5 @@
 import React from 'react';
-import { IoLockClosedOutline, IoMailOutline } from 'react-icons/io5';
+// import { IoLockClosedOutline, IoMailOutline } from 'react-icons/io5';
 import { useMutation } from 'react-query';
 import { loginWithPassword } from '../../api';
 import { AuthReducerProps, setAuthToken, setTicketAction } from '../Auth/auth-reducer';
@@ -76,14 +76,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ dispatch }) => {
 			<h2>Login</h2>
 			<Input
 				label="Email"
-				icon={<IoMailOutline />}
+				// icon={<IoMailOutline />}
 				name="email"
 				type="email"
 				autoComplete="email"
 				required />
 			<Input
 				label="Password"
-				icon={<IoLockClosedOutline />}
+				// icon={<IoLockClosedOutline />}
 				name="password"
 				type="password"
 				autoComplete="email"

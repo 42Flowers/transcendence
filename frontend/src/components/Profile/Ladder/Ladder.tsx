@@ -1,15 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useRef, useEffect, useState, useContext } from 'react';
+import { useRef, useState, useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { LeaderContext } from '../../../contexts/LeaderContext';
 import { LeaderContextType } from '../Profile';
 import { 
-    Table, 
+    Table,
     TableBody, 
     TableCell, 
     TableContainer, 
     TableHead, 
-    TableRow 
+    TableRow
 } from '@mui/material';
 import default_avatar from "../../../assets/images/default_avatar.png";
 
@@ -25,7 +25,9 @@ type LadderProps = {
 
 const Ladder: React.FC<LadderProps> = ({ auth }) => {
     const { setSmallLeader, setGreatLeader } = useContext(LeaderContext) as LeaderContextType;
-    const q = useQuery('ladder', fetchLadder, {
+    const [ladder, setLadder] = useState<User[]>([]);
+    const { userId } = useParams();
+    const q = useQuery(['ladder', auth, userId, ladder, setLadder], fetchLadder, {
         onSuccess(data) {
             setLadder(calculateRanking(calculateWinsAndLosses(data)));
         },
@@ -67,8 +69,6 @@ const Ladder: React.FC<LadderProps> = ({ auth }) => {
 
     const tableBodyRef = useRef<HTMLTableSectionElement>(null);
     const firstRowRef = useRef<HTMLTableRowElement>(null);
-    const [ladder, setLadder] = useState<User[]>([]);
-    const { userId } = useParams();
 
     const calculateWinsAndLosses = (data: User[]) => {
         data.map(user => {
@@ -105,7 +105,7 @@ const Ladder: React.FC<LadderProps> = ({ auth }) => {
     };
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         const currentDiv = tableBodyRef.current;
         const currentFirstRow = firstRowRef.current;
         const handleScroll = () => {

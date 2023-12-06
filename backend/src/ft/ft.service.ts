@@ -50,6 +50,7 @@ export class FortyTwoService {
                     throw 'An error happened';
                 })
             ));
+        console.log(data);
         return data;
     }
 

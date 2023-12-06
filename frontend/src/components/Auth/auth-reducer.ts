@@ -1,6 +1,8 @@
 import { AuthenticationMode } from "../DoubleAuth/DoubleAuth";
 
 export type IAuthState = {
+    initialized: boolean;
+    code?: string;
     token?: string;
     ticket?: string;
     mfa?: string[];
@@ -47,6 +49,11 @@ export interface ISetResendTime {
     resendTime: number;
 }
 
+export interface IInitializeAction {
+    type: 'INITIALIZE';
+    code?: string;
+}
+
 export const setTicketAction = (ticket: string, mfa: string[]) => ({ type: 'SET_TICKET', ticket, mfa });
 
 export const setSelectedMfa = (selectedMfa: string) => ({ type: 'SET_SELECTED_MFA', selectedMfa });
@@ -59,6 +66,8 @@ export const setResendTime = (authMode: AuthenticationMode, resendTime: number) 
 
 export const setAuthToken = (token: string) => ({ type: 'SET_AUTH_TOKEN', token });
 
+export const initializeAuth = (code?: string) => ({ type: 'INITIALIZE', code });
+
 function patchState<T>(state: T, patch: Partial<T>): T {
     return {
         ...state,
@@ -68,8 +77,18 @@ function patchState<T>(state: T, patch: Partial<T>): T {
 
 export function authReducer(state: IAuthState, action: IAuthAction): IAuthState {
     const { type } = action;
+
+    console.log(action);
     
-    if ('SET_TICKET' === type) {
+    if ('INITIALIZE' === type) {
+        const { code } = action as IInitializeAction;
+
+        return patchState(state, {
+            initialized: true,
+            code,
+        });
+    }
+    else if ('SET_TICKET' === type) {
         const { ticket, mfa } = action as ISetTicketAction;
 
         return patchState(state, {
@@ -115,6 +134,7 @@ export function authReducer(state: IAuthState, action: IAuthAction): IAuthState 
 export const kAuthDefaultState: IAuthState = {
     currentPanelIndex: 0,
     mfaState: {},
+    initialized: false,
 };
 
 export type AuthReducerProps = {

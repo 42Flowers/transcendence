@@ -68,7 +68,7 @@ function wrapResponse<T>(resp: Promise<AxiosResponse<T>>): Promise<T> {
     return resp.then(e => e.data);
 }
 
-export const authorizeCode = (code: string) => client.post<AuthorizeCodeResponse>('/api/v1/auth/authorize_code', { provider: 'ft', code });
+export const authorizeCode = (code: string) => wrapResponse(client.post<AuthorizeCodeResponse>('/api/v1/auth/authorize_code', { provider: 'ft', code }));
 export const loginWithPassword = (email: string, password: string) => wrapResponse(client.post<PasswordLoginResponse>('/api/v1/auth/login', { email, password }));
 export const submitOtp = (ticket: string, code: string) => wrapResponse(client.post<AuthorizationTokenPayload>('/api/v1/auth/mfa/otp', { ticket, code }));
 export const registerUser = (payload: any) => wrapResponse(client.post('/api/v1/auth/register', payload));

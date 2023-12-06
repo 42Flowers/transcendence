@@ -83,7 +83,8 @@ export class AuthController {
             throw new BadRequestException();
         try {
             const token = await this.authService.authorizeCodeFortyTwo(code);
-            return { token };
+            
+            return token;
         } catch {
             throw new ForbiddenException();
         }

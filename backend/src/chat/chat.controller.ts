@@ -98,7 +98,7 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(6, "channel", 9, "coucou"));
+			this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(5, "channel", 14, "coucou"));
 			// this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
 		} catch (err) {
 			console.log(err.message);
@@ -111,7 +111,7 @@ export class ChatController {
 	) {
 		try {
 			console.log("top");
-			this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(2, "channel", 9));
+			this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(7, "channel", 14));
 			// this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
 		} catch(err) {
 			console.log(err.message);

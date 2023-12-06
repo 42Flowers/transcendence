@@ -4,10 +4,7 @@ import { SocketService } from 'src/socket/socket.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
-
-/**
- * TODO: revoir le système join/create: pb sur les mdp et les invites only
-*/
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class RoomService {
@@ -23,24 +20,21 @@ export class RoomService {
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}});
-			// let access : number = 1;
-			// if (option.invite == true) {
-			// 	access += 2;
-			// }
-			// else if (option.value !== '') {
-			// 	access += 4;
-			// }
+			let accessMask = 1;
+			if (pwd != '')
+				accessMask = 4;
+			const password = await bcrypt.hash(pwd, 10);
 			const channel = await this.prismaService.channel.create({
 				data: {
 					name: name,
 					ownerId: user.id,
-					password: pwd,
-					// accessMask: access
+					password: password,
+					accessMask: accessMask
 				}
 			});
 			return channel.id;
 		} catch (err) {
-			throw new Error(err.message);
+			throw new Error("Could not create this channel, please try another combination");
 		}
 	}
 
@@ -91,10 +85,9 @@ export class RoomService {
 							if (channel.accessMask == 2) {
 								throw (new Error("This is an invite only channel"));
 							}
-							else if (channel.accessMask == 4 && pwd !== channel.password)  {
-								throw (new Error("This channel is password protected"));
-							}
-					}					
+							if (!await bcrypt.compare(pwd, channel.password))
+								throw new Error("This channel is password protected");
+					}
 				}
 				else {
 					console.log("No channel under this id/name combination");

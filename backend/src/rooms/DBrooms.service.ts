@@ -4,7 +4,6 @@ import { SocketService } from 'src/socket/socket.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
-import * as speakeasy from 'speakeasy';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()

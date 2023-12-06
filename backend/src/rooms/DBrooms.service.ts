@@ -304,21 +304,27 @@ export class RoomService {
 
 	async kickUser(userId: number, channelId: number) : Promise<any> {
 		try {
-			const membership = await this.prismaService.channelMembership.findUnique({
-				where: {userId_channelId: {userId : userId, channelId: channelId}}, 
-				select: {permissionMask: true}
-			});
-			if (this.isUserinRoom(userId, channelId) && membership.permissionMask == 0) {
-				return this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: userId, channelId: channelId}}});
+			const membership = await  this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: userId, channelId: channelId}}});
+			if (membership != null) {
+				return {status: true};
+			}
+			else {
+				return{status: false, msg: "Coulnd't kick user"};
 			}
 		} catch (err) {throw new Error(err.message)}
 	}
 
 	async banUser(targetId: number, channelId: number) : Promise<any> {
 		try {
-			return await this.prismaService.channelMembership.update({
+			const membership = await this.prismaService.channelMembership.update({
 				where : {userId_channelId: {userId: targetId, channelId: channelId}}, 
 				data: {membershipState: 4}});
+			if (membership != null) {
+				return {status: true};
+			}
+			else {
+				return {status: false, msg: "Couldn't ban user"};
+			}
 		} catch (err) {
 			throw new Error(err.message);
 		}
@@ -326,18 +332,24 @@ export class RoomService {
 
 	async unBanUser(targetId: number, channelId: number): Promise<any> {
 		try {
-			return await this.prismaService.channelMembership.update({
+			const membership = await this.prismaService.channelMembership.update({
 				where: { userId_channelId: {userId: targetId, channelId: channelId}},
 				data: {membershipState : 1}
 			});
+			if (membership != null) {
+				return {status: true};
+			}
+			else {
+				return {status: false, msg: "Couldn't ban user"};
+			}
 		} catch (err) {throw new Error(err.message)}
 	}
 
 	async muteUser(targetId: number, channelId: number) : Promise<any> {
 		try {
-			if (this.isUserinRoom(targetId, channelId))
+			if (await this.isUserinRoom(targetId, channelId))
 			{
-				await this.prismaService.channelMembership.update({
+				const membership = await this.prismaService.channelMembership.update({
 					where: { userId_channelId:{
 						userId: targetId, 
 						channelId: channelId
@@ -346,7 +358,11 @@ export class RoomService {
 						membershipState: 2
 					}
 				});
+				if (membership != null) {
+					return ({status: true});
+				}
 			}
+			return {status: false, msg: "Couldn't be muted"};
 		} catch (err) {
 			console.log("couldn't mute");
 			throw new Error(err.message);
@@ -355,9 +371,14 @@ export class RoomService {
 
 	async unMuteUser(userId: number, channelId: number) : Promise<any> {
 		try {
-			return await this.prismaService.channelMembership.update({
+			const membership = await this.prismaService.channelMembership.update({
 				where: {userId_channelId: {userId: userId, channelId: channelId}}, 
 				data: {membershipState: 1}});
+			if (membership != null) {
+				return {status: true};
+			} else {
+				return {status: false, msg: "Couldn't unmute"};
+			}
 		} catch(err) {throw new Error(err.message)}
 	}
 

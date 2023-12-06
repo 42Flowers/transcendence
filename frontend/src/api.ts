@@ -85,3 +85,5 @@ export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/ap
 export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('/api/profile/change-pseudo', payload));
 
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
+
+export const fetchAvailableUsers = () => wrapResponse(authorizedGet('/api/gateway/status'));

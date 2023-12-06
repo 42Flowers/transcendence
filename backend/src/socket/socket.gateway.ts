@@ -25,6 +25,7 @@ import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.
 import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
 import { UserPayload } from "src/auth/user.payload";
 import { JwtService } from "@nestjs/jwt";
+import { GameInviteToGame } from "src/events/game/inviteToGame.event";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -206,6 +207,14 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket)
 	{
 		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 1));
+	}
+
+	@SubscribeMessage("inviteToGame")
+	onInviteToGame(
+		@MessageBody() data: {targetId: number, gameMode: number},
+		@ConnectedSocket() socket: Socket)
+	{
+		this.eventEmitter.emit('game.inviteToGame', new GameInviteToGame(socket, data.gameMode, data.targetId));
 	}
 
 	@SubscribeMessage('cancelGameSearch')

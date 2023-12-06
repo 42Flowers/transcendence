@@ -3,30 +3,45 @@ import MainButton from "../components/MainButton/MainButton";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useContext, useEffect, useState } from "react";
 import SocketContext from "../components/Socket/Context/Context";
+import { useQuery } from "react-query";
+import { fetchAvailableUsers } from "../api";
 
-const SelectFriend: React.FC = () => {
-    // GET USERS FRIENDS LIST (online or not ?, in game or not ?)
-    // const { data, isError, isLoading, isSuccess } = useQuery('friendList', ....);
-    const availableFriends = ["Charline", "Yvan", "Alexis", "Heloise"];
-    let friendList = availableFriends.map((friend) => 
-		<option value="text" key={ friend }>
-			{ friend }
-		</option>
-	);
+type UserStatus = [
+    id: number,
+    pseudo: string,
+    status: string,
+]
+
+interface UsersList {
+    usersList: UserStatus[];
+}
+
+const SelectUser: React.FC<UsersList> = ({ usersList }) => {
+    const availableUsers = usersList.map(([ id, pseudo, status ]) => {
+        if (status == "online") {
+            return (
+                <option value="text" key={ id }>
+                    { pseudo }
+                </option>
+            )
+        }
+    });
     
     return (
-        <select placeholder="Select friend" name="friendList" className="friendList" >
-            <option value="text" key="placeholder">Select a friend</option>
-            { friendList }
+        <select placeholder="Select a user" name="userList" className="userList" >
+            <option value="text" key="placeholder">Select a user</option>
+            { availableUsers }
         </select>
     );
 }
 
 const PlayPage: React.FC = () => {
-    //const { user } = useAuthContext();
     const { SocketState } = useContext(SocketContext);
     const [waiting, setWaiting] = useState<boolean>(false);
     const navigate = useNavigate();
+
+    const usersQuery = useQuery('available-users', fetchAvailableUsers);
+    console.log(usersQuery.data);
 
     const handleClick = (whichButton: string) => {
         if (whichButton === "random-normal") {
@@ -77,8 +92,6 @@ const PlayPage: React.FC = () => {
         };
     }, [SocketState.socket]);
 
-
-
     return (
         <div className="game-modes">
             <div className="normal-mode">
@@ -89,11 +102,11 @@ const PlayPage: React.FC = () => {
                         { waiting && <MainButton buttonName="X" mode={0} onClick={() => { handleCancel() }}/>}
                     </div>
                     <div className={`friend-choice ${waiting ? 'no-border' : ''}`}>
-                        { !waiting && <SelectFriend></SelectFriend>}
+                        { !waiting && usersQuery.isFetched && <SelectUser usersList={usersQuery.data} />}
                         { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-normal") }}/> }
                     </div>
                     <div className="controls_info">
-                        <p style={{color: 'white', paddingTop: '-1000px'}}>
+                        <p style={{color: 'white'}}>
                             Controls: use "ARROW UP" to move your paddle up and "ARROW DOWN" to move your paddle down
                         </p>
                     </div>
@@ -112,11 +125,11 @@ const PlayPage: React.FC = () => {
                     </div>
                     {/* <div className="friend-choice"> */}
                     <div className={`friend-choice ${waiting ? 'no-border' : ''}`}>
-                        { !waiting && <SelectFriend></SelectFriend>}
+                        { !waiting && usersQuery.isFetched && <SelectUser usersList={usersQuery.data} />}
                         { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-special") }}/> }
                     </div>
                     <div className="controls_info">
-                        <p style={{color: 'white', paddingTop: '-1000px'}}>
+                        <p style={{color: 'white'}}>
                             Use the "SPACE" key just before you hit the ball to protect the paddle, it will become "RED", and speed up the ball !
                             <br/>
                             Tips: If the ball goes too fast an unprotected paddle might break

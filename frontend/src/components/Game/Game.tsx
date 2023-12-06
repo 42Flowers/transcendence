@@ -301,6 +301,7 @@ const Game: React.FC<gameProps> = (props) => {
 			window.cancelAnimationFrame(frameId)
 			document.removeEventListener('keydown', handleKeyDown);
 			document.removeEventListener('keyup', handleKeyUp);
+			console.log("END GAME COMPONENT ?");
 		};
 	}, []);
 

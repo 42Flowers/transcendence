@@ -15,7 +15,7 @@ export class FriendsController {
       return null;
     }
     try {
-      return this.friendService.getIsFriend(userId, friendId);
+      return this.friendService.isBlockByOne(userId, friendId);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -25,52 +25,6 @@ export class FriendsController {
   async getFriendsList(@Param('userId', CheckIntPipe) userId: number) {
     try {
       return this.friendService.getFriendsList(userId);
-    } catch (error) {
-      throw new NotFoundException(error.message);
-    }
-  }
-  @Get(':userId/isFriendWith/:friendId')
-  async getIsFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
-  ) {
-    if (userId == friendId) {
-      return null;
-    }
-    try {
-      return this.friendService.getIsFriend(userId, friendId);
-    } catch (error) {
-      throw new NotFoundException(error.message);
-    }
-  }
-  @Post(':userId/add/:friendId')
-  async addFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
-  ) {
-    if (userId == friendId) {
-      return null;
-    }
-    if ((await this.isBlockByOne(userId, friendId)) == true) {
-      return null;
-    }
-    try {
-      return this.friendService.addFriend(userId, friendId);
-    } catch (error) {
-      throw new NotFoundException(error.message);
-    }
-  }
-  @Get(':userId/isBlockWith/:friendId')
-  async getIsBlockByUser(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
-  ) {
-    if (userId == friendId) {
-      return null;
-    }
-    try {
-      const friend = await this.friendService.getIsBlockByUser(userId, friendId);
-      return friend ? friend : null;
     } catch (error) {
       throw new NotFoundException(error.message);
     }

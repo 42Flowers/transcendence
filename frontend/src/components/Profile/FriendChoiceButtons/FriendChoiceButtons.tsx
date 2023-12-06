@@ -2,78 +2,56 @@ import React, { useEffect, useState } from 'react';
 import MainButton from '../../MainButton/MainButton';
 import './FriendChoiceButtons.css';
 
-const SENDER = 0;
-const RECEIVER = 1;
-const FRIENDS = 2;
-const BLOCKED = 3;
-//0 sender   /1 receiver  /2 accepted /3 blocked
-
-interface FriendElem {
-	status: number,
-	friend: {
-		id: number,
-		pseudo: string,
-	}
-}
-
 interface Props {
 	userId: number;
-	// isFriend: boolean;
-	status: number;
 	friendId: number;
-	//handleUploadFriendChoiceButtons: (data: FriendElem | null) => void;
 }
 
-const FriendChoiceButtons: React.FC<Props> = ({userId, friendId, handleUploadFriendChoiceButtons}) => {
-	const [buttonClicked, setButtonClicked] = useState(false);
-	const [isFriend, setIsFriend] = useState< FriendElem | null>(null);
-	const [isBlock, setIsBlock] = useState< FriendElem | null>(null);
+const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
+	const [ isBlocked, setIsBlocked ] = useState<boolean | null>(null);
+	const [ isFriended, setIsFriended ] = useState<boolean | null>(null);
 
 	useEffect(() => {
 		const fetchData = async () => {
-		const response = await fetch(`http://localhost:3000/api/friends/${userId}/isFriendwith/${friendId}`);
-		if (response.ok) {
-		const text = await response.text();
-		if (text) {
-			const data = JSON.parse(text);
-			setIsFriend(data);
-		} else {
-			setIsFriend(null);
-		}
-		} else {
-			setIsFriend(null);
-		}
-	};
-	fetchData();
-	}, [buttonClicked, setButtonClicked]);
-
+			const response = await fetch(`http://localhost:3000/api/profile/${userId}/isFriendwith/${friendId}`);
+			if (response.ok) {
+				const text = await response.text();
+				if (text) {
+					setIsFriended(true);
+				} else {
+					setIsFriended(false);
+				}
+			} else {
+				setIsFriended(false);
+			}
+		};
+		fetchData();
+	}, []);
 
 	useEffect(() => {
 		const fetchData = async () => {
-		const response = await fetch(`http://localhost:3000/api/friends/${userId}/isBlockWith/${friendId}`);
-		if (response.ok) {
-		const text = await response.text();
-		if (text) {
-			const data = JSON.parse(text);
-			setIsBlock(data);
-		} else {
-			setIsBlock(null);
-		}
-		} else {
-			setIsBlock(null);
-		}
-	};
-	fetchData();
-	}, [buttonClicked, setButtonClicked]);
+			const response = await fetch(`http://localhost:3000/api/profile/${userId}/isBlockWith/${friendId}`);
+			if (response.ok) {
+				const text = await response.text();
+				if (text) {
+					setIsBlocked(true);
+				} else {
+					setIsBlocked(false);
+				}
+			} else {
+				setIsBlocked(false);
+			}
+		};
+		fetchData();
+	}, []);
 
 	const handleAdd = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/add/${friendId}`, {
+		fetch(`http://localhost:3000/api/profile/${userId}/add/${friendId}`, {
 			method: 'POST',
 		})
 			.then(response => response.json())
 			.then(data => {
-				//handleUploadFriendChoiceButtons(data);
-				setButtonClicked(prevState => !prevState);
+				setIsFriended(data);
 			})
 			.catch((error) => {
 				console.error('Error:', error);
@@ -81,13 +59,13 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId, handleUploadFri
 	}
 
 	const handleBlock = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/block/${friendId}`, {
+		fetch(`http://localhost:3000/api/profile/${userId}/block/${friendId}`, {
 			method: 'POST',
 		})
 			.then(response => response.json())
 			.then(data => {
-				//handleUploadFriendChoiceButtons(data);
-				setButtonClicked(prevState => !prevState);
+				setIsBlocked(true);
+
 			})
 			.catch((error) => {
 				console.error('Error:', error);
@@ -95,29 +73,26 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId, handleUploadFri
 	}
 
 	const handleUnblock = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/unblock/${friendId}`, {
+		fetch(`http://localhost:3000/api/profile/${userId}/unblock/${friendId}`, {
 			method: 'POST',
 		})
 			.then(response => response.json())
 			.then(data => {
-				//handleUploadFriendChoiceButtons(data);
-				setButtonClicked(prevState => !prevState);
+				setIsBlocked(false);
 			})
 			.catch((error) => {
 				console.error('Error:', error);
 			});
 	}
 
-	// if (isFriend == false)
-	if (!isFriend)
+	if (isFriended == false)
 	{
-		// if (isFriend.status == BLOCKED)
-		if (isBlock)
+		if (isBlocked)
 		{
 			return (
 				<div className='parent-friend-choice-buttons'>
 					<div className='friend-choice-buttons'>
-						<MainButton buttonName='Add' onClick={() => handleAdd()} />
+						{/* <MainButton buttonName='Add' onClick={() => handleAdd()} /> */}
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
 					</div>
 				</div>
@@ -135,10 +110,9 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId, handleUploadFri
 			);
 		}
 	}
-	// if (isFriend == true)
-	else if (isFriend)
+	else if (isFriended)
 	{
-		if (isBlock)
+		if (isBlocked)
 		{
 			return (
 				<div className='parent-friend-choice-buttons'>
@@ -148,7 +122,7 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId, handleUploadFri
 				</div>
 			);
 		}
-		else if (isFriend.status == FRIENDS)
+		else
 		{
 			return (
 				<div className='parent-friend-choice-buttons'>

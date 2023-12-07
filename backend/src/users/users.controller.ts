@@ -1,30 +1,70 @@
-import { Controller, Get, Request, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/auth/auth.guard";
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Body, Controller, Get, NotFoundException, Param, ParseIntPipe, Patch, Request, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { Request as ExpressRequest } from 'express';
+import { AuthGuard } from "src/auth/auth.guard";
+import { UsersService } from "./users.service";
+import { IsEmail, IsOptional, IsString, Length } from "class-validator";
+import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decorator";
+
+export class PatchProfileDto {
+    @IsOptional()
+    @Length(3, 32)
+    pseudo: string;
+
+    @IsOptional()
+    @IsEmail()
+    email: string;
+}
 
 @Controller({
     version: '1',
     path: '/users',
 })
+@UsePipes(new ValidationPipe({ forbidNonWhitelisted: true, whitelist: true }))
 @UseGuards(AuthGuard)
 export class UsersController {
-    constructor(private prismaService: PrismaService) {}
+    constructor(private readonly usersService: UsersService) {}
 
     @Get('/@me')
+    @AllowIncompleteProfile()
     async retrieveSelfProfile(@Request() req: ExpressRequest) {
-        const user = await this.prismaService.user.findFirst({
-            where: {
-                id: parseInt(req.user!.sub),
-            },
-            select: {
-                id: true,
-                pseudo: true,
-                avatar: true,
-                email: true,
-            },
-        });
+        const userId = Number(req.user.sub);
+        const userProfile = await this.usersService.retrieveUserProfile(userId);
 
-        return user;
+        if (null === userProfile)
+            throw new NotFoundException();
+
+        return userProfile;
+    }
+
+
+    @Get('/:id')
+    async retrieveUserProfile(
+        @Request() req: ExpressRequest,
+        @Param('id', ParseIntPipe) paramId: number) {
+        
+        const userProfile = await this.usersService.retrieveUserProfile(paramId);
+
+        if (null === userProfile)
+            throw new NotFoundException();
+
+        return userProfile;
+    }
+
+    @Patch('/@me')
+    @AllowIncompleteProfile()
+    async patchSelfProfile(
+        @Request() req: ExpressRequest,
+        @Body() body: PatchProfileDto
+    ) {
+        /* TODO test username for special characters */
+
+        const userId = Number(req.user.sub);
+        const userProfile = await this.usersService.patchUserProfile(userId, body);
+
+        if (null === userProfile) {
+            throw new NotFoundException();
+        }
+
+        return userProfile;
     }
 }

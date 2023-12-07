@@ -21,7 +21,7 @@ export type AuthorizationTokenPayload = {
     expire_at: number;
 };
 
-export interface UserProfileResponse {
+export interface UserProfile {
     pseudo: string;
     email: string;
     id: number;
@@ -88,7 +88,12 @@ export const loginWithPassword = (email: string, password: string) => wrapRespon
 export const submitOtp = (ticket: string, code: string) => wrapResponse(client.post<AuthorizationTokenPayload>('/api/v1/auth/mfa/otp', { ticket, code }));
 export const registerUser = (payload: any) => wrapResponse(client.post('/api/v1/auth/register', payload));
 
-export const fetchUserProfile = (profile: string) => wrapResponse(authorizedGet<UserProfileResponse>(`/api/v1/users/${profile}`));
+export const fetchUserProfile = (profile: number | '@me') => wrapResponse(authorizedGet<UserProfile>(`/api/v1/users/${profile}`));
+
+export type PatchUserProfile = Partial<Exclude<UserProfile, 'id' | 'avatar'>>;
+
+export const patchUserProfile = (profile: '@me' | number, data: Partial<PatchUserProfile>) =>
+    wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
 
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
 export const fetchAchievements = () => wrapResponse(authorizedGet('/api/profile/achievements'));

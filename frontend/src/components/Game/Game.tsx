@@ -1,7 +1,6 @@
 import './Game.css'
 import SocketContext from '../Socket/Context/Context';
 import { useRef, useEffect, useContext, useCallback } from 'react';
-import { ContactlessOutlined } from '@mui/icons-material';
 
 const BALL_DEFAULT_RADIUS = 15;
 
@@ -158,57 +157,8 @@ const Game: React.FC<gameProps> = (props) => {
 	const activateShield = useCallback((side: string) => {
 	}, []);
 
-	// const calculateWinsAndLosses = (data: User[]) => {
-    //     data.map(user => {
-    //         user.wins = 0;
-    //         user.losses = 0;
-
-    //         user.gameParticipation.forEach(game => {
-    //             if (game.game.winnerId === game.userId) {
-    //                 user.wins++;
-    //             } else {
-    //                 user.losses++;
-    //             }
-    //         });
-    //     })
-    //     return data;
-    // };
-
-	// const calculateRanking = (data: User[]) => {
-    //     const ranking =  data.sort((a, b) => {
-    //         if (a.wins > b.wins) {
-    //             return -1;
-    //         }
-    //         if (a.wins < b.wins) {
-    //             return 1;
-    //         }
-    //         return a.losses - b.losses;
-    //     });
-	// 	/* 
-	// 		TODO:
-	// 		Get id of the leader
-	// 		Turn isSmallLeader to true in DB for that user.
-	// 	*/
-    //     // if (ranking.length >= 3 && ranking[0].id == userId) {
-    //     //     setSmallLeader(true);
-    //     // } else if (ranking.length >= 10 && ranking[0].id == userId) {
-    //     //     setGreatLeader(true);
-    //     // }
-    //     return ranking;
-    // };
-
 	const finishGame = useCallback(() => {
 		gameEnd = true;
-		/* 
-			TODO: Calculate ranking 
-		*/
-		// fetch(`http://localhost:3000/api/game/ladder`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         calculateRanking(calculateWinsAndLosses(data));
-        //     }
-        // );
-		console.log("finish game event");
 	}, []);
 
 	const updateScore = useCallback((newScore: {leftPlayer: string, rightPlayer: string}) => {
@@ -223,8 +173,7 @@ const Game: React.FC<gameProps> = (props) => {
 	}, []);
 
 	const countdown = useCallback(() => {
-		count--;
-		console.log(count)
+		--count;
 		if (count == 0)
 			gameStart = true;
 	}, []);
@@ -236,10 +185,8 @@ const Game: React.FC<gameProps> = (props) => {
 		SocketState.socket?.on("updateScore", updateScore);
 		SocketState.socket?.on("updateGame", updateGame);
 		SocketState.socket?.on("shield", activateShield);
-		console.log("HEYYYY");
 		
 		return () => {
-			console.log("HEYYYY4");
 			SocketState.socket?.off("countdown", countdown);
 			SocketState.socket?.off("gameFinished", finishGame);
 			SocketState.socket?.off("updateScore", updateScore);
@@ -257,20 +204,15 @@ const Game: React.FC<gameProps> = (props) => {
 		const gameLoop = () => {
 
 			renderFrame(context, count);
-			console.log("HELLO1");
 
 			if (!gameEnd) {
 				window.requestAnimationFrame(gameLoop);
-				console.log("HELLO2");
 			}
 		};
 
 		let frameId = window.requestAnimationFrame(gameLoop);
-		console.log("HEY2");
 
 		return () => {
-			console.log("Hey3");
-			finishGame();
 			window.cancelAnimationFrame(frameId);
 			document.removeEventListener('keydown', handleKeyDown);
 			document.removeEventListener('keyup', handleKeyUp);

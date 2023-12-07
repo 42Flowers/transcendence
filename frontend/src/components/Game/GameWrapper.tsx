@@ -1,8 +1,8 @@
 import SocketContext from '../Socket/Context/Context';
 import React from 'react';
-import { useRef, useEffect, useContext, useCallback, useState } from 'react';
-const Game = React.lazy(() => import('./Game'));
+import {  useEffect, useContext, useCallback, useState } from 'react';
 import "./GameWrapper.css"
+import Game from './Game';
 
 interface wrapperProps {
 	width: number,

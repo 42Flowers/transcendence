@@ -16,33 +16,100 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     },
 }));
 
-const MfaUpdateDialog: React.FC = ({ onClose, open, isLoading, secretKeyUrl }) => {
+type MfaUpdateDialogProps = {
+    onClose: () => void;
+    open: boolean;
+    isLoading: boolean;
+    secretKeyUrl?: string;
+    mfaEnabled: boolean;
+};
+
+type MfaDialogProps = React.PropsWithChildren<{
+    onClose: () => void;
+    open: boolean;
+    buttonLoading: boolean;
+    buttonText: string;
+    dialogTitle: string;
+    onButtonClick: () => void;
+}>;
+
+const MfaDialog: React.FC<MfaDialogProps> = ({ onClose, open, buttonLoading, buttonText, dialogTitle, children, onButtonClick }) => (
+    <BootstrapDialog
+        onClose={onClose}
+        aria-labelledby="customized-dialog-title"
+        open={open}
+    >
+        <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
+            {dialogTitle}
+        </DialogTitle>
+        <IconButton
+            aria-label="close"
+            onClick={onClose}
+            sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                color: (theme) => theme.palette.grey[500],
+            }}
+        >
+            <CloseIcon />
+        </IconButton>
+        <DialogContent dividers>
+            {children}
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={onButtonClick} disabled={buttonLoading}>
+                {buttonLoading ? (
+                    <CircularProgress size={12} />
+                ) : buttonText}
+            </Button>
+        </DialogActions>
+    </BootstrapDialog>
+);
+
+type ActivateMfaDialogProps = {
+    onClose: () => void;
+    open: boolean;
+}
+
+type MfaState = {
+    state: boolean;
+    code: string;
+};
+
+function useMfaPatchState(closeDialog: () => void) {
     const { enqueueSnackbar } = useSnackbar();
-    
-    const activateMutation = useMutation({
-        mutationFn: ({ state, code }: { state: boolean; code: string; }) => updateMfaState(state, code),
-        onSuccess() {
+
+    return useMutation({
+        mutationFn: ({ state, code }: MfaState) => updateMfaState(state, code),
+        onSuccess(_data, { state }) {
             enqueueSnackbar({
                 variant: 'success',
                 anchorOrigin: {
                     horizontal: 'center',
                     vertical: 'top',
                 },
-                message: `MFA successfuly enabled`,
+                message: `MFA successfuly ${state ? 'enabled' : 'disabled'}`,
             });
-            onClose();
+            closeDialog();
         },
-        onError(err) {
+        onError(err, { state }) {
             enqueueSnackbar({
                 variant: 'error',
                 anchorOrigin: {
                     horizontal: 'center',
                     vertical: 'top',
                 },
-                message: `Could not enable MFA: ${err}`,
+                message: `Could not ${state ? 'enable' : 'disable'} MFA: ${err}`,
             });
         }
     });
+}
+
+const ActivateMfaDialog: React.FC = ({ onClose, open, genKeyMutation }) => {
+    const { enqueueSnackbar } = useSnackbar();
+
+    const activateMutation = useMfaPatchState(onClose);
 
     const [ code, setCode ] = React.useState<string>('');
     
@@ -54,53 +121,31 @@ const MfaUpdateDialog: React.FC = ({ onClose, open, isLoading, secretKeyUrl }) =
     }, [ code ]);
 
     return (
-        <BootstrapDialog
+        <MfaDialog
+            dialogTitle="Activate Two-Factor Authentication"
+            buttonText="Enable"
+            onButtonClick={handleEnable}
             onClose={onClose}
-            aria-labelledby="customized-dialog-title"
-            open={open}
-        >
-            <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-                Activate Two-Factor Authentication
-            </DialogTitle>
-            <IconButton
-                aria-label="close"
-                onClick={onClose}
-                sx={{
-                    position: 'absolute',
-                    right: 8,
-                    top: 8,
-                    color: (theme) => theme.palette.grey[500],
-                }}
-            >
-                <CloseIcon />
-            </IconButton>
-            <DialogContent dividers>
-                {isLoading && "Loading..."}
-                {!!secretKeyUrl &&
-                <div>
+            open={open}>
 
-                <QRCode
-                    size={256}
-                    viewBox="0 0 256 256"
-                    value={secretKeyUrl} />
-                    </div>}
-                <TextField label="OTP code" variant="outlined" value={code} onChange={code => setCode(code.currentTarget.value)} />
-                <Typography gutterBottom>
-                    Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus
-                    magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Donec
-                    ullamcorper nulla non metus auctor fringilla.
-                </Typography>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleEnable} disabled={activateMutation.isLoading}>
-                    {activateMutation.isLoading ? (
-                        <CircularProgress size={12} />
-                    ) : 'Enable'}
-                </Button>
-            </DialogActions>
-        </BootstrapDialog>
+            {genKeyMutation.isLoading && "Loading..."}
+            {!!genKeyMutation.data &&
+            <div>
+
+            <QRCode
+                size={256}
+                viewBox="0 0 256 256"
+                value={genKeyMutation.data.url} />
+                </div>}
+            <TextField label="OTP code" variant="outlined" value={code} onChange={code => setCode(code.currentTarget.value)} />
+            <Typography gutterBottom>
+                Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus
+                magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Donec
+                ullamcorper nulla non metus auctor fringilla.
+            </Typography>
+        </MfaDialog>
     );
-}
+};
 
 const Switch2FA: React.FC = () => {
     /* TODO should be retrieved from the backend */
@@ -127,11 +172,10 @@ const Switch2FA: React.FC = () => {
 
     return (
         <React.Fragment>
-            <MfaUpdateDialog
+            <ActivateMfaDialog
                 open={isOpen}
                 onClose={handleClose}
-                isLoading={genSecretKey.isLoading}
-                secretKeyUrl={genSecretKey.data?.url}
+                genKeyMutation={genSecretKey}
                 />
             <Button
                 variant="contained"

@@ -8,7 +8,6 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class RoomService {
-
 	
 	constructor(
 		private readonly prismaService : PrismaService,

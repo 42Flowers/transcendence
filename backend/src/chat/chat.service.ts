@@ -1,6 +1,4 @@
 import { ChatRemoveAdminFromChannelEvent } from 'src/events/chat/removeAdminFromChannel.event';
-import { ChatSendChannelMessageEvent } from 'src/events/chat/sendChannelMessage.event';
-import { ChatSendPrivateMessageEvent } from 'src/events/chat/sendPrivateMessage.event';
 import { ChatAddAdminToChannelEvent } from 'src/events/chat/addAdminToChannel.event';
 import { ChatUnBanFromChannelEvent } from 'src/events/chat/unBanFromChannel.event';
 import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event';
@@ -12,7 +10,6 @@ import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
 import { ChatBanFromChannelEvent } from 'src/events/chat/banFromChannel.event';
 import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { ConversationsService } from '../conversations/conversations.service';
-import { ChatManageChannelEvent } from 'src/events/chat/manageChannel.event';
 import { ChatMuteOnChannelEvent } from 'src/events/chat/muteOnChannel.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
@@ -30,6 +27,7 @@ import { SocketService } from 'src/socket/socket.service';
 import { RoomService } from '../rooms/rooms.service';
 import { Injectable } from '@nestjs/common';
 import { ChatSendToChannelEvent } from 'src/events/chat/sendToChannel.event';
+import { ChatSendMessageEvent } from 'src/events/chat/sendMessage.event';
 
 @Injectable()
 export class ChatService {
@@ -39,7 +37,7 @@ export class ChatService {
 		private readonly messagesService: MessagesService,
 		private readonly conversationsService: ConversationsService,
 		private readonly socketService: SocketService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
 		) {}
 
 	@OnEvent('chat.unblockuser')
@@ -117,7 +115,8 @@ export class ChatService {
 					}
 					const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation, event.message);
 					console.log(newMsg);
-					this.eventEmitter.emit('chat.sendprivatemessage', new ChatSendPrivateMessageEvent(user.id, conversation.name, newMsg.content, newMsg.createdAt))
+					this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', dest.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt));
+					// this.eventEmitter.emit('chat.sendprivatemessage', new ChatSendPrivateMessageEvent(user.id, conversation.name, newMsg.content, newMsg.createdAt))
 				} else {
 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "No such connected user"));
 					return;
@@ -152,7 +151,8 @@ export class ChatService {
 					}
 					const newMsg = await this.messagesService.newChannelMessage(user.id, event.channelId, event.message);
 					const channelName = await this.roomService.getRoom(event.channelId);
-					this.eventEmitter.emit('chat.sendchannelmessage', new ChatSendChannelMessageEvent(user.id, channelName.id, channelName.name, newMsg.content, newMsg.createdAt));
+					this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt));
+					// this.eventEmitter.emit('chat.sendchannelmessage', new ChatSendChannelMessageEvent(user.id, channelName.id, channelName.name, newMsg.content, newMsg.createdAt));
 					return;
 				}
 			}

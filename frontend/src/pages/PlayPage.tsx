@@ -12,15 +12,16 @@ type UserStatus = [
     status: string,
 ]
 
-interface UsersList {
+interface SelectUserProps {
     usersList: UserStatus[];
+    handleChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
-const SelectUser: React.FC<UsersList> = ({ usersList }) => {
+const SelectUser: React.FC<SelectUserProps> = ({ usersList, handleChange }) => {
     const availableUsers = usersList.map(([ id, pseudo, status ]) => {
         if (status == "online") {
             return (
-                <option value="text" key={ id }>
+                <option value={ id } key={ id }>
                     { pseudo }
                 </option>
             )
@@ -28,8 +29,8 @@ const SelectUser: React.FC<UsersList> = ({ usersList }) => {
     });
     
     return (
-        <select placeholder="Select a user" name="userList" className="userList" >
-            <option value="text" key="placeholder">Select a user</option>
+        <select placeholder="Select a user" name="userList" className="userList" onChange={handleChange}>
+            <option value="-1" key="placeholder">Select a user</option>
             { availableUsers }
         </select>
     );
@@ -38,10 +39,11 @@ const SelectUser: React.FC<UsersList> = ({ usersList }) => {
 const PlayPage: React.FC = () => {
     const { SocketState } = useContext(SocketContext);
     const [waiting, setWaiting] = useState<boolean>(false);
+    const [selectedUserIdNormal, setSelectedUserNormal] = useState<number | null>(null);
+    const [selectedUserIdSpecial, setSelectedUserSpecial] = useState<number | null>(null);
     const navigate = useNavigate();
 
     const usersQuery = useQuery('available-users', fetchAvailableUsers);
-    console.log(usersQuery.data);
 
     const handleClick = (whichButton: string) => {
         if (whichButton === "random-normal") {
@@ -49,21 +51,33 @@ const PlayPage: React.FC = () => {
             setWaiting(true);
             return ;
         }
-        else if (whichButton === "friend-normal")
+        else if (whichButton === "invite-normal")
         {
-            // navigate('/selectfriend');
-                return ;
+            SocketState.socket?.emit("inviteNormal", selectedUserIdNormal);
+            console.log("Invite Normal: ", selectedUserIdNormal);
+            setWaiting(true);
+            return ;
         }
         else if (whichButton === "random-special") {
             SocketState.socket?.emit("joinRandomSpecial");
             setWaiting(true);
             return ;
         }
-        else if (whichButton === "friend-special")
+        else if (whichButton === "invite-special")
         {
-            // navigate('/selectfriend');
+            SocketState.socket?.emit("inviteSpecial", selectedUserIdSpecial);
+            console.log("Invite Special: ", selectedUserIdSpecial);
+            setWaiting(true);
             return ;
         }
+    }
+
+    const handleNormalSelectedUser = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedUserNormal(Number(event.target.value));
+    }
+    
+    const handleSpecialSelectedUser = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedUserSpecial(Number(event.target.value));
     }
 
     const handleCancel = () => {
@@ -72,7 +86,6 @@ const PlayPage: React.FC = () => {
     };
 
     const launchRandomNormal = useCallback(() => {
-        console.log("Launch game received");
         navigate('/game-normal');
     }, []);
 
@@ -83,12 +96,10 @@ const PlayPage: React.FC = () => {
     useEffect(() => {
         SocketState.socket?.on("launchRandomNormal", launchRandomNormal);
         SocketState.socket?.on("launchRandomSpecial", launchRandomSpecial);
-        // SocketState.socket?.on("joinFriendMatch", joinFriendMatch)
 
         return () => {
             SocketState.socket?.off("launchRandomNormal", launchRandomNormal);
             SocketState.socket?.off("launchRandomSpecial", launchRandomSpecial);
-            // SocketState.socket?.off("joinFriendMatch", joinFriendMatch)
         };
     }, [SocketState.socket]);
 
@@ -101,16 +112,15 @@ const PlayPage: React.FC = () => {
                         { !waiting && <MainButton buttonName="Random" mode={0} onClick={() => { handleClick("random-normal") }}/> }
                         { waiting && <MainButton buttonName="X" mode={0} onClick={() => { handleCancel() }}/>}
                     </div>
-                    <div className={`friend-choice ${waiting ? 'no-border' : ''}`}>
-                        { !waiting && usersQuery.isFetched && <SelectUser usersList={usersQuery.data} />}
-                        { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-normal") }}/> }
+                    <div className={`user-choice ${waiting ? 'no-border' : ''}`}>
+                        { !waiting && usersQuery.isFetched && <SelectUser usersList={usersQuery.data} handleChange={handleNormalSelectedUser} />}
+                        { !waiting && <MainButton buttonName="Opponent" mode={0} onClick={() => { handleClick("invite-normal") }}/> }
                     </div>
                     <div className="controls_info">
                         <p style={{color: 'white'}}>
                             Controls: use "ARROW UP" to move your paddle up and "ARROW DOWN" to move your paddle down
                         </p>
                     </div>
-                    {/* { isSuccess && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-normal") }}/> } */}
                 </div>
             </div>
             <div className="choose">
@@ -123,10 +133,9 @@ const PlayPage: React.FC = () => {
                         { !waiting && <MainButton buttonName="Random" mode={0} onClick={() => { handleClick("random-special") }}/> }
                         { waiting && <MainButton buttonName="X" mode={0} onClick={() => { handleCancel() }}/>}
                     </div>
-                    {/* <div className="friend-choice"> */}
-                    <div className={`friend-choice ${waiting ? 'no-border' : ''}`}>
-                        { !waiting && usersQuery.isFetched && <SelectUser usersList={usersQuery.data} />}
-                        { !waiting && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-special") }}/> }
+                    <div className={`user-choice ${waiting ? 'no-border' : ''}`}>
+                        { !waiting && usersQuery.isFetched && <SelectUser usersList={usersQuery.data} handleChange={handleSpecialSelectedUser} />}
+                        { !waiting && <MainButton buttonName="Opponent" mode={0} onClick={() => { handleClick("invite-special") }}/> }
                     </div>
                     <div className="controls_info">
                         <p style={{color: 'white'}}>
@@ -135,7 +144,6 @@ const PlayPage: React.FC = () => {
                             Tips: If the ball goes too fast an unprotected paddle might break
                         </p>
                     </div>
-                    {/* { isSuccess && <MainButton buttonName="Friend" mode={0} onClick={() => { handleClick("friend-special") }}/> } */}
                 </div>
             </div>
         </div>

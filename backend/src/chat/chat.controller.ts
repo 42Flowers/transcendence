@@ -3,9 +3,9 @@ import { Controller, Post, Body, Get, UseGuards, Request, Param } from '@nestjs/
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { UsersService } from 'src/users_chat/DBusers.service';
-import { RoomService } from '../rooms/DBrooms.service';
+import { RoomService } from '../rooms/rooms.service';
 import { Request as ExpressRequest } from 'express';
-import { ChatService } from './DBchat.service';
+import { ChatService } from './chat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Prisma } from '@prisma/client';

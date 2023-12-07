@@ -8,7 +8,7 @@ import MainButton from '../MainButton/MainButton'
 // import { HiOutlineUserCircle } from "react-icons/hi2";
 import { Stack } from '@mui/material';
 import { Input } from '../Form/Input';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Form, FormValidator } from '../Form/Form';
 import { useMutation } from 'react-query';
 import { registerUser } from '../../api';
@@ -47,16 +47,24 @@ const RegisterForm: React.FC = () => {
 	const [ formErrors, setFormErrors ] = React.useState<object>({});
 	const { authenticate } = useAuthContext();
 	const authorizeUrl = React.useMemo(getIntranetAuthorizeUrl, []);
+	const navigate = useNavigate();
+	const { isAuthenticated } = useAuthContext();
+
+	React.useEffect(() => {
+		if (isAuthenticated) {
+			navigate('/');
+		}
+	}, [ isAuthenticated ]);
 
 	const registerMutation = useMutation(registerUser, {
 		onSuccess(data, variables, context) {
 			if ('token' in data) {
-				/* TODO broken */
-				// authenticate(data['token']);
+				/* On fait avec les moyens du bord hein ^.^ */
+				localStorage.setItem('token', data['token']);
+				authenticate(data['token']);
 			}
 
 			setFormErrors({});
-			/* TODO here we should login the user */
 		},
 		onError(error: AxiosError) {
 			const { response } = error;

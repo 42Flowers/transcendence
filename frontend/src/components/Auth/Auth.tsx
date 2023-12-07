@@ -23,7 +23,7 @@ function useAuthRequest<P = any>(code: string, onSuccess: (data: P) => void) {
                 isLoading: false,
                 isSuccess: false,
                 error: err,
-            })
+            });
         } else {
             setState({
                 isError: false,

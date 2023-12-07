@@ -15,6 +15,7 @@ import { registerUser } from '../../api';
 import { useSnackbar } from 'notistack';
 import { AxiosError } from 'axios';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { getIntranetAuthorizeUrl } from '../../ft';
 
 const registerFormValidator: FormValidator = {
 	username(value: string) {
@@ -45,6 +46,7 @@ const RegisterForm: React.FC = () => {
 	const { enqueueSnackbar } = useSnackbar();
 	const [ formErrors, setFormErrors ] = React.useState<object>({});
 	const { authenticate } = useAuthContext();
+	const authorizeUrl = React.useMemo(getIntranetAuthorizeUrl, []);
 
 	const registerMutation = useMutation(registerUser, {
 		onSuccess(data, variables, context) {
@@ -57,12 +59,36 @@ const RegisterForm: React.FC = () => {
 			/* TODO here we should login the user */
 		},
 		onError(error: AxiosError) {
-			if (error.response?.status === 400) {
-				const { errors } = (error.response.data as any);
+			const { response } = error;
 
-				if (typeof errors === 'object') {
-					setFormErrors(errors as object);
-					return ;
+			if (undefined !== response) {
+				if (response.status === 400) {
+					const data = response.data as object;
+
+					console.log(data);
+					if (undefined !== data) {
+						if ('realm' in data && typeof data['realm'] === 'string') {
+							/* To use this email we must login through another system */
+							if (data['realm'] === 'ft') {
+								window.location.href = authorizeUrl;
+								return ;
+							} else {
+								setFormErrors({
+									email: 'You cannot use this email',
+								});
+								return ;
+							}
+						}
+
+						if ('errors' in data) {
+							const { errors } = data;
+
+							if (typeof errors === 'object') {
+								setFormErrors(errors as object);
+								return ;
+							}
+						}
+					}
 				}
 			}
 
@@ -78,6 +104,7 @@ const RegisterForm: React.FC = () => {
 	});
 
 	const handleOnSubmit = React.useCallback((data: any) => {
+		setFormErrors({});
 		registerMutation.mutate(data);
 	}, []);
 
@@ -89,7 +116,7 @@ const RegisterForm: React.FC = () => {
 					<Input
 						label="Username"
 						// icon={<HiOutlineUserCircle />}
-						name="username"
+						name="pseudo"
 						autoComplete="off"
 						type="text"
 						required
@@ -133,7 +160,7 @@ const RegisterForm: React.FC = () => {
 					</Stack>
 					<MainButton buttonName="Register" loading={registerMutation.isLoading} />
 					<p className="or">or</p>
-					<MainButton buttonName="42 Account" />
+					<MainButton buttonName="42 Account" as="a" href={authorizeUrl} />
 					<p>
 						Already have an account ? <Link to="/auth/login">Login</Link>
 					</p>

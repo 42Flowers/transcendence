@@ -9,6 +9,7 @@ import { AxiosError } from 'axios';
 import './LoginForm.scss';
 import { Input } from '../Form/Input';
 import { Link } from 'react-router-dom';
+import { getIntranetAuthorizeUrl } from '../../ft';
 
 type LoginFormProps = Pick<AuthReducerProps, 'dispatch'>;
 
@@ -18,17 +19,7 @@ type EmailAndPassword = {
 };
 
 const LoginForm: React.FC<LoginFormProps> = ({ dispatch }) => {
-	const authorizeUrl = React.useMemo(() => {
-		const url = new URL('https://api.intra.42.fr/oauth/authorize');
-		const { searchParams } = url;
-
-		/* TODO put the client id in a config file */
-		searchParams.append('client_id', 'u-s4t2ud-328a99f36da9fbaa8ec156076618694cbe85f30b9e5385166d942c6aac57ae16');
-		searchParams.append('redirect_uri', 'http://localhost:5173/auth/callback');
-		searchParams.append('response_type', 'code');
-
-		return url.href;
-	}, []);
+	const authorizeUrl = React.useMemo(getIntranetAuthorizeUrl, []);
 
 	const { enqueueSnackbar } = useSnackbar();
 
@@ -43,10 +34,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ dispatch }) => {
 			}
 		},
 		onError(error: AxiosError) {
+			const { response } = error;
 			let message = error.message;
 
-			if (error.response?.status === 401) {
-				message = 'Invalid username or password';
+			if (undefined !== response) {
+				if (response.status === 401) {
+					message = 'Invalid username or password';
+				} else if (response.status === 400) {
+					const { data } = response;
+
+					if (data && typeof data === 'object') {
+						const obj = data as Record<string, string>;
+
+						if ('realm' in obj && obj['realm'] === 'ft') {
+							window.location.href = authorizeUrl;
+						}
+						return ;
+					}
+				}
 			}
 
 			enqueueSnackbar({

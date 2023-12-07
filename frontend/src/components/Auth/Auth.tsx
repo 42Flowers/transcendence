@@ -79,7 +79,7 @@ const OAuthPanel: React.FC<OAuthPanelProps> = ({ state, dispatch }) => {
     if (authRequest.isError) {
         return `Authorize failed: ${authRequest.error}`;
     }
-    return 'Loading OAUTH OKKK';
+    return 'Loading...';
 };
 
 const AuthManager: React.FC<AuthManagerProps> = ({ state, dispatch }) => {

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpException, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiProperty, ApiTags } from '@nestjs/swagger';
 import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length } from 'class-validator';
 import { Request as ExpressRequest } from 'express';
@@ -90,7 +90,11 @@ export class AuthController {
     async loginWithPassword(@Body() { email, password }: PasswordLoginDto) {
         try {
             return await this.authService.loginWithPassword(email, password);
-        } catch {
+        } catch (e) {
+            /* let http exceptions flow through as they might contain interesing data */
+            if (e instanceof HttpException) {
+                throw e;
+            }
             throw new UnauthorizedException();
         }
     }

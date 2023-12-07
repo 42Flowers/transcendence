@@ -77,11 +77,11 @@ const Game: React.FC<gameProps> = (props) => {
 	function clearBackground(ctx: CanvasRenderingContext2D): void {
 		const { width, height } = ctx.canvas;
 		ctx.clearRect(0, 0, width, height);
-		//ctx.rect(0, 0, width, height);
+		ctx.rect(0, 0, width, height);
 
-		//const colorBlue = getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim();
-		//ctx.fillStyle = colorBlue;
-		//ctx.fill();
+		const colorBlue = getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim();
+		ctx.fillStyle = colorBlue;
+		ctx.fill();
 	};
 	
 	function drawGame(ctx: CanvasRenderingContext2D): void {

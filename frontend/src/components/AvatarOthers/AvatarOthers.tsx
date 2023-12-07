@@ -21,14 +21,12 @@ const AvatarOthers: React.FC<Props> = ({ status, avatar, userId }) => {
     const theme = useTheme();
 
     const statusInfo = (): StatusResult => {
-        if (status === 'Online') {
+        if (status === 'online') {
             return { statusColor: '#33cc33', statusImage: null, };
-        } else if (status === 'Offline') {
+        } else if (status === 'offline') {
             return { statusColor: '#cc0000', statusImage: null, };
-        } else if (status === 'Playing') {
+        } else if (status === 'ingame') {
             return { statusColor: '#ff8000', statusImage: null, };
-        // } else if (status === 'Add') {
-        //     return { statusColor: '#fff', statusImage: <PersonAddIcon style={{ height: '10px', width: '10px' }}/>, };
         }
         else {
             return { statusColor: '#0000ff', statusImage: null, };

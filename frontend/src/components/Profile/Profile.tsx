@@ -228,10 +228,10 @@ const Profile: React.FC = () => {
                 if (gamesWonInARow >= 3 && data?.achievements['3'].users.length === 0) {
                     handleAchievement('3');
                 }
-                if (gamesWonInARow >= 3 && data?.achievements['10'].users.length === 0) {
+                if (gamesWonInARow >= 10 && data?.achievements['10'].users.length === 0) {
                     handleAchievement('10');
                 }
-                if (gamesWonInARow >= 3 && data?.achievements['100'].users.length === 0) {
+                if (gamesWonInARow >= 100 && data?.achievements['100'].users.length === 0) {
                     handleAchievement('100');
                 }
 

@@ -4,7 +4,7 @@ import MainButton from '../MainButton/MainButton'
 // import { IoMailOutline } from "react-icons/io5";
 // import { IoLockClosedOutline } from "react-icons/io5";
 // import { IoPawOutline } from "react-icons/io5";
-// // import { GiFireflake } from "react-icons/gi";
+// import { GiFireflake } from "react-icons/gi";
 // import { HiOutlineUserCircle } from "react-icons/hi2";
 import { Stack } from '@mui/material';
 import { Input } from '../Form/Input';

@@ -106,6 +106,13 @@ export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('
 
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 
+
+export const fetchIsFriended = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isFriended: boolean; }>(`/api/profile/${userId}/isFriendwith/${friendId}`));
+export const addUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`api/profile/${userId}/add/${friendId}`, ''));
+export const fetchIsBlocked = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isBlocked: boolean; }>(`/api/profile/${userId}/isBlockWith/${friendId}`));
+export const blockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/block/${friendId}`, ''));
+export const unblockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/unblock/${friendId}`, ''));
+
 /* ==== MFA ==== */
 export const generateSecretKey = () => wrapResponse(authorizedPost('/api/v1/auth/mfa/generate', ''));
 export const updateMfaState = (state: boolean, code: string) => wrapResponse(authorizedPatch('/api/v1/auth/mfa', { state, code }));

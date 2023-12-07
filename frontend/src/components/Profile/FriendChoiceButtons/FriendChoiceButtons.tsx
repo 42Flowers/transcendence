@@ -86,7 +86,6 @@ const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
 				<div className='parent-friend-choice-buttons'>
 					<div className='friend-choice-buttons'>
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
-						isnot fri b
 					</div>
 				</div>
 			);

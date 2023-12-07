@@ -38,8 +38,8 @@ const Achievements: React.FC<AchievementsProps> = ({ userId, auth }) => {
         enabled: userId === auth,
         onSuccess(data) {
             setAchievementsList(data);
-        }, 
-    });
+        },
+    }); // <- Ça fetch les achievements de l'utilisateur connecté et non ceux de userId
 
     useEffect(() => {
         if (userId !== auth) {

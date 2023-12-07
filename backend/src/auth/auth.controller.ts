@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiProperty, ApiTags } from '@nestjs/swagger';
 import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length } from 'class-validator';
 import { Request as ExpressRequest } from 'express';
@@ -127,6 +127,19 @@ export class AuthController {
 
         const userId = Number(req.user.sub);
         await this.authService.updateMfa(userId, state, code);
+    }
+
+    @Get('/mfa/status')
+    @UseGuards(AuthGuard)
+    async getMfaStatus(
+        @Request() req: ExpressRequest
+    ) {
+        const userId = Number(req.user.sub);
+        const status = await this.authService.getMfaStatus(userId);
+
+        return {
+            status,
+        };
     }
 }
 

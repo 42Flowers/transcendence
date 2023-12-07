@@ -2,8 +2,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Typography, styled } from "@mui/material";
 import React from "react";
 import QRCode from 'react-qr-code';
-import { useMutation } from 'react-query';
-import { generateSecretKey, updateMfaState } from '../../../api';
+import { useMutation, useQuery } from 'react-query';
+import { fetchMfaStatus, generateSecretKey, updateMfaState } from '../../../api';
 import { useSnackbar } from 'notistack';
 import { queryClient } from '../../../query-client';
 
@@ -67,11 +67,6 @@ const MfaDialog: React.FC<MfaDialogProps> = ({ onClose, open, buttonLoading, but
     </BootstrapDialog>
 );
 
-type ActivateMfaDialogProps = {
-    onClose: () => void;
-    open: boolean;
-}
-
 type MfaState = {
     state: boolean;
     code: string;
@@ -91,6 +86,9 @@ function useMfaPatchState(closeDialog: () => void) {
                 },
                 message: `MFA successfuly ${state ? 'enabled' : 'disabled'}`,
             });
+            queryClient.setQueryData<{ status: boolean; }>('mfa_status', {
+                status: state,
+            });
             closeDialog();
         },
         onError(err, { state }) {
@@ -106,16 +104,19 @@ function useMfaPatchState(closeDialog: () => void) {
     });
 }
 
-const ActivateMfaDialog: React.FC = ({ onClose, open, genKeyMutation }) => {
-    const { enqueueSnackbar } = useSnackbar();
+type ActivateMfaDialogProps = {
+    onClose: () => void;
+    mfaStatus: boolean;
+    otpUrl?: string;
+}
 
+const ActivateMfaDialog: React.FC<ActivateMfaDialogProps> = ({ onClose, otpUrl, mfaStatus, }) => {
     const activateMutation = useMfaPatchState(onClose);
-
     const [ code, setCode ] = React.useState<string>('');
     
     const handleEnable = React.useCallback(() => {
         activateMutation.mutate({
-            state: true,
+            state: !mfaStatus,
             code,
         });
     }, [ code ]);
@@ -123,20 +124,21 @@ const ActivateMfaDialog: React.FC = ({ onClose, open, genKeyMutation }) => {
     return (
         <MfaDialog
             dialogTitle="Activate Two-Factor Authentication"
-            buttonText="Enable"
+            buttonText={mfaStatus ? 'Disable' : 'Enable'}
             onButtonClick={handleEnable}
+            buttonLoading={activateMutation.isLoading}
             onClose={onClose}
-            open={open}>
+            open={true}>
 
-            {genKeyMutation.isLoading && "Loading..."}
-            {!!genKeyMutation.data &&
-            <div>
+            {otpUrl && (
+                <div>
+                    <QRCode
+                        size={256}
+                        viewBox="0 0 256 256"
+                        value={otpUrl} />
+                </div>
+            )}
 
-            <QRCode
-                size={256}
-                viewBox="0 0 256 256"
-                value={genKeyMutation.data.url} />
-                </div>}
             <TextField label="OTP code" variant="outlined" value={code} onChange={code => setCode(code.currentTarget.value)} />
             <Typography gutterBottom>
                 Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus
@@ -148,40 +150,63 @@ const ActivateMfaDialog: React.FC = ({ onClose, open, genKeyMutation }) => {
 };
 
 const Switch2FA: React.FC = () => {
-    /* TODO should be retrieved from the backend */
-    const isMfaEnabled = false;
+    const mfaStatusQuery = useQuery('mfa_status', fetchMfaStatus);
+    const isMfaEnabled = mfaStatusQuery.data?.status === true;
 
     const [isOpen, setOpen] = React.useState(false);
     
     const genSecretKey = useMutation({
         mutationFn: generateSecretKey,
+        onSuccess() {
+            setOpen(true);
+        }
     });
 
     const handleOpen = React.useCallback(() => {
-        setOpen(true);
-
         if (!isMfaEnabled) {
             genSecretKey.mutate();
+        } else {
+            setOpen(true);
         }
-    }, []);
+    }, [ isMfaEnabled ]);
 
     const handleClose = React.useCallback(() => {
-        setOpen(false);
         genSecretKey.reset();
+        setOpen(false);
     }, []);
+
+    const isButtonLoading = genSecretKey.isLoading || mfaStatusQuery.isLoading;
+    const isButtonDisabled = isButtonLoading;
 
     return (
         <React.Fragment>
-            <ActivateMfaDialog
-                open={isOpen}
-                onClose={handleClose}
-                genKeyMutation={genSecretKey}
-                />
+            {
+                isOpen && (
+                    <ActivateMfaDialog
+                        mfaStatus={isMfaEnabled}
+                        onClose={handleClose}
+                        otpUrl={genSecretKey.data?.url}
+                    />
+                )
+            }
+
             <Button
                 variant="contained"
                 color="info"
+                disabled={isButtonDisabled}
                 onClick={handleOpen}>
-                Enable Two-Factor Authentication
+                
+                {
+                    isButtonLoading && (
+                        <React.Fragment>
+                            <CircularProgress size={12} color="warning" />
+                            &nbsp;
+                        </React.Fragment>
+                    )
+                }
+
+                {mfaStatusQuery.data?.status === true && 'Disable Two-Factor Authentication'}
+                {mfaStatusQuery.data?.status === false && 'Enable Two-Factor Authentication'}
             </Button>
         </React.Fragment>
     );

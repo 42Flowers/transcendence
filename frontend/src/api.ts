@@ -72,6 +72,14 @@ function authorizedGet<P = any>(url: string, config: AxiosRequestConfig = {}) {
 }
 
 function wrapResponse<T>(resp: Promise<AxiosResponse<T>>): Promise<T> {
+    const artificialDelay = 2000;
+
+    if (artificialDelay > 0) {
+        return new Promise((resolve, reject) => setTimeout(() => {
+            resp.then(e => resolve(e.data)).catch(err => reject(err));
+        }, artificialDelay));
+    }
+
     return resp.then(e => e.data);
 }
 
@@ -96,3 +104,4 @@ export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-
 /* ==== MFA ==== */
 export const generateSecretKey = () => wrapResponse(authorizedPost('/api/v1/auth/mfa/generate', ''));
 export const updateMfaState = (state: boolean, code: string) => wrapResponse(authorizedPatch('/api/v1/auth/mfa', { state, code }));
+export const fetchMfaStatus = () => wrapResponse(authorizedGet<{ status: boolean; }>('/api/v1/auth/mfa/status'));

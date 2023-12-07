@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -254,14 +254,49 @@ export class AuthService {
         }
 
         /* Patch the MFA state in the user record */
-        await this.prismaService.user.update({
-            where: {
-                id: userId,
-            },
-            data: {
-                totpEnabled: state,
-                totpSecret: null,
-            },
-        });
+
+        if (state) {
+            await this.prismaService.user.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    totpEnabled: true,
+                },
+            });
+        } else {
+            /* If the user wants to disable to 2FA, we also delete the secret key */
+
+            await this.prismaService.user.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    totpEnabled: false,
+                    totpSecret: null,
+                },
+            });
+        }
+    }
+
+    /**
+     * Retrieves the Multi-Factor Authentication status for a particular user.
+     * @param userId 
+     */
+    async getMfaStatus(userId: number): Promise<boolean> {
+        try {
+            const user = await this.prismaService.user.findUniqueOrThrow({
+                where: {
+                    id: userId,
+                },
+                select: {
+                    totpEnabled: true,
+                },
+            });
+
+            return user.totpEnabled;
+        } catch {
+            throw new ForbiddenException();
+        }
     }
 }

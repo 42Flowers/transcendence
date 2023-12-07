@@ -353,7 +353,9 @@ const Profile: React.FC = () => {
                 {popupQueue.length > 0 && <PopUp userId={Number(auth.user?.id)} infos={profileInfos?.achievements[popupQueue[0]]} onClose={closePopup}/>}
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
                 <PseudoButton handleChangePseudo={handleChangePseudo} />
-                <Switch2FA />
+                <div style={{ marginTop: '1em' }}>
+                    <Switch2FA />
+                </div>
         {/* ELSE */}
             {/* Add friend, block, unblock */}
         {/* ENDIF */}

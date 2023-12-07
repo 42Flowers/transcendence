@@ -279,23 +279,26 @@ export class FriendsService {
         status: true,
       },
     });
-    if (
-      friendshipUserToFriend.status == 0 &&
-      friendshipFriendToUser.status == 1
-    ) {
-      await this.prisma.friendship.delete({
-        where: {
-          userId_friendId: {
-            userId: friendId,
-            friendId: userId,
+    if (friendshipUserToFriend && friendshipFriendToUser)
+    {
+      if (
+        friendshipUserToFriend.status == 0 &&
+        friendshipFriendToUser.status == 1
+      ) {
+        await this.prisma.friendship.delete({
+          where: {
+            userId_friendId: {
+              userId: friendId,
+              friendId: userId,
+            },
           },
-        },
-      });
-      await this.prisma.friendship.delete({
-        where: {
-          userId_friendId: { userId, friendId },
-        },
-      });
+        });
+        await this.prisma.friendship.delete({
+          where: {
+            userId_friendId: { userId, friendId },
+          },
+        });
+      }
     }
     return this.getFriendsList(userId);
   }
@@ -332,29 +335,32 @@ export class FriendsService {
         status: true,
       },
     });
-    if (friendshipUserToFriend.status == 1 && friendshipFriendToUser.status == 0) {
-      await this.prisma.friendship.update({
-        where: {
-          userId_friendId: {
-            userId: userId,
-            friendId: friendId,
+    if (friendshipUserToFriend && friendshipFriendToUser)
+    {
+      if (friendshipUserToFriend.status == 1 && friendshipFriendToUser.status == 0) {
+        await this.prisma.friendship.update({
+          where: {
+            userId_friendId: {
+              userId: userId,
+              friendId: friendId,
+            },
           },
-        },
-        data: {
-          status: 2,
-        },
-      });
-      await this.prisma.friendship.update({
-        where: {
-          userId_friendId: {
-            userId: friendId,
-            friendId: userId,
+          data: {
+            status: 2,
           },
-        },
-        data: {
-          status: 2,
-        },
-      });
+        });
+        await this.prisma.friendship.update({
+          where: {
+            userId_friendId: {
+              userId: friendId,
+              friendId: userId,
+            },
+          },
+          data: {
+            status: 2,
+          },
+        });
+      }
     }
     return this.getFriendsList(userId);
   }
@@ -391,10 +397,8 @@ export class FriendsService {
         status: true,
       },
     });
-    if (
-      friendshipUserToFriend.status == 1 &&
-      friendshipFriendToUser.status == 0
-    ) {
+    if (friendshipUserToFriend)
+    {
       await this.prisma.friendship.delete({
         where: {
           userId_friendId: {
@@ -403,6 +407,9 @@ export class FriendsService {
           },
         },
       });
+    }
+    if (friendshipFriendToUser)
+    {
       await this.prisma.friendship.delete({
         where: {
           userId_friendId: {

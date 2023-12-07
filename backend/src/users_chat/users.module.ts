@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { SocketModule } from 'src/socket/socket.module';
-import { UsersService } from './DBusers.service';
 import { UserController } from './users.constroller';
+import { UsersService } from './DBusers.service';
+import { Module } from '@nestjs/common';
 
 @Module({
   providers: [UsersService],

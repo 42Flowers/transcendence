@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -189,6 +189,114 @@ export class AuthService {
             } else {
                 throw e;
             }
+        }
+    }
+
+    /**
+     * Generates a new secret key (totp) for the user.
+     * Can fail if MFA is enabled, you need to disable mfa to generate a new key.
+     * @param userId The user to generate the key for
+     */
+    async generateSecretKey(userId: number) {
+        try {
+            const user = await this.prismaService.user.findUniqueOrThrow({
+                where: {
+                    id: userId,
+                },
+            });
+
+            if (user.totpEnabled) {
+                throw new ForbiddenException();
+            }
+
+            const key = speakeasy.generateSecret({
+                name: 'Transcendence',
+            });
+
+            await this.prismaService.user.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    totpSecret: key.base32,
+                },
+            });
+
+            return {
+                url: key.otpauth_url,
+            };
+        } catch {
+            throw new ForbiddenException();
+        }
+    }
+
+    async updateMfa(userId: number, state: boolean, code: string) {
+        const user = await this.prismaService.user.findUniqueOrThrow({
+            where: {
+                id: userId,
+            },
+        });
+
+        /* Check if the user has previously generated a secret key */
+        if (!user.totpSecret) {
+            throw new BadRequestException('This user has not generated a secret key');
+        }
+
+        /* Verify if the user has entered the right code */
+        const tokenVerified = speakeasy.totp.verify({
+            secret: user.totpSecret,
+            token: code,
+            encoding: 'base32',
+        });
+
+        if (!tokenVerified) {
+            throw new ForbiddenException('The token is not valid');
+        }
+
+        /* Patch the MFA state in the user record */
+
+        if (state) {
+            await this.prismaService.user.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    totpEnabled: true,
+                },
+            });
+        } else {
+            /* If the user wants to disable to 2FA, we also delete the secret key */
+
+            await this.prismaService.user.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    totpEnabled: false,
+                    totpSecret: null,
+                },
+            });
+        }
+    }
+
+    /**
+     * Retrieves the Multi-Factor Authentication status for a particular user.
+     * @param userId 
+     */
+    async getMfaStatus(userId: number): Promise<boolean> {
+        try {
+            const user = await this.prismaService.user.findUniqueOrThrow({
+                where: {
+                    id: userId,
+                },
+                select: {
+                    totpEnabled: true,
+                },
+            });
+
+            return user.totpEnabled;
+        } catch {
+            throw new ForbiddenException();
         }
     }
 }

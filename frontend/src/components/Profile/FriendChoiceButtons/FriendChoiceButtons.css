@@ -1,0 +1,10 @@
+.parent-friend-choice-buttons {
+	display: flex;
+ }
+ 
+ .friend-choice-buttons {
+	display: flex;
+	gap: 20px;
+	justify-content: space-between;
+ }
+ 

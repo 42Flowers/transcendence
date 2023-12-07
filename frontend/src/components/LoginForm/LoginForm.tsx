@@ -1,5 +1,5 @@
 import React from 'react';
-import { IoLockClosedOutline, IoMailOutline } from 'react-icons/io5';
+// import { IoLockClosedOutline, IoMailOutline } from 'react-icons/io5';
 import { useMutation } from 'react-query';
 import { loginWithPassword } from '../../api';
 import { AuthReducerProps, setAuthToken, setTicketAction } from '../Auth/auth-reducer';
@@ -22,7 +22,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ dispatch }) => {
 		const url = new URL('https://api.intra.42.fr/oauth/authorize');
 		const { searchParams } = url;
 
-		searchParams.append('client_id', 'u-s4t2ud-8d978e732262281f66a1efd2053be66c07e8f1ec16d7ca8e7c73c5c058f01068');
+		/* TODO put the client id in a config file */
+		searchParams.append('client_id', 'u-s4t2ud-328a99f36da9fbaa8ec156076618694cbe85f30b9e5385166d942c6aac57ae16');
 		searchParams.append('redirect_uri', 'http://localhost:5173/auth/callback');
 		searchParams.append('response_type', 'code');
 
@@ -76,14 +77,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ dispatch }) => {
 			<h2>Login</h2>
 			<Input
 				label="Email"
-				icon={<IoMailOutline />}
+				// icon={<IoMailOutline />}
 				name="email"
 				type="email"
 				autoComplete="email"
 				required />
 			<Input
 				label="Password"
-				icon={<IoLockClosedOutline />}
+				// icon={<IoLockClosedOutline />}
 				name="password"
 				type="password"
 				autoComplete="email"

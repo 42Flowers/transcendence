@@ -8,6 +8,8 @@ import GameWrapper from './components/Game/GameWrapper';
 import PlayPage from './pages/PlayPage';
 import Profile from './components/Profile/Profile';
 import IntraRegisterForm from './components/IntraRegisterForm/IntraRegisterForm';
+import ProfilePublic from './components/Profile/ProfilePublic';
+
 export const router = createBrowserRouter([
     {
         path: '/auth/login',
@@ -29,8 +31,12 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
             {
+                path: '/profile',
+                element: <Profile />,
+            },
+            {
                 path: '/profile/:userId',
-                element: <Profile onRouteChange={() => void 0} />,
+                element: <ProfilePublic />
             },
             {
                 path: '/friends',

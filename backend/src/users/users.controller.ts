@@ -1,29 +1,30 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Request, UseGuards } from "@nestjs/common";
+import { AuthGuard } from "src/auth/auth.guard";
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Request as ExpressRequest } from 'express';
 
 @Controller({
     version: '1',
     path: '/users',
 })
+@UseGuards(AuthGuard)
 export class UsersController {
     constructor(private prismaService: PrismaService) {}
 
     @Get('/@me')
-    // @UseGuards(AuthGuard)
-    async retrieveSelfProfile() {
-      /*  const user = await this.prismaService.user.findFirst({
+    async retrieveSelfProfile(@Request() req: ExpressRequest) {
+        const user = await this.prismaService.user.findFirst({
             where: {
-                id: 1,
+                id: parseInt(req.user!.sub),
             },
-        })
+            select: {
+                id: true,
+                pseudo: true,
+                avatar: true,
+                email: true,
+            },
+        });
 
-        return {
-            user,
-        };*/
-        return {
-            firstName: 'Jack',
-            lastName: 'Daniels',
-            avatar: 'non',
-        };
+        return user;
     }
 }

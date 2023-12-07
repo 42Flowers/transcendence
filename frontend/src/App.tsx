@@ -10,14 +10,7 @@ import { PerfectProvider } from './contexts/PerfectContext';
 
 import { SnackbarProvider } from 'notistack';
 import './App.css';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 10000,
-    },
-  },
-});
+import { queryClient } from './query-client';
 
 const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>

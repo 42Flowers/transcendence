@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { SocketGateway } from './socket.gateway';
 import { SocketService } from './socket.service';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { Module } from '@nestjs/common';
 
 @Module({
 	providers: [SocketService, SocketGateway],

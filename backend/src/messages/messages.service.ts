@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class MessagesService {
@@ -38,14 +38,14 @@ export class MessagesService {
 		}
 	}
 
-	async newChannelMessage(user: any, channelId: number, message: any) : Promise<any> {
+	async newChannelMessage(userId: number, channelId: number, message: any) : Promise<any> {
 		try {
 			const channel = await this.prismaService.channel.findUnique({
 				where: 
 				{id : channelId}});
 			if (channel != null){
 				return await this.prismaService.message.create({data: {
-					authorId: user.id,
+					authorId: userId,
 					content: message,
 					channelId: channel.id
 				}})
@@ -57,13 +57,14 @@ export class MessagesService {
 
 	async newPrivateMessage(userId: number, conversationId: number, message: string) : Promise<any> {
 		try {
-			return await this.prismaService.privateMessage.create({
+			const msg =  await this.prismaService.privateMessage.create({
 				data: {
 					authorId: userId,
 					content: message,
 					conversationId: conversationId
 				}
 			});
+			return msg;
 		} catch (err) {
 			throw new Error(err.message);
 		}

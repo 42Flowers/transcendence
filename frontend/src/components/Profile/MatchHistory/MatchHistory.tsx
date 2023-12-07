@@ -1,8 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, useContext } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { PerfectContext } from '../../../contexts/PerfectContext';
 import { PerfectContextType } from '../Profile';
+
+import default_avatar from "../../../assets/images/default_avatar.png";
 
 import { 
     Table, 
@@ -15,30 +17,68 @@ import {
 import './MatchHistory.css';
 
 import AvatarOthers from '../../AvatarOthers/AvatarOthers';
+import { fetchMatchHistory } from '../../../api';
+import { useQuery } from 'react-query';
 
-const MatchHistory: React.FC = () => {
-    const [matchHistory, setMatchHistory] = useState([]);
+interface Game {
+    game: {
+        id: number;
+        createdAt: string;
+        score1: number;
+        score2: number;
+        winnerId: number;
+    };
+    opponent: {
+        id: number;
+        pseudo: string;
+        avatar: string | null;
+    };
+}
+
+type MatchHistoryProps = {
+    userId: number;
+    auth: number;
+}
+
+const MatchHistory: React.FC<MatchHistoryProps> = ({ userId, auth }) => {
+    const [matchHistory, setMatchHistory] = useState<Game[]>([]);
     const { setPerfectWin, setPerfectLose } = useContext(PerfectContext) as PerfectContextType;
-
-
-    const { userId } = useParams();
-
+    
     useEffect(() => {
-        fetch(`http://localhost:3000/api/profile/${userId}/matchhistory`)
-            .then(response => response.json())
-            .then(data => {
-                setMatchHistory(data);
-                data.map(game => {
-                    if ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10)) {
-                        if (userId == game.game.winnerId) {
-                            setPerfectWin(true);
-                        } else {
-                            setPerfectLose(true);
+        if (userId !== auth) {
+            fetch(`http://localhost:3000/api/profile/${userId}/matchhistory`)
+                .then(response => response.json())
+                .then((data: Game[]) => {
+                    setMatchHistory(data);
+                    data.map(game => {
+                        if ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10)) {
+                            if (Number(userId) === game.game.winnerId) {
+                                setPerfectWin(true);
+                            } else {
+                                setPerfectLose(true);
+                            }
                         }
+                    });
+                })
+            }
+    }, [userId, auth]);
+ 
+
+    const q = useQuery([ 'match history', userId ], fetchMatchHistory, {
+        enabled: userId === auth,
+        onSuccess(data) {
+            setMatchHistory(data);
+            data.forEach(game => {
+                if ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10)) {
+                    if (userId === game.game.winnerId) {
+                        setPerfectWin(true);
+                    } else {
+                        setPerfectLose(true);
                     }
-                });
-            })
-    }, [userId])
+                }
+            });
+        },
+    });
 
     return (
         <div className="matchHistory">
@@ -56,7 +96,7 @@ const MatchHistory: React.FC = () => {
                                     display: 'table',
                                     width: '100%',
                                     tableLayout: 'fixed',
-                                    backgroundColor: row.game.winnerId == userId ? '#85DE89' : '#DE8585'
+                                    backgroundColor: row.game.winnerId === Number(userId) ? '#85DE89' : '#DE8585'
                                 }}
                             >
                                 <TableCell id="cell-scored-mh">
@@ -73,7 +113,11 @@ const MatchHistory: React.FC = () => {
                                 </TableCell>
                                 <TableCell id="cell-status-mh">
                                     <div className='cell-status-div-mh'>
-                                        <AvatarOthers status="Online" />
+                                        {row.opponent.avatar ?
+                                            <AvatarOthers status="Online" avatar={`http://localhost:3000/static/${row.opponent.avatar}`} userId={row.opponent.id} />
+                                            :
+                                            <AvatarOthers status="Online" avatar={default_avatar} userId={row.opponent.id} />
+                                        }
                                     </div>
                                 </TableCell>
                                 <TableCell id="cell-date-mh">

@@ -1,18 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { IsNotEmpty, IsString } from 'class-validator';
-
-export class CreateUserAchievementDto {
-    userId: number;
-    achievementId: number;
-}
-
-export class ChangePseudoDto {
-    @IsNotEmpty()
-    @IsString()
-    pseudo: string
-}
+import { ChangePseudoDto, CreateUserAchievementDto } from './profile.dto';
 
 export class ChangeIsPopupShown {
     isShown: boolean
@@ -39,6 +28,9 @@ export class ProfileService {
                 game: {
                     select: {
                         winnerId: true,
+                        looserId: true,
+                        score1: true,
+                        score2: true,
                         createdAt: true,
                     }
                 }
@@ -72,22 +64,22 @@ export class ProfileService {
         };
     }
 
-    async addAchievementToUser(dto: CreateUserAchievementDto): Promise<any> {
+    async addAchievementToUser(dto: CreateUserAchievementDto, userId: number): Promise<any> {
         const existingUserAchievement = await this.prisma.userAchievement.findFirst({
             where: {
-                userId: dto.userId,
+                userId: userId,
                 achievementId: dto.achievementId
             }
         });
         if (existingUserAchievement) {
-            throw new Error('Already connected');
+            throw new BadRequestException('Already connected');
         }
 
         const newUserAchievement = await this.prisma.userAchievement.create({
             data: {
                 user: {
                     connect: {
-                        id: dto.userId
+                        id: userId
                     }
                 },
                 achievement: {
@@ -96,6 +88,9 @@ export class ProfileService {
                     }
                 }
             },
+            include: {
+                achievement: true,
+            }
         });
         return newUserAchievement;
     }
@@ -104,11 +99,21 @@ export class ProfileService {
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             data: { avatar: avatarPath },
+            include: {
+                
+            }
         });
-        return { "avatar": updatedUser.avatar};
+        return { "avatar": updatedUser.avatar };
     }
 
     async changePseudo(dto: ChangePseudoDto, userId: number): Promise<any> {
+        const existingUser = await this.prisma.user.findUnique({
+            where: { pseudo: dto.pseudo },
+        });
+        if (existingUser) {
+            throw new BadRequestException('Pseudo already exists');
+        }
+
         const updatedPseudo = await this.prisma.user.update({
             where: { id: userId },
             data: { pseudo: dto.pseudo },
@@ -122,7 +127,15 @@ export class ProfileService {
                 userId: userId,
             },
             include: {
-                game: true,
+                game: {
+                    select: {
+                        id: true,
+                        createdAt: true,
+                        score1: true,
+                        score2: true,
+                        winnerId: true,
+                    }
+                }
             },
         });
          
@@ -136,7 +149,13 @@ export class ProfileService {
                         },
                     },
                     include: {
-                        user: true,
+                        user: {
+                            select: {
+                                id: true,
+                                pseudo: true,
+                                avatar: true,
+                            }
+                        },
                     },
                 });
          

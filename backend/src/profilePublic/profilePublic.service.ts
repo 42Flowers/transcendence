@@ -13,6 +13,12 @@ export class ProfilePublicService {
     constructor(private prisma: PrismaService) {}
 
     async getProfileInfosPublic(userId: number): Promise<any> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new Error(`User with ID ${userId} not found`);
+        }
         const currentUser = await this.prisma.user.findUnique({
             where: { id: userId },
             select: {
@@ -61,6 +67,12 @@ export class ProfilePublicService {
     }
 
     async getMatchHistory(userId: number): Promise<any> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new Error(`User with ID ${userId} not found`);
+        }
         const gameParticipations = await this.prisma.gameParticipation.findMany({
             where: {
                 userId: userId,
@@ -109,6 +121,12 @@ export class ProfilePublicService {
     }
 
     async getStats(userId: number): Promise<any> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new Error(`User with ID ${userId} not found`);
+        }
         const gameParticipations = await this.prisma.gameParticipation.findMany({
             where: {
                 userId: userId,
@@ -121,6 +139,12 @@ export class ProfilePublicService {
     }
 
     async getAchievements(userId: number): Promise<any> {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new Error(`User with ID ${userId} not found`);
+        }
         const allAchievementsUnlocked = await this.prisma.userAchievement.findMany({
             where: {
                 userId: userId,

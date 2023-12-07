@@ -15,11 +15,9 @@ import PseudoButton from "./PseudoButton/PseudoButton";
 import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 
 import './Profile.css';
-import { PerfectContext } from "../../contexts/PerfectContext";
 import { useAuthContext } from "../../contexts/AuthContext";
-import { fetchAddAchievementToUser, fetchProfile, fetchAchievements, fetchAddAvatar, fetchChangePseudo } from "../../api";
+import { fetchAddAchievementToUser, fetchProfile, fetchAddAvatar, fetchChangePseudo } from "../../api";
 import { useMutation } from "react-query";
-import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 
 import { AxiosError } from 'axios';
 import { queryClient } from "../../query-client";
@@ -73,6 +71,9 @@ interface AchievementsListContextType {
 
 type gamesParticipated = {
     winnerId: number
+    looserId: number
+    score1: number
+    score2: number
     createdAt: Date
 };
    
@@ -108,7 +109,7 @@ const Profile: React.FC = () => {
     const { setAchievementsList } = useContext(AchievementsListContext) as AchievementsListContextType;
     const { pseudo, setPseudo } = useContext(PseudoContext) as PseudoContextType;
     const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
-    const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType; // TODO: voir avec Max
+    //const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType; // TODO: voir avec Max
 
     const gamesWonFunc = ( userId: number, games: Game[] ): number => {
         let gamesWon = 0;
@@ -118,6 +119,24 @@ const Profile: React.FC = () => {
             }
         });
         return gamesWon;
+    };
+
+    const gamesPerfectFunc = ( userId: number, games: Game[] ): string => {
+        let gamePerfect = 0;
+        let gameLooser = 0;
+        games.map(game => {
+            if (game.game.winnerId === userId && ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10))) {
+                gamePerfect++;
+            } else if (game.game.looserId === userId && ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10))) {
+                gameLooser++;
+            }
+        })
+        if (gamePerfect > 0) {
+            return 'Perfect';
+        } else if (gameLooser > 0) {
+            return 'Looser';
+        }
+        return '';
     };
 
     const showPopup = ( popup: string ) => {
@@ -233,20 +252,17 @@ const Profile: React.FC = () => {
                 if (greatLeader && data?.achievements['Great Leader'].users.length === 0 && data?.gamesParticipated.length > 0) {
                     handleAchievement('Great Leader');
                 }
-
-                // if (perfectWin && data?.achievements['Perfect win'].users.length === 0) {
-                //     handleAchievement('Perfect win');
-                // }
-                // if (perfectLose && data?.achievements['You\'re a looser'].users.length === 0) {
-                //     handleAchievement('You\'re a looser');
-                // }
-                //TODO: New level, Level 21, You like to talk?, Chatterbox
+                
+                const gamesPerfect = gamesPerfectFunc(auth.user.id, data?.gamesParticipated);
+                if (gamesPerfect === 'Perfect' && data?.achievements['Perfect win'].users.length === 0) {
+                    handleAchievement('Perfect win');
+                }
+                if (gamesPerfect === 'Looser' && data?.achievements['You\'re a looser'].users.length === 0) {
+                    handleAchievement('You\'re a looser');
+                }
             }
         };
-        // IF current user
         fetchData();
-        // ELSE IF other user
-        //fetchDataPublic
     }, [smallLeader, greatLeader]);
 
     const uploadAvatarMutation = useMutation({
@@ -337,11 +353,12 @@ const Profile: React.FC = () => {
                 {popupQueue.length > 0 && <PopUp userId={Number(auth.user?.id)} infos={profileInfos?.achievements[popupQueue[0]]} onClose={closePopup}/>}
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
                 <PseudoButton handleChangePseudo={handleChangePseudo} />
-                <Switch2FA />
+                <div style={{ marginTop: '1em' }}>
+                    <Switch2FA />
+                </div>
         {/* ELSE */}
             {/* Add friend, block, unblock */}
         {/* ENDIF */}
-                <FriendChoiceButtons  userId={Number(auth.user?.id)} /*friendId={friendId} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />

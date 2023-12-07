@@ -13,7 +13,6 @@ interface wrapperProps {
 interface playersData {
 	left: {
 		pseudo: string,
-		avatar?: string,
 	},
 	right: {
 		pseudo: string,
@@ -34,7 +33,7 @@ const GameWrapper: React.FC<wrapperProps> = (props) => {
 		return () => {
 			SocketState.socket?.off("playerData", displayPlayerData);
 		}
-	}, [SocketState.socket, displayPlayerData]);
+	}, [SocketState.socket]);
 
 	return (
 		<div className="game-wrapper">

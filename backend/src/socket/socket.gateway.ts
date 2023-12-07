@@ -11,20 +11,21 @@ import {
 } from "@nestjs/websockets";
 import { Injectable } from "@nestjs/common";
 import { SocketService } from "./socket.service";
-import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
-import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
-import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
-import { ChatUserBlockEvent } from "src/events/chat/userBlock.event";
-import { ChatUserUnBlockEvent } from "src/events/chat/userUnBlock.event";
-import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
-import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
-import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
 import { GameKeyUpEvent } from "src/events/game/keyUp.event";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { GameKeyDownEvent } from "src/events/game/keyDown.event";
+import { ChatUserBlockEvent } from "src/events/chat/userBlock.event";
+import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
+import { ChatUserUnBlockEvent } from "src/events/chat/userUnBlock.event";
+import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
+import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
+import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
+import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
 import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.event";
 import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
 import { UserPayload } from "src/auth/user.payload";
 import { JwtService } from "@nestjs/jwt";
+import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -98,6 +99,10 @@ export class SocketGateway implements
 		});
 	}
 
+	/**
+	 * 
+	 * TODO Faire que ces deux fonctions renvoient le même format au front
+	 */
 	@OnEvent('chat.sendprivatemessage')
 	sendPrivateMessage(event: ChatSendPrivateMessageEvent) {
 		this.server.to(event.conversationName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
@@ -107,36 +112,68 @@ export class SocketGateway implements
 	sendChannelMessage(event: ChatSendChannelMessageEvent) {
 		this.server.to(event.channelName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
 	}
+
+	@OnEvent('chat.sendtochannel')
+	sendToChannel(event: ChatSendToChannelEvent) {
+		console.log(event);
+		this.server.to(event.channelName).emit('info', {type: event.type, message: event.message});
+	}
 	// CHAT EVENTS
 	
 	@SubscribeMessage('blockuser')
 	handleBlockUser(
 		@MessageBody() data: {userId: number, targetId: number}
 	) {
-		this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(data.userId, data.targetId));
+		try {
+			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(data.userId, data.targetId));
+		} catch (error) {
+			console.log(error.message);
+		}
 	}
 
 	@SubscribeMessage('unblockuser')
 	handleUnBlockUser(
 		@MessageBody() data: {userId: number, targetId: number}
 	) {
-		this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(data.userId, data.targetId));
+		try {
+			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(data.userId, data.targetId));
+		} catch (error) {
+			console.log(error.message);
+		}
 	}
 
 	@SubscribeMessage('privatemessage')
 	handlePrivateMessage(
-		@MessageBody('') data: {userId: number, type: string, to: string, channelId: number, message: string, options: string},
+		@MessageBody() data: {userId: number, targetId: number, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
-		this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.type, data.to, data.channelId, data.message, data.options));
+		try {
+			console.log(data);
+			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message));
+		} catch (error) {
+			console.log(error.message);
+		}
 	}
 
 	@SubscribeMessage('channelmessage')
 	handleChannelMessage(
-		@MessageBody('') data: {userId: number, type: string, to: string, channelId: number, message: string, options: string},
+		@MessageBody('') data: {userId: number, channelId: number, channelName: string, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
-		this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.type, data.to, data.channelId, data.message, data.options));
+		console.log("arrive", client.id);
+		try {
+			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.channelId, data.channelName, data.message));
+		} catch(error) {
+			console.log(error.message);
+		}
+	}
+
+	@SubscribeMessage('channelmanage')
+	handleMuteOnChannel(
+		@MessageBody('') data: {userId: number, type: string, channelName: string, channelId: number, options: any},
+		@ConnectedSocket() client: Socket	
+	) {
+		
 	}
 
 	// @SubscribeMessage('room')

@@ -1,6 +1,7 @@
 import './FriendItem.css';
 import MainButton from '../MainButton/MainButton'
 import AvatarOthers from '../AvatarOthers/AvatarOthers';
+import default_avatar from '../../assets/images/default_avatar.png'
 
 const SENDER = 0;
 const RECEIVER = 1;
@@ -18,15 +19,16 @@ interface FriendElem {
 
 interface Props {
 	userId: number;
-	avatar: string;
 	friendName: string;
 	status: number;
+	avatar: string;
 	friendId: number;
 	parentRerender: (data: FriendElem[] | null) => void;
 }
 
 const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friendId, parentRerender}) => {
 
+	console.log("Hey", userId, friendId);
 	const handleUnblock = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/unblock/${friendId}`, {
 			method: 'POST',
@@ -100,11 +102,18 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online' avatar={avatar} userId={userId}/>
+						{ 
+							avatar ?
+								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+							:
+								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+						}
 						<p>{friendName}</p>
-						<MainButton buttonName='Play' />
-						<MainButton buttonName='MSG' />
-						<MainButton buttonName='Block' onClick={() => handleBlock()} />
+					</div>
+					<div className='buttons'>
+							<MainButton buttonName='Play' />
+							<MainButton buttonName='MSG' />
+							<MainButton buttonName='Block' onClick={() => handleBlock()} />
 					</div>
 				</div>
 			</div>
@@ -116,8 +125,15 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Offline' avatar={avatar} userId={userId}/>
+					{ 
+							avatar ?
+								<AvatarOthers status="Offline" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+							:
+								<AvatarOthers status="Offline" avatar={default_avatar} userId={friendId} />
+						}
 						<p>{friendName}</p>
+					</div>
+					<div className='buttons'>
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
 						<MainButton buttonName='Delete' onClick={() => handleDelete()} />
 					</div>
@@ -131,8 +147,15 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online' avatar={avatar} userId={userId}/>
+					{ 
+							avatar ?
+								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+							:
+								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+						}
 						<p>{friendName}</p>
+					</div>
+					<div className='buttons'>
 						<MainButton buttonName='Cancel' onClick={() => handleCancel()} />
 					</div>
 				</div>
@@ -145,8 +168,15 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						<AvatarOthers status='Online' avatar={avatar} userId={userId}/>
+						{ 
+							avatar ?
+								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+							:
+								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+						}
 						<p>{friendName}</p>
+					</div>
+					<div className='buttons'>
 						<MainButton buttonName='Accept' onClick={() => handleAccept()} />
 						<MainButton buttonName='Decline'onClick={() => handleDecline()}  />
 					</div>

@@ -1,6 +1,6 @@
+import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 type ConnectedUsers = {
 	[k: number]: Socket[];

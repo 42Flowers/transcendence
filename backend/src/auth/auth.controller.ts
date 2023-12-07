@@ -1,11 +1,12 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiProperty, ApiTags } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length } from 'class-validator';
 import { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/register.dto';
 import { TicketGuard } from './ticket.guard';
 import { TicketPayload } from './ticket.service';
+import { AuthGuard } from './auth.guard';
 
 export enum AuthorizationProviderType {
     FortyTwo = 'ft',
@@ -41,18 +42,13 @@ export class VerifyOtpDto {
     code: string;
 }
 
-export class VerifyEmailDto {
-    @IsString()
-    ticket: string;
-
+export class UpdateMfaDto {
     @Length(6, 6)
     @IsNumberString()
     code: string;
-}
 
-export class SendVerificationMailDto {
-    @IsString()
-    ticket: string;
+    @IsBoolean()
+    state: boolean;
 }
 
 @Controller({
@@ -83,7 +79,8 @@ export class AuthController {
             throw new BadRequestException();
         try {
             const token = await this.authService.authorizeCodeFortyTwo(code);
-            return { token };
+            
+            return token;
         } catch {
             throw new ForbiddenException();
         }
@@ -109,9 +106,40 @@ export class AuthController {
     }
 
     @Post('/register')
-    /* TODO return 201 created */
     async registerUser(@Body() payload: UserRegisterDto) {
         return await this.authService.registerUser(payload);
+    }
+
+    @Post('/mfa/generate')
+    @UseGuards(AuthGuard)
+    async generateSecretKey(@Request() req: ExpressRequest) {
+        const userId = Number(req.user.sub);
+        const mfa = await this.authService.generateSecretKey(userId);
+
+        return mfa;
+    }
+
+    @Patch('/mfa')
+    @UseGuards(AuthGuard)
+    async patchMfaState(
+        @Request() req: ExpressRequest,
+        @Body() { code, state }: UpdateMfaDto) {
+
+        const userId = Number(req.user.sub);
+        await this.authService.updateMfa(userId, state, code);
+    }
+
+    @Get('/mfa/status')
+    @UseGuards(AuthGuard)
+    async getMfaStatus(
+        @Request() req: ExpressRequest
+    ) {
+        const userId = Number(req.user.sub);
+        const status = await this.authService.getMfaStatus(userId);
+
+        return {
+            status,
+        };
     }
 }
 

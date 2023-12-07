@@ -28,6 +28,9 @@ export class ProfileService {
                 game: {
                     select: {
                         winnerId: true,
+                        looserId: true,
+                        score1: true,
+                        score2: true,
                         createdAt: true,
                     }
                 }

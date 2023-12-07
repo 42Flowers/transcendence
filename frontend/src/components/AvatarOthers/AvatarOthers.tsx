@@ -2,7 +2,7 @@ import * as React from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import Badge from '@mui/material/Badge';
 import Avatar from '@mui/material/Avatar';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+// import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { Box } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 
@@ -27,8 +27,8 @@ const AvatarOthers: React.FC<Props> = ({ status, avatar, userId }) => {
             return { statusColor: '#cc0000', statusImage: null, };
         } else if (status === 'Playing') {
             return { statusColor: '#ff8000', statusImage: null, };
-        } else if (status === 'Add') {
-            return { statusColor: '#fff', statusImage: <PersonAddIcon style={{ height: '10px', width: '10px' }}/>, };
+        // } else if (status === 'Add') {
+        //     return { statusColor: '#fff', statusImage: <PersonAddIcon style={{ height: '10px', width: '10px' }}/>, };
         }
         else {
             return { statusColor: '#0000ff', statusImage: null, };

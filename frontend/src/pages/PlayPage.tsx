@@ -1,7 +1,6 @@
 import "./PlayPage.css";
 import MainButton from "../components/MainButton/MainButton";
-import { useNavigate } from "react-router-dom";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import SocketContext from "../components/Socket/Context/Context";
 import { useQuery } from "react-query";
 import { fetchAvailableUsers } from "../api";
@@ -43,6 +42,7 @@ const PlayPage: React.FC = () => {
     const [selectedUserIdSpecial, setSelectedUserSpecial] = useState<number | null>(null);
 
     const usersQuery = useQuery('available-users', fetchAvailableUsers);
+    console.log(usersQuery.data);
 
     const handleClick = (whichButton: string) => {
         if (whichButton === "random-normal") {
@@ -53,7 +53,6 @@ const PlayPage: React.FC = () => {
         else if (whichButton === "invite-normal")
         {
             SocketState.socket?.emit("inviteNormal", selectedUserIdNormal);
-            console.log("Invite Normal: ", selectedUserIdNormal);
             setWaiting(true);
             return ;
         }
@@ -65,7 +64,6 @@ const PlayPage: React.FC = () => {
         else if (whichButton === "invite-special")
         {
             SocketState.socket?.emit("inviteSpecial", selectedUserIdSpecial);
-            console.log("Invite Special: ", selectedUserIdSpecial);
             setWaiting(true);
             return ;
         }
@@ -74,7 +72,7 @@ const PlayPage: React.FC = () => {
     const handleNormalSelectedUser = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedUserNormal(Number(event.target.value));
     }
-    
+
     const handleSpecialSelectedUser = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedUserSpecial(Number(event.target.value));
     }

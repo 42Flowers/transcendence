@@ -8,6 +8,7 @@ import PopUpInvite from '../PopUpInvite/PopUpInvite.tsx';
 import './Navigation.css';
 import { useAuthContext } from "../../contexts/AuthContext";
 import SocketContext from "../Socket/Context/Context";
+import { Socket } from "socket.io-client";
 
 interface Props {
     // onRouteChange: (route: string) => void;
@@ -22,6 +23,7 @@ interface AvatarContextType {
 const Navigation: React.FC<Props> = ({ isSignedIn }) => {
     const navigate = useNavigate();
     const [avatarEl, setAvatarEl] = React.useState<HTMLDivElement | null>(null);
+    const [senderPseudo, setSenderPseudo] = useState<string>("");
     const { signOut } = useAuthContext();
     const { SocketState } = useContext(SocketContext);
 
@@ -34,10 +36,12 @@ const Navigation: React.FC<Props> = ({ isSignedIn }) => {
     }, []);
 
     useEffect(() => {
+        SocketState.socket?.on("showGameInvite", showPopup);
         SocketState.socket?.on("launchNormal", launchNormal);
         SocketState.socket?.on("launchSpecial", launchSpecial);
-
+        
         return () => {
+            SocketState.socket?.off("showGameInvite", showPopup);
             SocketState.socket?.off("launchNormal", launchNormal);
             SocketState.socket?.off("launchSpecial", launchSpecial);
         };
@@ -55,25 +59,18 @@ const Navigation: React.FC<Props> = ({ isSignedIn }) => {
         setAvatarEl(null);
     };
 
-    const showPopup = () => {
+    const showPopup = (pseudo: string) => {
         setPopup(true);
+        setSenderPseudo(pseudo);
     }
 
-    useEffect(() => {
-        // Lorsque event est reçu
-            // showPopup();
-            // récup le username de celui qui a envoyé l'invit
-    }, []);
-
     const onAccept = () => {
-        // TODO: 
-            // Here
+        SocketState.socket?.emit('joinInviteGame');
         setPopup(false);
     };
 
     const onDecline = () => {
-        // TODO: 
-            // Here
+        SocketState.socket?.emit('cancelGameSearch');
         setPopup(false);
     };
 
@@ -86,7 +83,7 @@ const Navigation: React.FC<Props> = ({ isSignedIn }) => {
         return (
             <>
                 <div className="overlay" style={{ display: popup ? 'block': 'none' }}></div>
-                { popup && <PopUpInvite userName="USERNAME" onAccept={onAccept} onDecline={onDecline} />}
+                { popup && <PopUpInvite userName={senderPseudo} onAccept={onAccept} onDecline={onDecline} />}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" style={{padding: '5px'}}>
                     <p onClick={() => navigate('/')} className="logo">
                         PONG

@@ -10,6 +10,7 @@ import { GameKeyDownEvent } from 'src/events/game/keyDown.event';
 import { GameKeyUpEvent } from 'src/events/game/keyUp.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SocketGateway } from 'src/socket/socket.gateway';
+import { SocketService } from 'src/socket/socket.service';
 import { v4 as uuidv4 } from 'uuid';
 
 const SOCKET_NOT_FOUND = -1;
@@ -98,6 +99,7 @@ export class GameService {
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly eventEmitter: EventEmitter2,
+		private readonly socketService: SocketService,
 		private socketGateway: SocketGateway) {
 			this.randomGameList = [];
 			this.friendsGameList = [];
@@ -152,13 +154,22 @@ export class GameService {
 		}, REFRESH_RATE);
 	}
 
-	createInviteGame(socket: Socket, targetId: number, gameMode: number) {
+	async createInviteGame(socket: Socket, targetId: number, gameMode: number) {
 		if (this.isUserInGame(Number(socket.user.sub)) || this.isUserInGame(targetId))
 			return;
 
 		const roomName: string = uuidv4();
+		const userData = await this.prisma.user.findUnique({
+			where: {
+				id: Number(socket.user.sub),
+			},
+			select: {
+				pseudo: true,
+			}
+		});
 
-		this.eventEmitter.emit('game.joined',  Number(socket.id));
+		this.eventEmitter.emit('game.joined',  Number(socket.user.sub));
+		this.eventEmitter.emit('game.joined',  Number(targetId));
 		socket.join(roomName);
 		this.friendsGameList.push({
 			roomName: roomName,
@@ -206,7 +217,9 @@ export class GameService {
 					rightPadSpacebar: false,
 				}
 			}
+
 		});
+		this.socketService.emitToUserSockets(targetId, 'showGameInvite', userData.pseudo);
 	}
 
 	joinInviteGame(socket: Socket) {
@@ -215,7 +228,6 @@ export class GameService {
 
 			if (Number(socket.user.sub) == currGame.userIdRight) {
 				currGame.socketRight = socket;
-				this.eventEmitter.emit('game.joined',  Number(socket.id));
 				socket.join(currGame.roomName);
 				currGame.isFull = true;
 				currGame.isRunning = false;
@@ -242,7 +254,7 @@ export class GameService {
 					currGame.socketRight = socket;
 					currGame.userIdRight = Number(socket.user.sub);
 				}
-				this.eventEmitter.emit('game.joined',  Number(socket.id));
+				this.eventEmitter.emit('game.joined',  Number(socket.user.sub));
 				socket.join(currGame.roomName);
 				currGame.isFull = true;
 				currGame.isRunning = false;
@@ -251,7 +263,7 @@ export class GameService {
 		}
 		const roomName: string = uuidv4();
 
-		this.eventEmitter.emit('game.joined',  Number(socket.id));
+		this.eventEmitter.emit('game.joined',  Number(socket.user.sub));
 		socket.join(roomName);
 		this.randomGameList.push({
 			roomName: roomName,
@@ -314,14 +326,14 @@ export class GameService {
 				currGame.socketLeft = null;
 				currGame.isFull = false;
 				currGame.userIdLeft = null;
-				this.eventEmitter.emit('game.leaved',  Number(socket.id));
+				this.eventEmitter.emit('game.leaved',  Number(socket.user.sub));
 			}
 			else if (currGame.socketRight && currGame.socketRight.id === socket.id) {
 				currGame.socketRight.leave(currGame.roomName);
 				currGame.socketRight = null;
 				currGame.isFull = false;
 				currGame.userIdRight = null;
-				this.eventEmitter.emit('game.leaved',  Number(socket.id));
+				this.eventEmitter.emit('game.leaved',  Number(socket.user.sub));
 			}
 
 			if (!currGame.socketLeft && !currGame.socketRight)
@@ -338,18 +350,22 @@ export class GameService {
 				currGame.socketLeft = null;
 				currGame.isFull = false;
 				currGame.userIdLeft = null;
-				this.eventEmitter.emit('game.leaved',  Number(socket.id));
+				this.eventEmitter.emit('game.leaved',  Number(socket.user.sub));
+				if (currGame.userIdRight)
+					this.eventEmitter.emit('game.leaved', currGame.userIdRight);
 			}
 			else if (currGame.socketRight && currGame.socketRight.id === socket.id) {
 				currGame.socketRight.leave(currGame.roomName);
 				currGame.socketRight = null;
 				currGame.isFull = false;
 				currGame.userIdRight = null;
-				this.eventEmitter.emit('game.leaved',  Number(socket.id));
+				this.eventEmitter.emit('game.leaved',  Number(socket.user.sub));
+				if (currGame.userIdLeft)
+					this.eventEmitter.emit('game.leaved', currGame.userIdLeft);
 			}
 
 			if (!currGame.socketLeft && !currGame.socketRight)
-				this.randomGameList.splice(i, 1);
+				this.friendsGameList.splice(i, 1);
 		}
 	}
 
@@ -472,10 +488,12 @@ export class GameService {
 				continue;
 
 			if (this.checkGameFinished(currGame)) {
-				this.eventEmitter.emit('game.leaved',  Number(currGame.socketLeft.id));
-				this.eventEmitter.emit('game.leaved',  Number(currGame.socketRight.id));
-				currGame.socketLeft.leave(currGame.roomName);
-				currGame.socketRight.leave(currGame.roomName);
+				this.eventEmitter.emit('game.leaved',  currGame.userIdLeft);
+				this.eventEmitter.emit('game.leaved',  currGame.userIdRight);
+				if (currGame.socketLeft)
+					currGame.socketLeft.leave(currGame.roomName);
+				if (currGame.socketRight)
+					currGame.socketRight.leave(currGame.roomName);
 				this.randomGameList.splice(i, 1)
 				return;
 			}
@@ -519,11 +537,13 @@ export class GameService {
 				continue;
 
 			if (this.checkGameFinished(currGame)) {
-				this.eventEmitter.emit('game.leaved',  Number(currGame.socketLeft.id));
-				this.eventEmitter.emit('game.leaved',  Number(currGame.socketRight.id));
-				currGame.socketLeft.leave(currGame.roomName);
-				currGame.socketRight.leave(currGame.roomName);
-				this.randomGameList.splice(i, 1)
+				this.eventEmitter.emit('game.leaved',  currGame.userIdLeft);
+				this.eventEmitter.emit('game.leaved',  currGame.userIdRight);
+				if (currGame.socketLeft)
+					currGame.socketLeft.leave(currGame.roomName);
+				if (currGame.socketRight)
+					currGame.socketRight.leave(currGame.roomName);
+				this.friendsGameList.splice(i, 1)
 				return;
 			}
 	

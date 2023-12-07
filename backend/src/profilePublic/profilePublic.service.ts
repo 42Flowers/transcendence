@@ -370,17 +370,37 @@ export class ProfilePublicService {
         });
         if (!uniqueBlock) {
           if (friendshipUserToFriend && friendshipUserToFriend.status !== 3) {
-            await this.prisma.friendship.update({
-              where: {
-                userId_friendId: {
-                  userId: userId,
-                  friendId: friendId,
+            if (friendshipUserToFriend && friendshipUserToFriend.status === 2) {
+                await this.prisma.friendship.update({
+                  where: {
+                    userId_friendId: {
+                      userId: userId,
+                      friendId: friendId,
+                    },
+                  },
+                  data: {
+                    status: 3,
+                  },
+                });
+            }
+            else if (friendshipUserToFriend && (friendshipUserToFriend.status === 0 || friendshipUserToFriend.status === 1)) {
+              await this.prisma.friendship.delete({
+                where: {
+                  userId_friendId: {
+                    userId: userId,
+                    friendId: friendId,
+                  },
                 },
-              },
-              data: {
-                status: 3,
-              },
-            });
+              });
+              await this.prisma.friendship.delete({
+                where: {
+                  userId_friendId: {
+                    userId: friendId,
+                    friendId: userId,
+                  },
+                },
+              });
+            }
             await this.prisma.blocked.create({
               data: {
                 userId: userId,

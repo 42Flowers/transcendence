@@ -1,4 +1,3 @@
-// import React, { useEffect, useState } from 'react';
 import MainButton from '../../MainButton/MainButton';
 import './FriendChoiceButtons.css';
 import { useMutation, useQuery } from 'react-query';

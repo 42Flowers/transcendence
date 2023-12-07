@@ -13,6 +13,7 @@ export class FriendsController {
   ) {
     if (userId == friendId) {
       return null;
+      // return this.friendService.getFriendsList(userId);
     }
     try {
       return this.friendService.isBlockByOne(userId, friendId);
@@ -35,7 +36,8 @@ export class FriendsController {
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
     if (userId == friendId) {
-      return null;
+      // return null;
+      return this.friendService.getFriendsList(userId);
     }
     try {
       return this.friendService.unblockFriend(userId, friendId);
@@ -49,7 +51,8 @@ export class FriendsController {
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
     if (userId == friendId) {
-      return null;
+      // return null;
+      return this.friendService.getFriendsList(userId);
     }
     try {
       return this.friendService.blockFriend(userId, friendId);
@@ -63,7 +66,8 @@ export class FriendsController {
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
     if (userId == friendId) {
-      return null;
+      // return null;
+      return this.friendService.getFriendsList(userId);
     }
     try {
       return this.friendService.deleteFriend(userId, friendId);
@@ -77,7 +81,8 @@ export class FriendsController {
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
     if (userId == friendId) {
-      return null;
+      // return null;
+      return this.friendService.getFriendsList(userId);
     }
     try {
       return this.friendService.cancelFriend(userId, friendId);
@@ -91,10 +96,12 @@ export class FriendsController {
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
     if (userId == friendId) {
-      return null;
+      // return null;
+      return this.friendService.getFriendsList(userId);
     }
     if ((await this.isBlockByOne(userId, friendId)) == true) {
-      return null;
+      // return null;
+      return this.friendService.getFriendsList(userId);
     }
     try {
       return this.friendService.acceptFriend(userId, friendId);
@@ -108,7 +115,8 @@ export class FriendsController {
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
     if (userId == friendId) {
-      return null;
+      // return null;
+      return this.friendService.getFriendsList(userId);
     }
     try {
       return this.friendService.declineFriend(userId, friendId);

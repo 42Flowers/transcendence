@@ -73,16 +73,39 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 	}
 
 
+	// const handleAccept = () => {
+	// 	fetch(`http://localhost:3000/api/friends/${userId}/accept/${friendId}`, {
+	// 		method: 'POST',
+	// 	})
+	// 	.then(response => response.json())
+	// 	.then(data => parentRerender(data))
+	// 	.catch((error) => {
+	// 		console.error('Error:', error);
+	// 	});
+	// }
 	const handleAccept = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/accept/${friendId}`, {
 			method: 'POST',
 		})
-		.then(response => response.json())
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.text();
+		})
+		.then(data => {
+			if (data) {
+				return JSON.parse(data);
+			} else {
+				return {};
+			}
+		})
 		.then(data => parentRerender(data))
 		.catch((error) => {
 			console.error('Error:', error);
 		});
 	}
+	
 
 	const handleDecline = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/decline/${friendId}`, {
@@ -111,8 +134,9 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 					</div>
 					<div className='buttons'>
 							<MainButton buttonName='Play' />
-							<MainButton buttonName='MSG' />
+							{/* <MainButton buttonName='MSG' /> */}
 							<MainButton buttonName='Block' onClick={() => handleBlock()} />
+							<MainButton buttonName='Delete' onClick={() => handleDelete()} />
 					</div>
 				</div>
 			</div>
@@ -134,7 +158,7 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 					</div>
 					<div className='buttons'>
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
-						<MainButton buttonName='Delete' onClick={() => handleDelete()} />
+						{/* <MainButton buttonName='Delete' onClick={() => handleDelete()} /> */}
 					</div>
 				</div>
 			</div>

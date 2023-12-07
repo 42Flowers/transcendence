@@ -151,17 +151,37 @@ export class FriendsService {
     });
     if (!uniqueBlock) {
       if (friendshipUserToFriend && friendshipUserToFriend.status !== 3) {
-        await this.prisma.friendship.update({
-          where: {
-            userId_friendId: {
-              userId: userId,
-              friendId: friendId,
+        if (friendshipUserToFriend && friendshipUserToFriend.status === 2) {
+          await this.prisma.friendship.update({
+            where: {
+              userId_friendId: {
+                userId: userId,
+                friendId: friendId,
+              },
             },
-          },
-          data: {
-            status: 3,
-          },
-        });
+            data: {
+              status: 3,
+            },
+          });
+        } else if (
+          friendshipUserToFriend && (friendshipUserToFriend.status === 0 || friendshipUserToFriend.status === 1)) {
+          await this.prisma.friendship.delete({
+            where: {
+              userId_friendId: {
+                userId: userId,
+                friendId: friendId,
+              },
+            },
+          });
+          await this.prisma.friendship.delete({
+            where: {
+              userId_friendId: {
+                userId: friendId,
+                friendId: userId,
+              },
+            },
+          });
+        }
         await this.prisma.blocked.create({
           data: {
             userId: userId,
@@ -206,8 +226,7 @@ export class FriendsService {
         },
       },
     });
-
-    if (friendshipUserToFriend && friendshipFriendToUser) {
+    if ((friendshipUserToFriend.status === 2 || friendshipUserToFriend.status === 3) && (friendshipFriendToUser.status === 2 || friendshipFriendToUser.status === 3)) {
       await this.prisma.friendship.delete({
         where: {
           userId_friendId: {
@@ -313,10 +332,7 @@ export class FriendsService {
         status: true,
       },
     });
-    if (
-      friendshipUserToFriend.status == 1 &&
-      friendshipFriendToUser.status == 0
-    ) {
+    if (friendshipUserToFriend.status == 1 && friendshipFriendToUser.status == 0) {
       await this.prisma.friendship.update({
         where: {
           userId_friendId: {

@@ -98,13 +98,13 @@ export class ProfilePublicController {
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
         if (userId == friendId) {
-        return null;
+            return null;
         }
         if ((await this.isBlockByOne(userId, friendId)) == true) {
-        return null;
+            return null;
         }
         try {
-        return this.profilePublicService.addFriend(userId, friendId);
+            return this.profilePublicService.addFriend(userId, friendId);
         } catch (error) {
         throw new NotFoundException(error.message);
         }

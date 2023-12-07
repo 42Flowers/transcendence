@@ -22,7 +22,7 @@ function Match(property: string, validationOptions?: ValidationOptions) {
 export class UserRegisterDto {
     @ApiProperty()
     @Length(3, 32)
-    username: string;
+    pseudo: string;
 
     @ApiProperty()
     @IsEmail()

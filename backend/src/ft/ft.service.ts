@@ -41,7 +41,6 @@ export class FortyTwoService {
                 client_secret: this.configService.get('FT_APP_SECRET'),
                 code,
                 redirect_uri: 'http://localhost:5173/auth/callback',
-                // state: '',
             }).pipe(
                 catchError((error: AxiosError) => {
                     console.warn(error.message, error.response.status);
@@ -50,7 +49,6 @@ export class FortyTwoService {
                     throw 'An error happened';
                 })
             ));
-        console.log(data);
         return data;
     }
 

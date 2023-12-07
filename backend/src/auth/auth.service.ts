@@ -106,6 +106,14 @@ export class AuthService {
     }
 
     async loginWithPassword(email: string, password: string): Promise<Ticket | Token> {
+        const realm = this.realmRedirect(email);
+
+        if (null !== realm) {
+            throw new BadRequestException({
+                realm,
+            });
+        }
+
         const user = await this.prismaService.user.findUniqueOrThrow({
             where: {
                 email,
@@ -159,15 +167,52 @@ export class AuthService {
     }
 
     /**
+     * Checks if we should redirect the user to an external authentication service.
+     * @param email 
+     */
+    private realmRedirect(email: string): string {
+        const realmDomains = {
+            'ft': [
+                'intra.42.fr',
+                '42.fr',
+                '42lyon.fr',
+                'student.42lyon.fr',
+            ],
+        };
+
+        /* Retrieve the email domain */
+        const emailDomain = email.trim().split('@').at(-1);
+
+        for (const realm in realmDomains) {
+            for (const domain of realmDomains[realm]) {
+                if (domain === emailDomain) {
+                    /* Redirect to realm authentication page */
+                    return realm;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Registers a new user into the system.
      * @param payload 
      */
-    async registerUser({ username, email, password }: UserRegisterDto) {
+    async registerUser({ pseudo, email, password }: UserRegisterDto) {
+        const realm = this.realmRedirect(email);
+
+        if (null !== realm) {
+            throw new BadRequestException({
+                realm,
+            });
+        }
+        
         try {
             const user = await this.prismaService.user.create({
                 data: {
-                    email,
-                    pseudo: username,
+                    email: email.trim(),
+                    pseudo, /* TODO check pseudo for weird characters */
                     password: await bcrypt.hash(password, 10),
                 }
             });
@@ -179,9 +224,6 @@ export class AuthService {
                     /* Unique constraint violation (likely an already existing username or email) */
                     const { target } = e.meta;
                     let fieldName = target as string;
-
-                    if (target === 'pseudo')
-                        fieldName = 'username';
 
                     throw new BadRequestException({
                         statusCode: 400,

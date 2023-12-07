@@ -110,10 +110,10 @@ export class SocketService {
 
 			return users.map(({ id, pseudo }) => {
 				if (this.isUserInGame(id))
-					return [id, pseudo, 'ingame' ];
+					return [id, pseudo, 'ingame'];
 				if (id in this.connectedUsers)
 					return [id, pseudo,'online'];
-				return ['offline', id, pseudo];
+				return [id, pseudo, 'offline'];
 			});
 		} catch {
 			throw new ForbiddenException();

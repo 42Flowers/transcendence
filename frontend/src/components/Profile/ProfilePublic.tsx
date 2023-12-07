@@ -9,6 +9,8 @@ import { useAuthContext } from "../../contexts/AuthContext";
 import { useParams } from "react-router-dom";
 import AvatarOthers from "../AvatarOthers/AvatarOthers";
 import default_avatar from '../../assets/images/default_avatar.png';
+import { fetchAvailableUsers } from "../../api";
+import { useQuery } from "react-query";
 
 import './Profile.css';
 
@@ -75,8 +77,19 @@ const ProfilePublic: React.FC = () => {
     };
     const [profileInfos, setProfileInfos] = useState(null);
     const [error, setError] = useState<string | null>(null);
+    const [status, setStatus] = useState<string>('');
     const { userId } = useParams();
     const auth = useAuthContext();
+
+    const usersQuery = useQuery('available-users', fetchAvailableUsers, {
+        onSuccess: (data) => {
+            data.map(([ id, pseudo, status ]) => {
+                if (Number(userId) === id) {
+                    setStatus(status);
+                }
+            });
+        }
+    });
  
     useEffect(() => {
         const fetchData = async () => {
@@ -113,9 +126,9 @@ const ProfilePublic: React.FC = () => {
             <div className="Profile">
                 {/* <ChangeAvatar handleUploadAvatar={handleUploadAvatar} /> */}
                 {profileInfos?.avatar ?
-                    <AvatarOthers status="Online" avatar={`http://localhost:3000/static/${profileInfos.avatar}`} userId={profileInfos.id} />
+                    <AvatarOthers status={status} avatar={`http://localhost:3000/static/${profileInfos.avatar}`} userId={profileInfos.id} />
                     :
-                    <AvatarOthers status="Online" avatar={default_avatar} userId={profileInfos?.id} />
+                    <AvatarOthers status={status} avatar={default_avatar} userId={profileInfos?.id} />
                 }                
                 <p>{profileInfos?.pseudo}</p>
                 { Number(auth.user?.id) === Number(userId) ?

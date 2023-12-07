@@ -10,7 +10,7 @@ import { SocketGateway } from 'src/socket/socket.gateway';
 import { v4 as uuidv4 } from 'uuid';
 
 const SOCKET_NOT_FOUND = -1;
-const REFRESH_RATE = 16.66667; // in ms
+const REFRESH_RATE = 33.33333; // in ms
 
 const BOARD_WIDTH = 800; // in px
 const BOARD_HEIGHT = 600; // in px
@@ -19,10 +19,10 @@ const BALL_RADIUS = 15; // in px
 const GAME_MAX_GOAL = 2;
 const GAME_START_DELAY = 3200;
 
-const PADDLE_SPEED = 6;
+const PADDLE_SPEED = 8;
 const BALL_SPEED_Y = 5;
 const BALL_SPEED_X = 1;
-const BALL_SPEED_MOD = 2;
+const BALL_SPEED_MOD = 4;
 
 const NORMAL_MODE = 0;
 const SPECIAL_MODE = 1;

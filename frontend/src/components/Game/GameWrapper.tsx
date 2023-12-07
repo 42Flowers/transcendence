@@ -1,6 +1,7 @@
 import SocketContext from '../Socket/Context/Context';
+import React from 'react';
 import { useRef, useEffect, useContext, useCallback, useState } from 'react';
-import Game from './Game';
+const Game = React.lazy(() => import('./Game'));
 import "./GameWrapper.css"
 
 interface wrapperProps {
@@ -12,6 +13,7 @@ interface wrapperProps {
 interface playersData {
 	left: {
 		pseudo: string,
+		avatar?: string,
 	},
 	right: {
 		pseudo: string,

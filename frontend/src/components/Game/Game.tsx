@@ -1,6 +1,7 @@
 import './Game.css'
 import SocketContext from '../Socket/Context/Context';
 import { useRef, useEffect, useContext, useCallback } from 'react';
+import { ContactlessOutlined } from '@mui/icons-material';
 
 const BALL_DEFAULT_RADIUS = 15;
 
@@ -75,11 +76,12 @@ const Game: React.FC<gameProps> = (props) => {
 	
 	function clearBackground(ctx: CanvasRenderingContext2D): void {
 		const { width, height } = ctx.canvas;
-		ctx.rect(0, 0, width, height);
+		ctx.clearRect(0, 0, width, height);
+		//ctx.rect(0, 0, width, height);
 
-		const colorBlue = getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim();
-		ctx.fillStyle = colorBlue;
-		ctx.fill();
+		//const colorBlue = getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim();
+		//ctx.fillStyle = colorBlue;
+		//ctx.fill();
 	};
 	
 	function drawGame(ctx: CanvasRenderingContext2D): void {
@@ -234,8 +236,10 @@ const Game: React.FC<gameProps> = (props) => {
 		SocketState.socket?.on("updateScore", updateScore);
 		SocketState.socket?.on("updateGame", updateGame);
 		SocketState.socket?.on("shield", activateShield);
+		console.log("HEYYYY");
 		
 		return () => {
+			console.log("HEYYYY4");
 			SocketState.socket?.off("countdown", countdown);
 			SocketState.socket?.off("gameFinished", finishGame);
 			SocketState.socket?.off("updateScore", updateScore);
@@ -253,16 +257,21 @@ const Game: React.FC<gameProps> = (props) => {
 		const gameLoop = () => {
 
 			renderFrame(context, count);
+			console.log("HELLO1");
 
 			if (!gameEnd) {
 				window.requestAnimationFrame(gameLoop);
+				console.log("HELLO2");
 			}
 		};
 
 		let frameId = window.requestAnimationFrame(gameLoop);
+		console.log("HEY2");
 
 		return () => {
-			window.cancelAnimationFrame(frameId)
+			console.log("Hey3");
+			finishGame();
+			window.cancelAnimationFrame(frameId);
 			document.removeEventListener('keydown', handleKeyDown);
 			document.removeEventListener('keyup', handleKeyUp);
 		};

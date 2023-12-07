@@ -47,6 +47,7 @@ export class AuthService {
          * that we use to uniquely identify a user within the database.
          */
         const tokenInfo = await this.ft.fetchTokenInfo(credentials);
+        
         /**
          * Now we fetch or create the user record in the database
          */
@@ -56,8 +57,12 @@ export class AuthService {
                 accessToken: credentials.access_token,
                 user: {
                     create: {
-                        pseudo: 'nopseudo',
-                        email: 'noemail@example.com',
+                        /** Explicitly set this field to null to
+                         * indicate that the user has to complete his profile in order to gain access to the rest of the app.
+                        */
+                        pseudo: null,
+                        /* Here we put a dummy (but unique !) email address because we don't use it */
+                        email: `${tokenInfo.resource_owner_id}@intra.42.fr`,
                     }
                 }
             },

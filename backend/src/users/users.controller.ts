@@ -3,6 +3,7 @@ import { Request as ExpressRequest } from 'express';
 import { AuthGuard } from "src/auth/auth.guard";
 import { UsersService } from "./users.service";
 import { IsEmail, IsOptional, IsString, Length } from "class-validator";
+import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decorator";
 
 export class PatchProfileDto {
     @IsOptional()
@@ -24,6 +25,7 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
     @Get('/@me')
+    @AllowIncompleteProfile()
     async retrieveSelfProfile(@Request() req: ExpressRequest) {
         const userId = Number(req.user.sub);
         const userProfile = await this.usersService.retrieveUserProfile(userId);
@@ -49,6 +51,7 @@ export class UsersController {
     }
 
     @Patch('/@me')
+    @AllowIncompleteProfile()
     async patchSelfProfile(
         @Request() req: ExpressRequest,
         @Body() body: PatchProfileDto

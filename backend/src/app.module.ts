@@ -1,16 +1,17 @@
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { FriendsModule } from './friends/friends.module';
-import { ProfileModule } from './profile/profile.module';
-import { SocketModule } from './socket/socket.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { TestModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { GameModule } from './game/game.module';
-import { ChatModule } from './chat/chat.module';
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
+import { FriendsModule } from './friends/friends.module';
+import { GameModule } from './game/game.module';
+import { GlobalJwtModule } from './jwt/global-jwt.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { ProfileModule } from './profile/profile.module';
 import { ProfilePublicModule } from './profilePublic/profilePublic.module';
+import { SocketModule } from './socket/socket.module';
+import { TestModule } from './users/users.module';
+import { AchievementsModule } from './achievements/achievements.module';
 
 @Module({
   imports: [
@@ -18,19 +19,7 @@ import { ProfilePublicModule } from './profilePublic/profilePublic.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    {
-      ...JwtModule.registerAsync({
-      useFactory: (config: ConfigService) => ({
-          secret: config.getOrThrow<string>('JWT_SECRET'),
-          global: true,
-          signOptions: {
-
-          },
-      }),
-      inject: [ ConfigService ],
-    }),
-    global: true,
-  },
+    GlobalJwtModule,
     AuthModule,
     GameModule,
     SocketModule,
@@ -40,9 +29,7 @@ import { ProfilePublicModule } from './profilePublic/profilePublic.module';
     FriendsModule,
     TestModule,
     PrismaModule,
+    AchievementsModule,
   ],
-  controllers: [],
-  providers: [],
 })
-
 export class AppModule {}

@@ -1,7 +1,5 @@
-import * as React from 'react';
-
+import React from 'react';
 import Difficulty from './Difficulty/Difficulty';
-
 import './Achievement.css';
 
 interface Props {
@@ -19,9 +17,7 @@ const Achievement: React.FC<Props> = ({ name, description, difficulty }) => {
                 <Difficulty difficultyLevel={difficulty} />
             </div>
             <div className="achievement-description">
-                <p>
-                    {description}
-                </p>
+                <p>{description}</p>
             </div>
         </div>
     );

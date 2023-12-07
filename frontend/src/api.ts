@@ -6,6 +6,8 @@ export const client = axios.create({
     timeout: 5000,
 });
 
+export type UserID = number | '@me';
+
 export type AuthorizeCodeResponse = {
     token: string;
 };
@@ -92,20 +94,17 @@ export const fetchUserProfile = (profile: number | '@me') => wrapResponse(author
 
 export type PatchUserProfile = Partial<Exclude<UserProfile, 'id' | 'avatar'>>;
 
-export const patchUserProfile = (profile: '@me' | number, data: Partial<PatchUserProfile>) =>
+export const patchUserProfile = (profile: UserID, data: PatchUserProfile) =>
     wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
 
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
-export const fetchAchievements = () => wrapResponse(authorizedGet('/api/profile/achievements'));
 export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
 export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
 export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats'));
 export const fetchAddAchievementToUser = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-achievement-to-user', payload));
 export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-avatar', payload));
-export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('/api/profile/change-pseudo', payload));
 
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
-
 
 export const fetchIsFriended = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isFriended: boolean; }>(`/api/profile/${userId}/isFriendwith/${friendId}`));
 export const addUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`api/profile/${userId}/add/${friendId}`, ''));
@@ -117,3 +116,16 @@ export const unblockUser = (userId: number, friendId: number) => wrapResponse(au
 export const generateSecretKey = () => wrapResponse(authorizedPost('/api/v1/auth/mfa/generate', ''));
 export const updateMfaState = (state: boolean, code: string) => wrapResponse(authorizedPatch('/api/v1/auth/mfa', { state, code }));
 export const fetchMfaStatus = () => wrapResponse(authorizedGet<{ status: boolean; }>('/api/v1/auth/mfa/status'));
+
+/* ==== Achievements ==== */
+
+export interface Achievement {
+    id: number;
+    name: string;
+    description: string;
+    difficulty: number;
+    isHidden: boolean;
+    createdAt: Date;
+}
+
+export const fetchAchievements = (userId: UserID) => wrapResponse(authorizedGet<Achievement[]>(`/api/profile/${userId}/achievements`));

@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { UsernameUpdateEvent } from "src/events/username-update.event";
 import { PrismaService } from "src/prisma/prisma.service";
 
 export type PartialUserProfile = {
@@ -9,7 +11,8 @@ export type PartialUserProfile = {
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly prismaService: PrismaService) {}
+    constructor(private readonly prismaService: PrismaService,
+                private readonly eventEmitter: EventEmitter2) {}
 
     async retrieveUserProfile(userId: number) {
         try {
@@ -34,6 +37,12 @@ export class UsersService {
 
     async patchUserProfile(userId: number, profile: PartialUserProfile) {
         try {
+            const currentProfile = await this.prismaService.user.findUniqueOrThrow({
+                where: {
+                    id: userId,
+                },
+            });
+
             const userProfile = await this.prismaService.user.update({
                 where: {
                     id: userId,
@@ -47,10 +56,17 @@ export class UsersService {
                 },
             });
 
+            if (currentProfile.pseudo !== userProfile.pseudo) {
+                this.eventEmitter.emit('username.update', new UsernameUpdateEvent(
+                    userId,
+                    currentProfile.pseudo,
+                    userProfile.pseudo,
+                ));
+            }
+
             return userProfile;
         } catch (e) {
             if (e instanceof PrismaClientKnownRequestError) {
-                console.log(e);
                 if (e.code === 'P2002') {
                     /* Unique constraint violation */
                     if (e.meta?.target?.[0] === 'pseudo') {

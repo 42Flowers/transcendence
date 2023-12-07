@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Post, Param, Body, Request, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Request, UploadedFile, BadRequestException, UseGuards, ParseIntPipe, NotFoundException } from '@nestjs/common';
 import { UseInterceptors, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfileService } from './profile.service';
@@ -11,12 +11,14 @@ import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import sizeOf from 'image-size';
+import { AchievementsService } from 'src/achievements/achievements.service';
 
 @Controller('profile')
 @UseGuards(AuthGuard)
 export class ProfileController {
     constructor( 
-        private readonly profileService: ProfileService
+        private readonly profileService: ProfileService,
+        private readonly achievementsService: AchievementsService
     ) {}
 
     @Get('/ladder')
@@ -32,16 +34,6 @@ export class ProfileController {
     @Get()
     async getProfileInfos(@Request() req: ExpressRequest) {
         return this.profileService.getProfileInfos(Number(req.user.sub)); // TODO: await ??
-    }
-
-    @Post('change-pseudo')
-    async changePseudo(@Body() dto: ChangePseudoDto, @Request() req: ExpressRequest): Promise<any> {
-        return await this.profileService.changePseudo(dto, Number(req.user.sub));
-    }
-
-    @Post('add-achievement-to-user')
-    async addAchievementToUser(@Body() dto: CreateUserAchievementDto, @Request() req: ExpressRequest): Promise<any> {
-        return this.profileService.addAchievementToUser(dto, Number(req.user.sub));
     }
 
     @Post('add-avatar')
@@ -103,8 +95,33 @@ export class ProfileController {
         return this.profileService.getStats(Number(req.user.sub));
     }
 
-    @Get('achievements')
-    async getAchievements(@Request() req: ExpressRequest): Promise<any> {
-        return this.profileService.getAchievements(Number(req.user.sub));
+    @Get('/@me/achievements')
+    async retrieveAchievementsForCurrentUser(
+        @Request() req: ExpressRequest
+    ) {
+        const userId = req.user.id;
+
+        try {
+            const achievements = await this.achievementsService.listAchievements(userId);
+
+            return achievements;
+        } catch {
+            throw new NotFoundException();
+        }
+    }
+
+    /* TODO add id validation pipe even if it is catched and returned as a 404 */
+
+    @Get('/:id/achievements')
+    async getAchievements(
+        @Param('id', ParseIntPipe) userId: number): Promise<any> {
+        
+        try {
+            const achievements = await this.achievementsService.listAchievements(userId);
+
+            return achievements;
+        } catch {
+            throw new NotFoundException();
+        }
     }
 }

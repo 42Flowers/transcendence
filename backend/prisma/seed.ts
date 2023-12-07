@@ -1,10 +1,22 @@
 /* eslint-disable prettier/prettier */
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { hashSync } from 'bcrypt';
+const achievements: AchievementEntry[] = require('../achievements.json');
+
+type AchievementEntry = {
+  name: string;
+  description: string;
+  slug: string;
+  difficulty: number;
+}
 
 // initialize Prisma Client
 const prisma = new PrismaClient();
+
+async function populateAchievements() {
+  return Promise.all(achievements.map(data => prisma.achievement.create({ data })));
+}
 
 async function main() {
   await prisma.message.deleteMany();
@@ -87,160 +99,9 @@ async function main() {
         emailVerified: false,
       },
     });
+ 
+    await populateAchievements();
 
-    // create achievements
-    const ach1 = await prisma.achievement.create({
-      data: {
-        name: "Newwww Avatar",
-        description: "Congrats, you've just changed you're avatar for the very first time!",
-        difficulty: 1
-      },
-    });
-  
-    const ach2 = await prisma.achievement.create({
-      data: {
-        name: "Newwww Pseudo",
-        description: "Congrats, you've just changed you're pseudo for the very first time!",
-        difficulty: 1,
-      },
-    });
-
-    const ach3 = await prisma.achievement.create({
-      data: {
-        name: "First Game",
-        description: "It's you're first game ever!",
-        difficulty: 1
-      },
-    });
-
-    const ach4 = await prisma.achievement.create({
-      data: {
-        name: "You're getting used to Pong",
-        description: "It's you're 10th game participation!",
-        difficulty: 2
-      },
-    });
-
-    const ach5 = await prisma.achievement.create({
-      data: {
-        name: "You're playing a lot",
-        description: "It's you're 100th game participation!",
-        difficulty: 3
-      },
-    });
-
-    const ach6 = await prisma.achievement.create({
-        data: {
-          name: "3",
-          description: "3 wins in a row",
-          difficulty: 2,
-        },
-      });
-
-    const ach7 = await prisma.achievement.create({
-        data: {
-          name: "3 total",
-          description: "3 wins in total",
-          difficulty: 1,
-        },
-      });
-
-    const ach8 = await prisma.achievement.create({
-        data: {
-          name: "10",
-          description: "10 wins in a row",
-          difficulty: 2,
-        },
-      });
-
-    const ach9 = await prisma.achievement.create({
-        data: {
-          name: "10 total",
-          description: "10 wins in total",
-          difficulty: 2,
-        },
-      });
-
-    const ach10 = await prisma.achievement.create({
-        data: {
-          name: "100",
-          description: "100 wins in a row",
-          difficulty: 3,
-        },
-      });
-
-    const ach11 = await prisma.achievement.create({
-        data: {
-          name: "100 total",
-          description: "10 wins in total",
-          difficulty: 3,
-        },
-      });
-
-    const ach12 = await prisma.achievement.create({
-        data: {
-          name: "Small Leader",
-          description: "You're the leader of a league that contains at least 3 participants",
-          difficulty: 2,
-        },
-      });
-
-    const ach13 = await prisma.achievement.create({
-        data: {
-          name: "Great Leader",
-          description: "You're the leader of a league that contains at least 10 participants",
-          difficulty: 3,
-        },
-      });
-
-    const ach14 = await prisma.achievement.create({
-        data: {
-          name: "Perfect win",
-          description: "You won 10-0",
-          difficulty: 2,
-        },
-      });
-
-    const ach15 = await prisma.achievement.create({
-        data: {
-          name: "You're a looser",
-          description: "You lost 10-0",
-          difficulty: 2,
-        },
-      });
-
-    const ach16 = await prisma.achievement.create({
-        data: {
-          name: "New level",
-          description: "You reached level 1!",
-          difficulty: 1,
-        },
-      });
-
-    const ach17 = await prisma.achievement.create({
-        data: {
-          name: "Level 21",
-          description: "You reached level 21! You're such a good player, I've never seen that before.",
-          difficulty: 3,
-        },
-      });
-
-    const ach18 = await prisma.achievement.create({
-        data: {
-          name: "You like to talk?",
-          description: "You've already sent 10 messages.",
-          difficulty: 1,
-        },
-      });
-
-    const ach19 = await prisma.achievement.create({
-        data: {
-          name: "Chatterbox",
-          description: "You can't stop talking! It's you're 100th message!",
-          difficulty: 2,
-        },
-      });
-  
   //   // assign achievements to users
   // await prisma.userAchievement.create({
   //     data: {

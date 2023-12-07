@@ -123,7 +123,7 @@ const ProfilePublic: React.FC = () => {
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(userId)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(userId)} auth={Number(auth.user?.id)} />
-                <Achievements userId={Number(userId)} auth={Number(auth.user?.id)} />
+                <Achievements userId={Number(userId)} />
             </div>
         </>
     )

@@ -182,8 +182,8 @@ model UserAchievement {
   achievementId Int
   createdAt     DateTime @default(now())
 
-  user        User        @relation(fields: [userId], references: [id])
-  achievement Achievement @relation(fields: [achievementId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@id([userId, achievementId])
 }
@@ -191,6 +191,7 @@ model UserAchievement {
 model Achievement {
   id Int @id @default(autoincrement())
 
+  slug        String @unique
   name        String
   description String
   difficulty  Int

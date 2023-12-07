@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import { AvatarContext } from "../../contexts/AvatarContext";
 import { PseudoContext } from "../../contexts/PseudoContext";
-import { AchievementsListContext } from "../../contexts/AchievementsListContext";
 import { LeaderContext } from "../../contexts/LeaderContext";
 import async from 'async';
 
@@ -16,7 +15,7 @@ import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 
 import './Profile.css';
 import { useAuthContext } from "../../contexts/AuthContext";
-import { fetchAddAchievementToUser, fetchProfile, fetchAddAvatar, fetchChangePseudo } from "../../api";
+import { fetchAddAchievementToUser, fetchProfile, fetchAddAvatar, fetchChangePseudo, patchUserProfile, PatchUserProfile } from "../../api";
 import { useMutation } from "react-query";
 
 import { AxiosError } from 'axios';
@@ -106,7 +105,6 @@ const Profile: React.FC = () => {
     const [isPseudoAdded, setIsPseudoAdded] = useState(false);
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
-    const { setAchievementsList } = useContext(AchievementsListContext) as AchievementsListContextType;
     const { pseudo, setPseudo } = useContext(PseudoContext) as PseudoContextType;
     const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
     //const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType; // TODO: voir avec Max
@@ -295,29 +293,22 @@ const Profile: React.FC = () => {
         uploadAvatarMutation.mutate(formData);
     }
 
-    const changeUsernameMutation = useMutation({
-        mutationFn: fetchChangePseudo,
+    const patchProfileMutation = useMutation({
+        mutationFn: (data: PatchUserProfile) => patchUserProfile('@me', data),
         onSuccess(data) {
-            setPseudo(data.pseudo);
-            if (!isPseudoAdded) {
-                setIsPseudoAdded(true);
-                showPopup('Newwww Pseudo');
-                addAchievement({
-                    achievementId: profileInfos.achievements['Newwww Pseudo'].id,
-                });
-            }
+            setPseudo(data.pseudo); /* TODO update query */
         },
         onError(e: AxiosError) {
             alert("Min 3 characters and maximum 32 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
         }
     });
 
-    const handleChangePseudo = async (e) => {
+    const handleChangePseudo = (e) => {
         e.preventDefault();
 
         const pseudo = (e.target.elements as HTMLFormControlsCollection)['outlined-basic'].value;
 
-        changeUsernameMutation.mutate({ pseudo });
+        patchProfileMutation.mutate({ pseudo });
     }
 
     const closePopup = () => {
@@ -362,7 +353,7 @@ const Profile: React.FC = () => {
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
-                <Achievements userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
+                <Achievements userId={'@me'} />
             </div>
         </>
     )

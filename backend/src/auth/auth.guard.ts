@@ -1,8 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, HttpException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { UserPayload } from './user.payload';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Reflector } from '@nestjs/core';
+import { AllowIncompleteProfile } from './allow-incomplete-profile.decorator';
 
 declare global {
     namespace Express {
@@ -14,7 +17,9 @@ declare global {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-    constructor(private jwtService: JwtService) {}
+    constructor(private readonly jwtService: JwtService,
+                private readonly prismaService: PrismaService,
+                private readonly reflector: Reflector) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
@@ -27,12 +32,44 @@ export class AuthGuard implements CanActivate {
         try {
             const payload = await this.jwtService.verifyAsync<UserPayload>(token);
 
-            request['user'] = payload;
+            try {
+                const userPayload = await this.prismaService.user.findUniqueOrThrow({
+                    where: {
+                        id: Number(payload.sub),
+                    },
+                    select: {
+                        id: true,
+                        pseudo: true,
+                    },
+                });
+
+                if (null === userPayload.pseudo) {
+                    const decorator = this.reflector.get(AllowIncompleteProfile, context.getHandler());
+
+                    /**
+                     * Checks for the presence of the @AllowIncompleteProfile decorator
+                     */
+                    if (undefined === decorator) {
+                        throw new ForbiddenException('The user has an incomplete profile');
+                    }
+                }
+
+                request['user'] = {
+                    ...payload,
+                    ...userPayload,
+                };
+            } catch (e) {
+                if (e instanceof HttpException) {
+                    throw e;
+                }
+                throw new NotFoundException();
+            }
         } catch (e) {
-            console.error(e);
+            if (e instanceof HttpException) {
+                throw e;
+            }
             throw new UnauthorizedException('Invalid JWT token');
         }
-
         return true;
     }
     

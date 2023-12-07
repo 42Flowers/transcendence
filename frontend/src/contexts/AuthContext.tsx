@@ -116,6 +116,7 @@ type AuthContextData = AuthenticationState & {
 //   signIn: (email: string, password: string) => Promise<void>;
   authenticate: (token: string) => void;
   signOut: () => void;
+  signIn: (payload: any) => void;
 };
 
 // The role of this context is to propagate authentication state through the App tree.
@@ -172,6 +173,13 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     });
   };
 
+  const signIn = (user: any) => {
+    dispatch({
+      type: HANDLERS.SIGN_IN,
+      payload: user,
+    });
+  }
+
   const authenticate = (token: string) => {
     dispatch({
       type: HANDLERS.AUTHENTICATE,
@@ -184,7 +192,8 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
       value={{
         ...state,
         authenticate,
-        signOut
+        signOut,
+        signIn,
       }}
     >
       {children}

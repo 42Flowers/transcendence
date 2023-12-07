@@ -3,9 +3,9 @@ import { Controller, Post, Body, Get, UseGuards, Request, Param } from '@nestjs/
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { UsersService } from 'src/users_chat/DBusers.service';
-import { RoomService } from '../rooms/DBrooms.service';
+import { RoomService } from '../rooms/rooms.service';
 import { Request as ExpressRequest } from 'express';
-import { ChatService } from './DBchat.service';
+import { ChatService } from './chat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Prisma } from '@prisma/client';
@@ -19,6 +19,11 @@ import { ChatRemoveAdminFromChannelEvent } from 'src/events/chat/removeAdminFrom
 import { ChatExitChannelEvent } from 'src/events/chat/exitChannel.event';
 import { ChatJoinChannelEvent } from 'src/events/chat/joinChannel.event';
 import { ChatAddInviteEvent } from 'src/events/chat/addInvite.event';
+import { ChatAddPasswordEvent } from 'src/events/chat/addPassword.event';
+import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event';
+import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
+import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
+import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 
 interface convElem {
     isChannel: boolean,
@@ -93,19 +98,21 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "super", undefined, ""));
-			// const join = await this.chatService.chatRoom({userId: 6, type: 'join', roomname: 'chan3', roomId: 4, option: {invite: false, key: false, value: ""}});
+			this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(5, "channel", 14, "coucou"));
+			// this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
 		} catch (err) {
 			console.log(err.message);
 		}
 	}
 
-	@Get('exit-channel')
+	@Post('exit-channel')
 	async exitChannel(
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
+			console.log("top");
+			this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(7, "channel", 14));
+			// this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
 		} catch(err) {
 			console.log(err.message);
 		}
@@ -148,12 +155,26 @@ export class ChatController {
 	// 	}
 	// }
 
+	@Post('invite-user')
+	async handleInvite(
+		@Request() req : ExpressRequest
+	) {
+		try {
+			this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(2, 9, "channel", 1));
+			// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
+		} catch (err) {
+			console.log(err.message);
+		}
+	}
+
 	@Post('mute-user')
 	async handleMute(
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
+			console.log("coucou");
+			this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, "channel", 9, 1));
+			// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -164,7 +185,8 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
+			this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(2, "channel", 9, 1))
+			// this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -175,7 +197,7 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
+			this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(2, "channel", 9, 1));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -186,7 +208,8 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
+			this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(2, "channel", 9, 1));
+			// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -197,7 +220,8 @@ export class ChatController {
 		@Request() req: ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
+			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(2, "channel", 9, 4));
+			// this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
 		} catch(err) {
 			console.log(err.message);
 		}
@@ -208,7 +232,8 @@ export class ChatController {
 		@Request() req: ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
+			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(2, "channel", 9, 1));
+			// this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
 		} catch(error) {
 			console.log(error.message);
 		}
@@ -219,7 +244,8 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
+			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(2, "channel", 9, 1));
+			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
 		} catch(error) {
 			console.log(error.message);
 		}
@@ -230,8 +256,57 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			console.log(Number(req.user.sub));
-			this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
+			this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(2, "channel", 9));
+			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
+		} catch(error) {
+			console.log(error.message);
+		}
+	}
+
+	@Post('rm-invite')
+	async handleRemoveInvite(
+		@Request() req : ExpressRequest
+	) {
+		try {
+			this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(2, "channel", 9));
+			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
+		} catch(error) {
+			console.log(error.message);
+		}
+	}
+
+	@Post('change-pwd')
+	async handleChangePassword(
+		@Request() req : ExpressRequest
+	) {
+		try {
+			this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(2, "channel", 9, "coucou"));
+			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
+		} catch(error) {
+			console.log(error.message);
+		}
+	}
+
+	@Post('add-pwd')
+	async handleAddPwd(
+		@Request() req : ExpressRequest
+	) {
+		try {
+			this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
+			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
+		} catch(error) {
+			console.log(error.message);
+		}
+	}
+
+	@Post('rm-pwd')
+	async handleRemovePwd(
+		@Request() req : ExpressRequest
+	) {
+		try {
+			this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, "channel", 9));
+			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
+			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
 		} catch(error) {
 			console.log(error.message);
 		}

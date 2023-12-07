@@ -6,7 +6,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { SocketModule } from 'src/socket/socket.module';
 import { RoomsModule } from '../rooms/rooms.module';
 import { ChatController } from './chat.controller';
-import { ChatService } from './DBchat.service';
+import { ChatService } from './chat.service';
 import { Module } from '@nestjs/common';
 
 @Module({

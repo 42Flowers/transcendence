@@ -57,13 +57,14 @@ export class MessagesService {
 
 	async newPrivateMessage(userId: number, conversationId: number, message: string) : Promise<any> {
 		try {
-			return await this.prismaService.privateMessage.create({
+			const msg =  await this.prismaService.privateMessage.create({
 				data: {
 					authorId: userId,
 					content: message,
 					conversationId: conversationId
 				}
 			});
+			return msg;
 		} catch (err) {
 			throw new Error(err.message);
 		}

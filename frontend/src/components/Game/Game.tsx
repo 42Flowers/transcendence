@@ -88,6 +88,7 @@ const Game: React.FC<gameProps> = (props) => {
 	
 	function clearBackground(ctx: CanvasRenderingContext2D): void {
 		const { width, height } = ctx.canvas;
+		ctx.clearRect(0, 0, width, height);
 		ctx.rect(0, 0, width, height);
 
 		const colorBlue = getComputedStyle(document.documentElement).getPropertyValue('--color-blue').trim();
@@ -179,56 +180,8 @@ const Game: React.FC<gameProps> = (props) => {
 		}
 	}, []);
 
-	// const calculateWinsAndLosses = (data: User[]) => {
-    //     data.map(user => {
-    //         user.wins = 0;
-    //         user.losses = 0;
-
-    //         user.gameParticipation.forEach(game => {
-    //             if (game.game.winnerId === game.userId) {
-    //                 user.wins++;
-    //             } else {
-    //                 user.losses++;
-    //             }
-    //         });
-    //     })
-    //     return data;
-    // };
-
-	// const calculateRanking = (data: User[]) => {
-    //     const ranking =  data.sort((a, b) => {
-    //         if (a.wins > b.wins) {
-    //             return -1;
-    //         }
-    //         if (a.wins < b.wins) {
-    //             return 1;
-    //         }
-    //         return a.losses - b.losses;
-    //     });
-	// 	/* 
-	// 		TODO:
-	// 		Get id of the leader
-	// 		Turn isSmallLeader to true in DB for that user.
-	// 	*/
-    //     // if (ranking.length >= 3 && ranking[0].id == userId) {
-    //     //     setSmallLeader(true);
-    //     // } else if (ranking.length >= 10 && ranking[0].id == userId) {
-    //     //     setGreatLeader(true);
-    //     // }
-    //     return ranking;
-    // };
-
 	const finishGame = useCallback(() => {
 		gameEnd = true;
-		/* 
-			TODO: Calculate ranking 
-		*/
-		// fetch(`http://localhost:3000/api/game/ladder`)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         calculateRanking(calculateWinsAndLosses(data));
-        //     }
-        // );
 	}, []);
 
 	const updateScore = useCallback((newScore: {leftPlayer: string, rightPlayer: string}) => {
@@ -244,7 +197,7 @@ const Game: React.FC<gameProps> = (props) => {
 	}, []);
 
 	const countdown = useCallback(() => {
-		count--;
+		--count;
 		if (count == 0)
 			gameStart = true;
 	}, []);

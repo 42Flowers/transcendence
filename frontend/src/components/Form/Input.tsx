@@ -8,9 +8,9 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
 };
 
 function getErrorMessage(key: string) {
-    const {errors} = useFormContext();
+    const { errors } = useFormContext();
 
-    if (errors && key in errors) {
+    if (typeof errors === 'object' && key in errors) {
         return errors[key];
     }
     return '';

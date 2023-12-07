@@ -14,13 +14,14 @@ import { SocketService } from 'src/socket/socket.service';
 import { v4 as uuidv4 } from 'uuid';
 
 const SOCKET_NOT_FOUND = -1;
-const REFRESH_RATE = 16.66667;
+const REFRESH_RATE = 16.66667; // in ms
 
-const BOARD_WIDTH = 800;
-const BOARD_HEIGHT = 600;
+const BOARD_WIDTH = 800; // in px
+const BOARD_HEIGHT = 600; // in px
 const BALL_RADIUS = 15; // in px
 
 const GAME_MAX_GOAL = 2;
+const GAME_START_DELAY = 3200;
 
 const PADDLE_SPEED = 6;
 const BALL_SPEED_Y = 5;
@@ -35,7 +36,7 @@ const RIGHT = 1;
 const SHIELD_NOT_ACTIVATED = -1;
 let TURN = LEFT;
 const SPEED_THRESHOLD = 4;
-const SHIELD_MAX_INTERVAL = 400;
+const SHIELD_MAX_INTERVAL = 400; // in ms
 
 interface scoreElem {
 	leftPlayer: number,
@@ -459,6 +460,16 @@ export class GameService {
 		}
 	}
 
+	async sendPlayersData(currGame: gameParam) {
+		setTimeout(async () => {
+			const playerData = await this.getPlayersData(currGame.userIdLeft, currGame.userIdRight);
+
+			this.socketGateway.server
+				.to(currGame.roomName)
+				.emit("playerData", playerData)
+		}, 2000)
+	}
+
 	updateRandomGames() {
 		for (let i = 0; i < this.randomGameList.length; ++i) {
 			const currGame = this.randomGameList[i];
@@ -466,19 +477,21 @@ export class GameService {
 
 			if (!currGame.isRunning && currGame.isFull) {
 				if (!currGame.startTime && currGame.mode === NORMAL_MODE) {
+					this.sendPlayersData(currGame);
 					this.socketGateway.server
 					.to(currGame.roomName)
 					.emit("launchNormal");
 					currGame.startTime = new Date().getTime();
 				}
 				else if (!currGame.startTime && currGame.mode === SPECIAL_MODE) {
+					this.sendPlayersData(currGame);
 					this.socketGateway.server
 					.to(currGame.roomName)
 					.emit("launchSpecial");
 					currGame.startTime = new Date().getTime();
 				}
 				this.updateFrontCountdown(currGame);
-				if (new Date().getTime() - currGame.startTime > 3200) {
+				if (new Date().getTime() - currGame.startTime > GAME_START_DELAY) {
 					currGame.isRunning = true;
 					this.resetGamePosition(currGame);
 				}
@@ -515,19 +528,21 @@ export class GameService {
 
 			if (!currGame.isRunning && currGame.isFull) {
 				if (!currGame.startTime && currGame.mode === NORMAL_MODE) {
+					this.sendPlayersData(currGame);				
 					this.socketGateway.server
 					.to(currGame.roomName)
 					.emit("launchNormal");
 					currGame.startTime = new Date().getTime();
 				}
 				else if (!currGame.startTime && currGame.mode === SPECIAL_MODE) {
+					this.sendPlayersData(currGame);
 					this.socketGateway.server
 					.to(currGame.roomName)
 					.emit("launchSpecial");
 					currGame.startTime = new Date().getTime();
 				}
 				this.updateFrontCountdown(currGame);
-				if (new Date().getTime() - currGame.startTime > 3200) {
+				if (new Date().getTime() - currGame.startTime > GAME_START_DELAY) {
 					currGame.isRunning = true;
 					this.resetGamePosition(currGame);
 				}
@@ -752,6 +767,36 @@ export class GameService {
 					gameId: game.id,
 				}
 			})
+		} catch (e) {
+			return e;
+		}
+	}
+
+	async getPlayersData(userLeftId: number, userRightId: number) {
+
+		try {
+			const leftUserData = await this.prisma.user.findUnique({
+				where: {
+					id: userLeftId,
+				},
+				select: {
+					pseudo: true,
+				}
+			});
+			const rightUserData = await this.prisma.user.findUnique({
+				where: {
+					id: userRightId,
+				},
+				select: {
+					pseudo: true,
+				}
+			});
+	
+			const data = {
+				left: leftUserData,
+				right: rightUserData,
+			}
+			return data;
 		} catch (e) {
 			return e;
 		}

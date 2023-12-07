@@ -228,10 +228,10 @@ const Profile: React.FC = () => {
                 if (gamesWonInARow >= 3 && data?.achievements['3'].users.length === 0) {
                     handleAchievement('3');
                 }
-                if (gamesWonInARow >= 3 && data?.achievements['10'].users.length === 0) {
+                if (gamesWonInARow >= 10 && data?.achievements['10'].users.length === 0) {
                     handleAchievement('10');
                 }
-                if (gamesWonInARow >= 3 && data?.achievements['100'].users.length === 0) {
+                if (gamesWonInARow >= 100 && data?.achievements['100'].users.length === 0) {
                     handleAchievement('100');
                 }
 
@@ -353,7 +353,9 @@ const Profile: React.FC = () => {
                 {popupQueue.length > 0 && <PopUp userId={Number(auth.user?.id)} infos={profileInfos?.achievements[popupQueue[0]]} onClose={closePopup}/>}
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
                 <PseudoButton handleChangePseudo={handleChangePseudo} />
-                <Switch2FA />
+                <div style={{ marginTop: '1em' }}>
+                    <Switch2FA />
+                </div>
         {/* ELSE */}
             {/* Add friend, block, unblock */}
         {/* ENDIF */}

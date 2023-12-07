@@ -72,9 +72,6 @@ type Game = {
 
 const ProfilePublic: React.FC = () => {
 
-    const handleUploadFriendChoiceButtons = (data: FriendItem | null) => {
-        
-    };
     const [profileInfos, setProfileInfos] = useState(null);
     const [error, setError] = useState<string | null>(null);
     const [status, setStatus] = useState<string>('');
@@ -134,7 +131,7 @@ const ProfilePublic: React.FC = () => {
                 { Number(auth.user?.id) === Number(userId) ?
                     ''
                     :
-                    <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(userId)} handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons} /*handleUploadFriendChoiceButtons={handleUploadFriendChoiceButtons}*//>
+                    <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(userId)}/>
                 }
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(userId)} auth={Number(auth.user?.id)} />

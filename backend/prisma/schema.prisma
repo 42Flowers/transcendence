@@ -22,7 +22,8 @@ model Ticket {
 model User {
   id Int @id @default(autoincrement())
 
-  pseudo        String  @unique
+  // We make the "pseudo" field optional, this way we can force the user fill it in when logging in from the app.
+  pseudo        String?  @unique
   email         String  @unique
   emailVerified Boolean @default(false)
 

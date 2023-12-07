@@ -40,10 +40,10 @@ const GameWrapper: React.FC<wrapperProps> = (props) => {
 			<div className="display-players" >
 				{playersData &&
 					<>
-						<div>
+						<div style={{color: "white"}}>
 							<p>{playersData.left.pseudo}</p>
 						</div>
-						<div>
+						<div style={{color: "white"}}>
 							<p>{playersData.right.pseudo}</p>
 						</div>
 					</>

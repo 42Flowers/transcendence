@@ -42,7 +42,6 @@ const PlayPage: React.FC = () => {
     const [selectedUserIdSpecial, setSelectedUserSpecial] = useState<number | null>(null);
 
     const usersQuery = useQuery('available-users', fetchAvailableUsers);
-    console.log(usersQuery.data);
 
     const handleClick = (whichButton: string) => {
         if (whichButton === "random-normal") {

@@ -1,4 +1,4 @@
-import React, { MouseEvent, useContext } from "react";
+import React, { MouseEvent, useCallback, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Stack, Popover, List, ListItem, ListItemButton, ListItemText, Divider } from "@mui/material";
 import default_avatar from "../../assets/images/default_avatar.png";
@@ -6,6 +6,7 @@ import { AvatarContext } from "../../contexts/AvatarContext";
 
 import './Navigation.css';
 import { useAuthContext } from "../../contexts/AuthContext";
+import SocketContext from "../Socket/Context/Context";
 
 interface Props {
     // onRouteChange: (route: string) => void;
@@ -21,6 +22,25 @@ const Navigation: React.FC<Props> = ({ isSignedIn }) => {
     const navigate = useNavigate();
     const [avatarEl, setAvatarEl] = React.useState<HTMLDivElement | null>(null);
     const { signOut } = useAuthContext();
+    const { SocketState } = useContext(SocketContext);
+
+    const launchNormal = useCallback(() => {
+        navigate('/game-normal');
+    }, []);
+
+    const launchSpecial = useCallback(() => {
+        navigate('/game-special');
+    }, []);
+
+    useEffect(() => {
+        SocketState.socket?.on("launchNormal", launchNormal);
+        SocketState.socket?.on("launchSpecial", launchSpecial);
+
+        return () => {
+            SocketState.socket?.off("launchNormal", launchNormal);
+            SocketState.socket?.off("launchSpecial", launchSpecial);
+        };
+    }, [SocketState.socket]);
 
     const { avatar } = useContext(AvatarContext) as AvatarContextType;
 

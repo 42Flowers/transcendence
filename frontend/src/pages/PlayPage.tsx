@@ -41,7 +41,6 @@ const PlayPage: React.FC = () => {
     const [waiting, setWaiting] = useState<boolean>(false);
     const [selectedUserIdNormal, setSelectedUserNormal] = useState<number | null>(null);
     const [selectedUserIdSpecial, setSelectedUserSpecial] = useState<number | null>(null);
-    const navigate = useNavigate();
 
     const usersQuery = useQuery('available-users', fetchAvailableUsers);
 
@@ -84,24 +83,6 @@ const PlayPage: React.FC = () => {
         SocketState.socket?.emit("cancelGameSearch");
         setWaiting(false);
     };
-
-    const launchRandomNormal = useCallback(() => {
-        navigate('/game-normal');
-    }, []);
-
-    const launchRandomSpecial = useCallback(() => {
-        navigate('/game-special');
-    }, []);
-    
-    useEffect(() => {
-        SocketState.socket?.on("launchRandomNormal", launchRandomNormal);
-        SocketState.socket?.on("launchRandomSpecial", launchRandomSpecial);
-
-        return () => {
-            SocketState.socket?.off("launchRandomNormal", launchRandomNormal);
-            SocketState.socket?.off("launchRandomSpecial", launchRandomSpecial);
-        };
-    }, [SocketState.socket]);
 
     return (
         <div className="game-modes">

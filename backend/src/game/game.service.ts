@@ -1,7 +1,10 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Socket } from 'socket.io';
 import { GameCancelSearchEvent } from 'src/events/game/cancelSearch.event';
+import { GameInviteToNormal } from 'src/events/game/inviteToNormalGame.event';
+import { GameInviteToSpecial } from 'src/events/game/inviteToSpecialGame.event';
+import { GameJoinInvite } from 'src/events/game/joinInvite.event';
 import { GameJoinRandomEvent } from 'src/events/game/joinRandom.event';
 import { GameKeyDownEvent } from 'src/events/game/keyDown.event';
 import { GameKeyUpEvent } from 'src/events/game/keyUp.event';
@@ -94,6 +97,7 @@ export class GameService {
 
 	constructor(
 		private readonly prisma: PrismaService,
+		private readonly eventEmitter: EventEmitter2,
 		private socketGateway: SocketGateway) {
 			this.randomGameList = [];
 			this.friendsGameList = [];
@@ -101,6 +105,21 @@ export class GameService {
 	}
 
 	// EVENT LISTENERS
+
+	@OnEvent('game.joinInvite')
+	handleJoinInvite(event: GameJoinInvite) {
+		this.joinInviteGame(event.socket);
+	}
+
+	@OnEvent('game.inviteToNormal')
+	handleInviteToNormal(event: GameInviteToNormal) {
+		this.createInviteGame(event.socket, event.targetId, NORMAL_MODE);
+	}
+
+	@OnEvent('game.inviteToSpecial')
+	handleInviteToSpecial(event: GameInviteToSpecial) {
+		this.createInviteGame(event.socket, event.targetId, SPECIAL_MODE);
+	}
 
 	@OnEvent('game.joinRandom')
 	handleJoinRandomGame(event: GameJoinRandomEvent) {
@@ -133,10 +152,81 @@ export class GameService {
 		}, REFRESH_RATE);
 	}
 
+	createInviteGame(socket: Socket, targetId: number, gameMode: number) {
+		if (this.isUserInGame(Number(socket.user.sub)) || this.isUserInGame(targetId))
+			return;
+
+		const roomName: string = uuidv4();
+
+		this.eventEmitter.emit('game.joined',  Number(socket.id));
+		socket.join(roomName);
+		this.friendsGameList.push({
+			roomName: roomName,
+			isFull: false,
+			isRunning: false,
+			startTime: null,
+			countdown: 3,
+			userIdLeft: Number(socket.user.sub),
+			userIdRight: targetId,
+			socketLeft: socket,
+			socketRight: null,
+			mode: gameMode,
+			state: {
+				leftPad: {
+					x: 5,
+					y: Math.round(BOARD_HEIGHT / 2) - Math.round(BOARD_WIDTH / 20),
+					width: 10,
+					length: Math.round(BOARD_WIDTH / 10),
+					activate: SHIELD_NOT_ACTIVATED,
+				},
+				rightPad: {
+					x: BOARD_WIDTH - 5 - 10,
+					y: Math.round(BOARD_HEIGHT / 2) - Math.round(BOARD_WIDTH / 20),
+					width: 10,
+					length: Math.round(BOARD_WIDTH / 10),
+					activate: SHIELD_NOT_ACTIVATED,
+				},
+				ball: {
+					speed: {x: 1, y: 1},
+					speedModifyer: BALL_SPEED_MOD,
+					x: Math.round(BOARD_WIDTH / 2),
+					y: Math.round(BOARD_HEIGHT / 2),
+					radius: BALL_RADIUS,
+				},
+				score: {
+					leftPlayer: 0,
+					rightPlayer: 0,
+				},
+				keys: {
+					leftPadArrowUp: false,
+					leftPadArrowDown: false,
+					leftPadSpacebar: false,
+					rightPadArrowUp: false,
+					rightPadArrowDown: false,
+					rightPadSpacebar: false,
+				}
+			}
+		});
+	}
+
+	joinInviteGame(socket: Socket) {
+		for (let i = 0; i < this.friendsGameList.length; ++i) {
+			const currGame = this.friendsGameList[i];
+
+			if (Number(socket.user.sub) == currGame.userIdRight) {
+				currGame.socketRight = socket;
+				this.eventEmitter.emit('game.joined',  Number(socket.id));
+				socket.join(currGame.roomName);
+				currGame.isFull = true;
+				currGame.isRunning = false;
+				return ;
+			}
+		}
+	}
 
 	joinRandomGame(socket: Socket, gameMode: number) {
-		if (this.isUserInGame(socket))
-			return;  // EXCEPTION ???
+		if (this.isUserInGame(Number(socket.user.sub)))
+			return;
 
 		for (let i = 0; i < this.randomGameList.length; ++i) {
 			const currGame = this.randomGameList[i];
@@ -152,6 +242,7 @@ export class GameService {
 					currGame.socketRight = socket;
 					currGame.userIdRight = Number(socket.user.sub);
 				}
+				this.eventEmitter.emit('game.joined',  Number(socket.id));
 				socket.join(currGame.roomName);
 				currGame.isFull = true;
 				currGame.isRunning = false;
@@ -160,6 +251,7 @@ export class GameService {
 		}
 		const roomName: string = uuidv4();
 
+		this.eventEmitter.emit('game.joined',  Number(socket.id));
 		socket.join(roomName);
 		this.randomGameList.push({
 			roomName: roomName,
@@ -222,12 +314,14 @@ export class GameService {
 				currGame.socketLeft = null;
 				currGame.isFull = false;
 				currGame.userIdLeft = null;
+				this.eventEmitter.emit('game.leaved',  Number(socket.id));
 			}
 			else if (currGame.socketRight && currGame.socketRight.id === socket.id) {
 				currGame.socketRight.leave(currGame.roomName);
 				currGame.socketRight = null;
 				currGame.isFull = false;
 				currGame.userIdRight = null;
+				this.eventEmitter.emit('game.leaved',  Number(socket.id));
 			}
 
 			if (!currGame.socketLeft && !currGame.socketRight)
@@ -244,12 +338,14 @@ export class GameService {
 				currGame.socketLeft = null;
 				currGame.isFull = false;
 				currGame.userIdLeft = null;
+				this.eventEmitter.emit('game.leaved',  Number(socket.id));
 			}
 			else if (currGame.socketRight && currGame.socketRight.id === socket.id) {
 				currGame.socketRight.leave(currGame.roomName);
 				currGame.socketRight = null;
 				currGame.isFull = false;
 				currGame.userIdRight = null;
+				this.eventEmitter.emit('game.leaved',  Number(socket.id));
 			}
 
 			if (!currGame.socketLeft && !currGame.socketRight)
@@ -281,7 +377,7 @@ export class GameService {
 			if (gameIndex !== -1 && this.randomGameList[gameIndex].isRunning)
 				this.updateKeysDown(this.randomGameList[gameIndex], socket.id, key);
 			else
-				return; // Excepticion not inside a game
+				return; // Exception not inside a game
 		}
 	}
 
@@ -356,13 +452,13 @@ export class GameService {
 				if (!currGame.startTime && currGame.mode === NORMAL_MODE) {
 					this.socketGateway.server
 					.to(currGame.roomName)
-					.emit("launchRandomNormal");
+					.emit("launchNormal");
 					currGame.startTime = new Date().getTime();
 				}
 				else if (!currGame.startTime && currGame.mode === SPECIAL_MODE) {
 					this.socketGateway.server
 					.to(currGame.roomName)
-					.emit("launchRandomSpecial");
+					.emit("launchSpecial");
 					currGame.startTime = new Date().getTime();
 				}
 				this.updateFrontCountdown(currGame);
@@ -376,6 +472,8 @@ export class GameService {
 				continue;
 
 			if (this.checkGameFinished(currGame)) {
+				this.eventEmitter.emit('game.leaved',  Number(currGame.socketLeft.id));
+				this.eventEmitter.emit('game.leaved',  Number(currGame.socketRight.id));
 				currGame.socketLeft.leave(currGame.roomName);
 				currGame.socketRight.leave(currGame.roomName);
 				this.randomGameList.splice(i, 1)
@@ -401,13 +499,13 @@ export class GameService {
 				if (!currGame.startTime && currGame.mode === NORMAL_MODE) {
 					this.socketGateway.server
 					.to(currGame.roomName)
-					.emit("launchRandomNormal");
+					.emit("launchNormal");
 					currGame.startTime = new Date().getTime();
 				}
 				else if (!currGame.startTime && currGame.mode === SPECIAL_MODE) {
 					this.socketGateway.server
 					.to(currGame.roomName)
-					.emit("launchRandomSpecial");
+					.emit("launchSpecial");
 					currGame.startTime = new Date().getTime();
 				}
 				this.updateFrontCountdown(currGame);
@@ -421,6 +519,8 @@ export class GameService {
 				continue;
 
 			if (this.checkGameFinished(currGame)) {
+				this.eventEmitter.emit('game.leaved',  Number(currGame.socketLeft.id));
+				this.eventEmitter.emit('game.leaved',  Number(currGame.socketRight.id));
 				currGame.socketLeft.leave(currGame.roomName);
 				currGame.socketRight.leave(currGame.roomName);
 				this.randomGameList.splice(i, 1)
@@ -637,19 +737,19 @@ export class GameService {
 		}
 	}
 
-	isUserInGame(socket: Socket) {
+	isUserInGame(userId: number) {
 		for (let i = 0; i < this.randomGameList.length; ++i) {
 			const currGame = this.randomGameList[i];
 
-			if ((currGame.userIdLeft && Number(socket.user.sub) == currGame.userIdLeft)
-					|| (currGame.userIdRight && Number(socket.user.sub) == currGame.userIdRight))
+			if ((currGame.userIdLeft && Number(userId) == currGame.userIdLeft)
+					|| (currGame.userIdRight && Number(userId) == currGame.userIdRight))
 				return true;
 		}
 		for (let i = 0; i < this.friendsGameList.length; ++i) {
 			const currGame = this.friendsGameList[i];
 
-			if ((currGame.userIdLeft && Number(socket.user.sub) == currGame.userIdLeft)
-					|| (currGame.userIdRight && Number(socket.user.sub) == currGame.userIdRight))
+			if ((currGame.userIdLeft && Number(userId) == currGame.userIdLeft)
+					|| (currGame.userIdRight && Number(userId) == currGame.userIdRight))
 				return true;
 		}
 

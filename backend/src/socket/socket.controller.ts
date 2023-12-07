@@ -16,7 +16,6 @@ export class SocketController {
 	) {
 		const userId = Number(req.user.sub);
 		const statuses = await this.socketService.getUserStatus(userId);
-		console.log(statuses);
 
 		return statuses;
 	}

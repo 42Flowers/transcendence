@@ -25,7 +25,9 @@ import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.
 import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
 import { UserPayload } from "src/auth/user.payload";
 import { JwtService } from "@nestjs/jwt";
-import { GameInviteToGame } from "src/events/game/inviteToGame.event";
+import { GameInviteToNormal } from "src/events/game/inviteToNormalGame.event";
+import { GameJoinInvite } from "src/events/game/joinInvite.event";
+import { GameInviteToSpecial } from "src/events/game/inviteToSpecialGame.event";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -209,14 +211,6 @@ export class SocketGateway implements
 		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 1));
 	}
 
-	@SubscribeMessage("inviteToGame")
-	onInviteToGame(
-		@MessageBody() data: {targetId: number, gameMode: number},
-		@ConnectedSocket() socket: Socket)
-	{
-		this.eventEmitter.emit('game.inviteToGame', new GameInviteToGame(socket, data.gameMode, data.targetId));
-	}
-
 	@SubscribeMessage('cancelGameSearch')
 	onCancelSearch(
 		@ConnectedSocket() socket: Socket)
@@ -238,6 +232,32 @@ export class SocketGateway implements
 		@MessageBody() key: string)
 	{
 		this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
+	}
+
+	@SubscribeMessage("inviteNormal")
+	onInviteNormal(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() targetId: number,
+	)
+	{
+		this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, targetId));
+	}
+	
+	@SubscribeMessage("inviteSpecial")
+	onInviteSpecial(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() targetId: number,
+	)
+	{
+		this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, targetId));
+	}
+
+	@SubscribeMessage("joinInviteGame")
+	onJoinInviteGame(
+		@ConnectedSocket() socket: Socket
+	)
+	{
+		this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
 	}
 
 }

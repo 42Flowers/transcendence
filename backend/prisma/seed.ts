@@ -19,6 +19,7 @@ async function main() {
   await prisma.game.deleteMany();
   await prisma.userAchievement.deleteMany();
   await prisma.achievement.deleteMany();
+  await prisma.ticket.deleteMany();
   await prisma.user.deleteMany();
   await prisma.$executeRaw`UPDATE sqlite_sequence SET seq = 0 WHERE name = 'User';`; // Eesier for testing in the URL: This ways, id of user always starts at 1 
   //await prisma.$executeRaw`UPDATE sqlite_sequence SET seq = 0 WHERE name = 'Game';`;

@@ -22,7 +22,8 @@ model Ticket {
 model User {
   id Int @id @default(autoincrement())
 
-  pseudo        String  @unique
+  // We make the "pseudo" field optional, this way we can force the user fill it in when logging in from the app.
+  pseudo        String?  @unique
   email         String  @unique
   emailVerified Boolean @default(false)
 
@@ -145,7 +146,7 @@ model ChannelMembership {
 model Channel {
   id Int @id @default(autoincrement())
 
-  name       String
+  name       String @unique
   password   String?
   accessMask Int     @default(1) //1 (libre), 2 (invite), 4 (pwd)
 

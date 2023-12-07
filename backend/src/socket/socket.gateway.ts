@@ -21,16 +21,25 @@ import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
 import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
 import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
 import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
-import { ChatSendChannelMessageEvent } from "src/events/chat/sendChannelMessage.event";
-import { ChatSendPrivateMessageEvent } from "src/events/chat/sendPrivateMessage.event";
 import { UserPayload } from "src/auth/user.payload";
 import { JwtService } from "@nestjs/jwt";
+import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
+import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
 
 declare module 'socket.io' {
 	interface Socket {
 		user?: UserPayload;
 	}
 }
+
+interface message {
+    type: string, //conversation/channel
+    id: number, //channelId/targetId
+    authorId: number,
+    authorName: string 
+    message: string,
+    creationTime: Date,
+} 
 
 @Injectable()
 @WebSocketGateway({
@@ -98,14 +107,22 @@ export class SocketGateway implements
 		});
 	}
 
-	@OnEvent('chat.sendprivatemessage')
-	sendPrivateMessage(event: ChatSendPrivateMessageEvent) {
-		this.server.to(event.conversationName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
+	/**
+	 * 
+	 * TODO Faire que ces deux fonctions renvoient le même format au front
+	 * genre 'message' {type: "private/public", id: "channelId/targetId", message: string, createdAt: time, channelName?: string}
+	 */
+
+	@OnEvent('chat.sendmessage')
+	sendMessage(event: ChatSendMessageEvent) 
+	{
+		this.server.to(event.destination).emit('message', {type: event.type, id: event.id, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
 	}
 
-	@OnEvent('chat.sendchannelmessage')
-	sendChannelMessage(event: ChatSendChannelMessageEvent) {
-		this.server.to(event.channelName).emit('message', {from: event.userId, message: event.message, at: event.sentAt});
+	@OnEvent('chat.sendtochannel')
+	sendToChannel(event: ChatSendToChannelEvent) {
+		console.log(event);
+		this.server.to(event.channelName).emit('info', {type: event.type, message: event.message});
 	}
 	// CHAT EVENTS
 	
@@ -133,11 +150,12 @@ export class SocketGateway implements
 
 	@SubscribeMessage('privatemessage')
 	handlePrivateMessage(
-		@MessageBody('') data: {userId: number, type: string, to: string, channelId: number, message: string, options: string},
+		@MessageBody() data: {userId: number, targetId: number, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
 		try {
-			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.type, data.to, data.channelId, data.message, data.options));
+			console.log(data);
+			console.log('ici', this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message)));
 		} catch (error) {
 			console.log(error.message);
 		}
@@ -145,12 +163,12 @@ export class SocketGateway implements
 
 	@SubscribeMessage('channelmessage')
 	handleChannelMessage(
-		@MessageBody('') data: {userId: number, type: string, to: string, channelId: number, message: string, options: string},
+		@MessageBody('') data: {userId: number, channelId: number, channelName: string, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
 		console.log("arrive", client.id);
 		try {
-			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.type, data.to, data.channelId, data.message, data.options));
+			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.channelId, data.channelName, data.message));
 		} catch(error) {
 			console.log(error.message);
 		}

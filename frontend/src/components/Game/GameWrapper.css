@@ -1,0 +1,10 @@
+.game-wrapper {
+	display: flex;
+	flex-direction: column;
+}
+
+.display-players {
+	display: flex;
+	justify-content: space-between;
+	padding-top: 3em;
+}

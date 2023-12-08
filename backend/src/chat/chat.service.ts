@@ -29,6 +29,8 @@ import { Injectable } from '@nestjs/common';
 import { ChatSendToChannelEvent } from 'src/events/chat/sendToChannel.event';
 import { ChatSendMessageEvent } from 'src/events/chat/sendMessage.event';
 import { ChatSendRoomToClientEvent } from 'src/events/chat/sendRoomToClient.event';
+import { ChatSocketJoinChannelsEvent } from 'src/events/chat/socketJoinChannels.event';
+import { ChatSocketLeaveChannelsEvent } from 'src/events/chat/socketLeaveChannels.event';
 
 interface convElem {
     isChannel: boolean,
@@ -96,6 +98,32 @@ export class ChatService {
 	// 	this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "Couldn't block " + target.name + ", please retry later"));
 	// 	return;
 	// }
+
+	@OnEvent('chat.socketjoinchannels')
+	async socketJoinChannels(
+		event: ChatSocketJoinChannelsEvent
+	) {
+		const channels = await this.roomService.getPublicRooms(event.userId);
+		const conversations = await this.conversationsService.getAllUserConversations(event.userId);
+		console.log(channels, conversations);
+		if (channels != null)
+			channels.map(chan => event.client.join(chan.name));
+		if (conversations != null)
+			conversations.map(conv => event.client.join(conv.name));
+	}
+
+	@OnEvent('chat.socketleavechannels')
+	async socketLeaveChannels(
+		event: ChatSocketLeaveChannelsEvent
+	) {
+		const channels = await this.roomService.getPublicRooms(event.userId);
+		const conversations = await this.conversationsService.getAllUserConversations(event.userId);
+		console.log(channels, conversations);
+		if (channels != null)
+			channels.map(chan => event.client.leave(chan.name));
+		if (conversations != null)
+			conversations.map(conv => event.client.leave(conv.name));
+	}
 
 	@OnEvent('chat.privatemessage')
 	async chatPrivateMessage(

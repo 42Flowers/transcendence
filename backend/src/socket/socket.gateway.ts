@@ -29,6 +29,8 @@ import { GameInviteToSpecial } from "src/events/game/inviteToSpecialGame.event";
 import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
 import { ChatSendRoomToClientEvent } from "src/events/chat/sendRoomToClient.event";
+import { ChatSocketJoinChannelsEvent } from "src/events/chat/socketJoinChannels.event";
+import { ChatSocketLeaveChannelsEvent } from "src/events/chat/socketLeaveChannels.event";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -86,11 +88,10 @@ export class SocketGateway implements
 			client.disconnect(true);
 			return ;
 		}
-
 		console.log(`Client connected: ${client.id}`);
-
 		client.join('server');
 		this.socketService.addSocket(client);
+		this.eventEmitter.emit('chat.socketjoinchannels', new ChatSocketJoinChannelsEvent(Number(client.user.sub), client))
 	}
 
 	async handleDisconnect(client: Socket) {
@@ -98,6 +99,7 @@ export class SocketGateway implements
 			return ;
 		}
 		client.leave('server');
+		this.eventEmitter.emit('chat.socketleavechannels', new ChatSocketLeaveChannelsEvent(Number(client.user.sub), client));
 		this.socketService.removeSocket(client);
 		console.log(`Client disconnected: ${client.id}`);
 		// this.socketService.removeSocket(token.id, client);

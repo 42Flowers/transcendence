@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class RoomService {
@@ -497,6 +498,24 @@ export class RoomService {
 				console.log(err.message);
 				return;
 			}
+		}
+	}
+
+	async addSocketToAllChannels(client: Socket, userId: number) {
+		try {
+			const memberships = await this.prismaService.channelMembership.findMany({
+				where: {
+					userId: userId
+				},
+				select: {
+					channelId: true
+				}
+			});
+			const names = await Promise.all(memberships.map((chan, index) => this.prismaService.channel.findUnique({where: {id: memberships[index].channelId}})));
+			console.log(names);
+			// memberships.channel.
+		} catch(error) {
+			throw new Error(error.message);
 		}
 	}
 }

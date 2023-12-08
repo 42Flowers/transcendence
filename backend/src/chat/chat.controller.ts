@@ -58,6 +58,10 @@ interface users {
 	membershipState: number,  
 }
 
+/**
+ * !Faire les vérifications si la personne est bien dans le channel et si elle est BAN
+ */
+
 @Controller("chat")
 @UseGuards(AuthGuard)
 export class ChatController {
@@ -95,22 +99,43 @@ export class ChatController {
 		@Request() req: ExpressRequest
 	) {
 		try {
-		const channelId = 14;
-		const messagesfromchannel = await this.messageService.getMessagesfromChannel(Number(req.user.sub), channelId);
-		const allusers = await this.roomService.getUsersfromRoom(channelId);
-		const messages : Message[] = [];
-		const users : users[] = [];
-		const membershipStates = await Promise.all(allusers.map(user => this.userService.getMembershipState(user.userId, channelId)));
-		allusers.map((user, index) => {
-			users.push({userId: user.userId, membershipState: membershipStates[index]})});
-		const userNames = await Promise.all(messagesfromchannel.map(conv => this.userService.getUserName(conv.authorId)));
-		messagesfromchannel.map((chan, index) => {
-			messages.push({authorName: userNames[index].pseudo, content: chan.content, createdAt: chan.createdAt});
-		});
-		const theAll: channelElem = {users, messages};
-		return theAll;
+			const userId = Number(req.user.sub);
+			const channelId = 24;
+			const member = await this.roomService.isUserinRoom(userId, channelId);
+			if (member != null && member.membershipState !== 4 && channelId >= 0) {
+				const messagesfromchannel = await this.messageService.getMessagesfromChannel(userId, channelId);
+				const messages : Message[] = [];
+				const userNames = await Promise.all(messagesfromchannel.map(conv => this.userService.getUserName(conv.authorId)));
+				messagesfromchannel.map((chan, index) => {
+					messages.push({authorName: userNames[index].pseudo, content: chan.content, createdAt: chan.createdAt});
+				});
+				return messages;
+			}
+			return null;
 		} catch (err) {
 			console.log(err.message);
+		}
+	}
+
+	@Get('get-channelmembers')
+	async getChannelMembers(
+		@Request() req: ExpressRequest
+	) {
+		try {
+			const userId = Number(req.user.sub);
+			const channelId = 14;
+			const member = await this.roomService.isUserinRoom(userId, channelId);
+			if (member != null && member.membershipState !== 4 && channelId >= 0) {
+				const users : users[] = [];
+				const allusers = await this.roomService.getUsersfromRoom(channelId);
+				const membershipStates = await Promise.all(allusers.map(user => this.userService.getMembershipState(user.userId, channelId)));
+				allusers.map((user, index) => {
+					users.push({userId: user.userId, membershipState: membershipStates[index]})});
+				return users;
+			}
+			return null;
+		} catch (error) {
+			console.log(error.message);
 		}
 	}
 

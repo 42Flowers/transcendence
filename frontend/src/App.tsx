@@ -3,7 +3,6 @@ import { RouterProvider } from 'react-router-dom';
 import { AuthConsumer, AuthProvider } from './contexts/AuthContext';
 import { router } from './router';
 import { AvatarProvider } from './contexts/AvatarContext';
-import { PseudoProvider } from './contexts/PseudoContext';
 import { LeaderProvider } from './contexts/LeaderContext';
 import { PerfectProvider } from './contexts/PerfectContext';
 
@@ -16,21 +15,19 @@ const App: React.FC = () => (
     <AvatarProvider>
       <LeaderProvider>
         <PerfectProvider>
-          <PseudoProvider>
-            <SnackbarProvider>
-              <AuthProvider>
-                <div className="App">
-                  <AuthConsumer>
-                    {
-                      auth => auth.isLoading ?
-                        <p>Loading...</p> :
-                        <RouterProvider router={router} />
-                    }
-                  </AuthConsumer>
-                </div>
-              </AuthProvider>
-            </SnackbarProvider>
-          </PseudoProvider>
+          <SnackbarProvider>
+            <AuthProvider>
+              <div className="App">
+                <AuthConsumer>
+                  {
+                    auth => auth.isLoading ?
+                      <p>Loading...</p> :
+                      <RouterProvider router={router} />
+                  }
+                </AuthConsumer>
+              </div>
+            </AuthProvider>
+          </SnackbarProvider>
         </PerfectProvider>
       </LeaderProvider>
     </AvatarProvider>

@@ -17,11 +17,6 @@ export interface AvatarContextType {
     setAvatar: (avatar: string) => void;
 }
 
-export interface PseudoContextType {
-    pseudo: string
-    setPseudo: (pseudo: string) => void;
-}
-
 export interface LeaderContextType {
     smallLeader: boolean
     setSmallLeader: (smallLeader: boolean) => void;

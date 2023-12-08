@@ -1,19 +1,24 @@
-import { useContext } from "react";
-import { TextField } from "@mui/material";
-import { PseudoContext } from "../../../contexts/PseudoContext";
-import { PseudoContextType } from "../Profile";
+import React from 'react';
+import { TextField } from '@mui/material';
 
 type PseudoButtonProps = {
-    handleChangePseudo: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+    currentPseudo: string;
+    onChangePseudo: (newPseudo: string) => void;
 };
 
-const PseudoButton: React.FC<PseudoButtonProps> = ({ handleChangePseudo }) => {
-    const { pseudo } = useContext(PseudoContext) as PseudoContextType;
+const PseudoButton: React.FC<PseudoButtonProps> = ({ onChangePseudo, currentPseudo }) => {
+    const handleChangePseudo = React.useCallback((e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.currentTarget);
+    
+        onChangePseudo(formData.get('username')!.toString());
+    }, [ onChangePseudo ]);
 
     return (
         <form onSubmit={handleChangePseudo}>
-            <TextField 
-                id="outlined-basic" 
+            <TextField
+                name="username"
                 label="Change pseudo"
                 InputLabelProps={{
                     style: { 
@@ -22,7 +27,7 @@ const PseudoButton: React.FC<PseudoButtonProps> = ({ handleChangePseudo }) => {
                     }
                 }}
                 variant="outlined"
-                placeholder={`${pseudo ?? ''}`}
+                placeholder={currentPseudo}
                 sx={{
                     color: '#9747FF',
                     marginTop: '3vh',

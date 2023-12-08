@@ -64,7 +64,7 @@ export class ProfileService {
         };
     }
 
-    async addAvatar(avatarPath: string, userId: number): Promise<any> {
+    async addAvatar(avatarPath: string, userId: number): Promise<{ avatar: string; }> {
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             data: { avatar: avatarPath },

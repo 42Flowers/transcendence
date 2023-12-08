@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { Achievement } from "@prisma/client";
 import { AchievementGrantedEvent } from "src/events/achievement-granted.event";
+import { AvatarUpdatedEvent } from "src/events/avatar-updated.event";
 import { UsernameUpdateEvent } from "src/events/username-update.event";
 import { PrismaService } from "src/prisma/prisma.service";
 
@@ -94,5 +95,10 @@ export class AchievementsService {
                 this.grantAchievementToUser(evt.userId, 'new-username');
             }
         }
+    }
+
+    @OnEvent('avatar.updated')
+    handleAvatarUpdated(evt: AvatarUpdatedEvent) {
+        this.grantAchievementToUser(evt.userId, 'new-avatar');
     }
 }

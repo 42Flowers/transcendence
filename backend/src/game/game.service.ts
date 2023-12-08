@@ -155,9 +155,42 @@ export class GameService {
 		}, REFRESH_RATE);
 	}
 
+	async checkBlockedUser(userAId, userBId) {
+		const userAToB = await this.prisma.blocked.findUnique({
+			where: {
+				userId_blockedId: {
+					userId: userAId,
+					blockedId: userBId,
+				}
+			}
+		});
+
+		const userBToA = await this.prisma.blocked.findUnique({
+			where: {
+				userId_blockedId: {
+					userId: userBId,
+					blockedId: userAId,
+				}
+			}
+		});
+
+		console.log(userAToB, "    ", userBToA);
+
+		if (userAToB || userBToA) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	async createInviteGame(socket: Socket, targetId: number, gameMode: number) {
 		if (this.isUserInGame(Number(socket.user.sub)) || this.isUserInGame(targetId))
 			return;
+
+		if (await this.checkBlockedUser(Number(socket.user.sub), targetId)) {
+			return ;
+		}
 
 		const roomName: string = uuidv4();
 		const userData = await this.prisma.user.findUnique({

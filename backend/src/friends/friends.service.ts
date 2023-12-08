@@ -226,23 +226,26 @@ export class FriendsService {
         },
       },
     });
-    if ((friendshipUserToFriend.status === 2 || friendshipUserToFriend.status === 3) && (friendshipFriendToUser.status === 2 || friendshipFriendToUser.status === 3)) {
-      await this.prisma.friendship.delete({
-        where: {
-          userId_friendId: {
-            userId: userId,
-            friendId: friendId,
+    if (friendshipUserToFriend && friendshipFriendToUser)
+    {
+      if ((friendshipUserToFriend.status === 2 || friendshipUserToFriend.status === 3) && (friendshipFriendToUser.status === 2 || friendshipFriendToUser.status === 3)) {
+        await this.prisma.friendship.delete({
+          where: {
+            userId_friendId: {
+              userId: userId,
+              friendId: friendId,
+            },
           },
-        },
-      });
-      await this.prisma.friendship.delete({
-        where: {
-          userId_friendId: {
-            userId: friendId,
-            friendId: userId,
+        });
+        await this.prisma.friendship.delete({
+          where: {
+            userId_friendId: {
+              userId: friendId,
+              friendId: userId,
+            },
           },
-        },
-      });
+        });
+      }
     }
     return this.getFriendsList(userId);
   }

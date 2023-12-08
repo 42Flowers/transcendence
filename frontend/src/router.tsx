@@ -9,6 +9,7 @@ import PlayPage from './pages/PlayPage';
 import Profile from './components/Profile/Profile';
 import IntraRegisterForm from './components/IntraRegisterForm/IntraRegisterForm';
 import ProfilePublic from './components/Profile/ProfilePublic';
+import Chat2 from './components/Chat2/Chat2';
 
 export const router = createBrowserRouter([
     {
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
             {
                 path: '/chat',
                 element: <Chat />
+            },
+            {
+                path: '/chat2',
+                element: <Chat2 />
             },
             {
                 path: '/',

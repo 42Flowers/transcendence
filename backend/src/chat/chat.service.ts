@@ -28,6 +28,25 @@ import { RoomService } from '../rooms/rooms.service';
 import { Injectable } from '@nestjs/common';
 import { ChatSendToChannelEvent } from 'src/events/chat/sendToChannel.event';
 import { ChatSendMessageEvent } from 'src/events/chat/sendMessage.event';
+import { ChatSendRoomToClientEvent } from 'src/events/chat/sendRoomToClient.event';
+
+interface convElem {
+    isChannel: boolean,
+    channelId?: number,
+    channelName?: string,
+    targetId?: number
+    targetName?: string,
+    userPermissionMask?: number,
+	users: [],
+    messages: convMessage[],
+}
+
+interface convMessage {
+    authorName: string,
+    authorId: number,
+    creationTime: Date,
+    content: string,
+}
 
 @Injectable()
 export class ChatService {
@@ -40,48 +59,50 @@ export class ChatService {
 		private readonly eventEmitter: EventEmitter2,
 		) {}
 
-	@OnEvent('chat.unblockuser')
-	async chatUserUnBlock(
-		event: ChatUserUnBlockEvent
-	) {
-		const user = await this.usersService.getUserById(event.userId);
-		const target = await this.usersService.getUserById(event.targetId);
-		if (await this.usersService.isUserBlocked(user.id, target.id) === false) {
-			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + " was not blocked"));
-			return;
-		}
-		const result = await this.usersService.unBlockUser(user.id, target.id);
-		if (result !== null) {
-			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + " has been successfully unblocked"));
-			return;
-		}
-		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "Couldn't unblock " + target.name + ", please retry later"));
-		return;
-	}
+	// @OnEvent('chat.unblockuser')
+	// async chatUserUnBlock(
+	// 	event: ChatUserUnBlockEvent
+	// ) {
+	// 	const user = await this.usersService.getUserById(event.userId);
+	// 	const target = await this.usersService.getUserById(event.targetId);
+	// 	if (await this.usersService.isUserBlocked(user.id, target.id) === false) {
+	// 		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + " was not blocked"));
+	// 		return;
+	// 	}
+	// 	const result = await this.usersService.unBlockUser(user.id, target.id);
+	// 	if (result !== null) {
+	// 		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + " has been successfully unblocked"));
+	// 		return;
+	// 	}
+	// 	this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "Couldn't unblock " + target.name + ", please retry later"));
+	// 	return;
+	// }
 
-	@OnEvent('chat.blockuser')
-	async chatUserBlock(
-		event: ChatUserBlockEvent
-	) {
-		const user = await this.usersService.getUserById(event.userId);
-		const target = await this.usersService.getUserById(event.targetId);
-		if (await this.usersService.isUserBlocked(user.id, target.id) === true) {
-			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "You have already blocked " + target.name));
-			return;
-		}
-		const result = await this.usersService.blockUser(user.id, target.id);
-		if (result !== null) {
-			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + "has been blocked"));
-			return;
-		}
-		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "Couldn't block " + target.name + ", please retry later"));
-		return;
-	}
+	// @OnEvent('chat.blockuser')
+	// async chatUserBlock(
+	// 	event: ChatUserBlockEvent
+	// ) {
+	// 	const user = await this.usersService.getUserById(event.userId);
+	// 	const target = await this.usersService.getUserById(event.targetId);
+	// 	if (await this.usersService.isUserBlocked(user.id, target.id) === true) {
+	// 		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "You have already blocked " + target.name));
+	// 		return;
+	// 	}
+	// 	const result = await this.usersService.blockUser(user.id, target.id);
+	// 	if (result !== null) {
+	// 		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + "has been blocked"));
+	// 		return;
+	// 	}
+	// 	this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "Couldn't block " + target.name + ", please retry later"));
+	// 	return;
+	// }
 
 	@OnEvent('chat.privatemessage')
 	async chatPrivateMessage(
 		event : ChatPrivateMessageEvent
 	) {
+		if (event.message.length > 100)
+			throw new Error("This message is too long");
 		console.log(event);
 		const user = await this.usersService.getUserById(event.userId);
 		if (user) {
@@ -93,7 +114,7 @@ export class ChatService {
 					const isblocked = await this.usersService.blockedByUser(user.id, dest.id);
 					if (blocked != null)
 					{
-						const msg = dest.name + " has been blocked";
+						const msg = dest.name + " is blocked";
 						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
 						return;
 					}
@@ -110,22 +131,22 @@ export class ChatService {
 							this.socketService.joinConversation(user.id, dest.id, convName.name);
 						else {
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'error', "The server failed to create this conversation, please try again later"));
-							return;
+							throw new Error("The Conversation couldn't be created");
 						}
 					}
 					const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation, event.message);
 					console.log(newMsg);
 					this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', dest.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt));
-					// this.eventEmitter.emit('chat.sendprivatemessage', new ChatSendPrivateMessageEvent(user.id, conversation.name, newMsg.content, newMsg.createdAt))
 				} else {
 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "No such connected user"));
 					return;
 				}
 			} else {
-				this.eventEmitter.emit('chat.sendToClient', new ChatSendToClientEvent(user.id, 'message', "You cannot send a message to yourself"));
+				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "You cannot send a message to yourself"));
+				return;
 			}
 		} else {
-			console.log("This is not a user");
+			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, "message", "You are unknowwn to the database"));
 		}
 	}
 
@@ -133,6 +154,8 @@ export class ChatService {
 	async chatChannelMessages(
 		event: ChatChannelMessageEvent
 	) {
+		if (event.message.length > 100)
+			throw new Error("This message is too long");
 		const user = await this.usersService.getUserById(event.userId);
 		if (user != undefined) {
 			const room = await this.roomService.getRoom(event.channelId);
@@ -140,26 +163,23 @@ export class ChatService {
 				const member = await this.roomService.isUserinRoom(user.id, event.channelId);
 				if ( member != undefined ) {
 					if (member.membershipState == 2) {
-						console.log('mute');
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'mute', "You are mute on " + room.name));
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'channel', "You are mute on " + room.name));
 						return;
 					}
 					if (member.membershipState === 4) {
-						console.log('ban');
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'ban', "You are banned from " + room.name));
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'channel', "You are banned from " + room.name));
 						return;
 					}
 					const newMsg = await this.messagesService.newChannelMessage(user.id, event.channelId, event.message);
 					const channelName = await this.roomService.getRoom(event.channelId);
-					this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt));
-					// this.eventEmitter.emit('chat.sendchannelmessage', new ChatSendChannelMessageEvent(user.id, channelName.id, channelName.name, newMsg.content, newMsg.createdAt));
+					this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.channelId, user.id, user.pseudo, newMsg.content, newMsg.createdAt));
 					return;
 				}
 			}
-			const msg = event.channelName + " does not exist or you are not a member";
+			const msg = event.channelName + " does not exists or you are not a member";
 			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'channel', msg));
 		} else {
-			console.log("You are not registered");
+			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, "message", "You are unknowwn to the database"));
 		}
 	}
 
@@ -189,11 +209,13 @@ export class ChatService {
 				if (member !== undefined && member.membershipState !== 4) {
 					this.roomService.removeUserfromRoom(user.id, event.channelId);
 					this.socketService.leaveChannel(user.id, event.channelName);
-					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.name + " has left this channel"));
+					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.pseudo + " has left this channel"));
 				} else {
 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave this channel"));
 				}
-			} else this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "This channel does not exsits"));
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
+			}
 		}
 	}
 
@@ -220,6 +242,8 @@ export class ChatService {
 						}
 					}
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -232,6 +256,7 @@ export class ChatService {
 		const target = await this.usersService.getUserById(event.targetId);
 		if (target != null && user != null) {
 			const room = await this.roomService.roomExists(event.channelId);
+			console.log(room);
 			if (room != null) {
 				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
 				if (member && member.permissionMask  >= 2) {
@@ -242,7 +267,10 @@ export class ChatService {
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 					}
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
+
 		}
 	}
 	
@@ -264,6 +292,8 @@ export class ChatService {
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 					}
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -286,6 +316,8 @@ export class ChatService {
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 					}
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -308,6 +340,8 @@ export class ChatService {
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 					}
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -330,6 +364,8 @@ export class ChatService {
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 					}
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -356,6 +392,8 @@ export class ChatService {
 				} else {
 					console.log("pas owner");
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -381,6 +419,8 @@ export class ChatService {
 				} else {
 					console.log("pas owner");
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -401,6 +441,8 @@ export class ChatService {
 					} else {
 					console.log("pas owner");
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -421,6 +463,8 @@ export class ChatService {
 					} else {
 					console.log("pas owner");
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -441,6 +485,8 @@ export class ChatService {
 					} else {
 					console.log("pas owner");
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -462,6 +508,8 @@ export class ChatService {
 				} else {
 					console.log("pas owner ou pas dans le channel");
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}
@@ -483,6 +531,8 @@ export class ChatService {
 				} else {
 					console.log("pas owner ou pas dans le channel");
 				}
+			} else {
+				throw new Error(event.channelName + ": This channel does not exist");
 			}
 		}
 	}

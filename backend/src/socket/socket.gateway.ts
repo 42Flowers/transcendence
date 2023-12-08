@@ -25,6 +25,7 @@ import { UserPayload } from "src/auth/user.payload";
 import { JwtService } from "@nestjs/jwt";
 import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
+import { ChatSendRoomToClientEvent } from "src/events/chat/sendRoomToClient.event";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -64,6 +65,8 @@ export class SocketGateway implements
 		private readonly jwtService: JwtService
 		) {}
 
+		DEBUG=true;
+
 	afterInit() {
 		console.log("Init socket Gateway")
 	}
@@ -91,12 +94,10 @@ export class SocketGateway implements
 		if (!client.user) {
 			return ;
 		}
-
 		client.leave('server');
 		this.socketService.removeSocket(client);
 		console.log(`Client disconnected: ${client.id}`);
 		// this.socketService.removeSocket(token.id, client);
-		
 	}
 
 	@OnEvent('chat.sendtoclient')
@@ -105,6 +106,13 @@ export class SocketGateway implements
 			type,
 			msg: data,
 		});
+	}
+
+	@OnEvent('chat.sendroomtoclient')
+	sendRoomToClient({userId, type, channel}: ChatSendRoomToClientEvent
+	) {
+		console.log(channel);
+		this.socketService.emitToUserSockets(userId, 'channel', {type: type, channel: channel});
 	}
 
 	/**
@@ -124,16 +132,19 @@ export class SocketGateway implements
 		console.log(event);
 		this.server.to(event.channelName).emit('info', {type: event.type, message: event.message});
 	}
+
 	// CHAT EVENTS
-	
+
 	@SubscribeMessage('blockuser')
 	handleBlockUser(
 		@MessageBody() data: {userId: number, targetId: number}
 	) {
 		try {
 			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(data.userId, data.targetId));
-		} catch (error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -143,8 +154,10 @@ export class SocketGateway implements
 	) {
 		try {
 			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(data.userId, data.targetId));
-		} catch (error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -156,8 +169,10 @@ export class SocketGateway implements
 		try {
 			console.log(data);
 			console.log('ici', this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message)));
-		} catch (error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -166,40 +181,16 @@ export class SocketGateway implements
 		@MessageBody('') data: {userId: number, channelId: number, channelName: string, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
-		console.log("arrive", client.id);
+		if (data.userId == undefined)
+			return;
 		try {
 			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.channelId, data.channelName, data.message));
-		} catch(error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
-
-	@SubscribeMessage('channelmanage')
-	handleMuteOnChannel(
-		@MessageBody('') data: {userId: number, type: string, channelName: string, channelId: number, options: any},
-		@ConnectedSocket() client: Socket	
-	) {
-		
-	}
-
-	// @SubscribeMessage('room')
-	// // @UseGuards(AuthGuard)
-	// chatRoom(
-	// 	@MessageBody('') data : {userId: number, type: string, roomname: string, roomId: number, option: any},
-	// 	@ConnectedSocket()  client:Socket
-	// ) {
-	// 	this.chatService.chatRoom(data);
-	// }
-
-
-	// @SubscribeMessage('friend')
-	// // @UseGuards(AuthGuard)
-	// chatFriend(
-	// 	@MessageBody('') data: {type: string, target: string, options: string},
-	// 	@ConnectedSocket() client: Socket
-	// ) {
-	// 	this.chatService.chatFriend(client, data);
-	// }
 
 	@SubscribeMessage('handshake')
 	// @UseGuards(AuthGuard)

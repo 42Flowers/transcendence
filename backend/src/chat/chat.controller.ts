@@ -24,6 +24,7 @@ import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event'
 import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
 import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
 import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 interface convElem {
     isChannel: boolean,
@@ -52,56 +53,57 @@ export class ChatController {
 		private readonly userService: UsersService,
 		private readonly conversationService: ConversationsService,
 		private readonly messageService : MessagesService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2, 
+		private readonly prismaService: PrismaService
 		) {}
 
-    // **
-    //  * @returns list of channels the user can join, nom du channel, le channelId et les permissions que le user en question a dans le channel
-    //  */
-    // @Get('get-channels')
-    // async getChannels( 
-	// 	@Request() req: ExpressRequest
-	// ) {
-	// 	try {
-	// 		const rooms = await this.roomService.getPublicRooms(Number(req.user.sub));
-	// 		const chans : channelElem[] = [];
-	// 		rooms.forEach(room => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask}));
-	// 		return chans;
-	// 	} catch (error) {
-	// 		console.log(error.message);
-	// 	}
-    // }
+		DEBUG = true;
 
-	/**
-	 * return : toutes les informations sur le channel, type messages, users et tout ça
-	 */
-	// @Get('get-channelmessages')
-	// async getChannelContext(
-	// 	@Request() req: ExpressRequest
-	// ) {
-	// 	try {
-	// 	const channel = await this.messageService.getMessagesfromChannel(Number(req.user.sub), 1);
-	// 	console.log(channel);
-	// 	const messages: convMessage[] = [];
-	// 	const userNames = await Promise.all(channel.map(conv => this.userService.getUserName(conv.authorId)));
-	// 	channel.map((chan) => {
-	// 		userNames.forEach(name => messages.push({authorName: name.pseudo, content: chan.content, creationTime: chan.createdAt}));
-	// 	});
-	// 	return messages;
-	// 	} catch (err) {
-	// 		console.log(err.message);
-	// 	}
-	// }
+    @Get('get-channels')
+    async getChannels( 
+		@Request() req: ExpressRequest
+	) {
+		try {
+			const rooms = await this.roomService.getPublicRooms(2);
+			const chans = [];
+			rooms.forEach(room => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask}));
+			return chans;
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
+		}
+    }
+
+	@Get('get-channelmessages')
+	async getChannelContext(
+		@Request() req: ExpressRequest
+	) {
+		try {
+		const channel = await this.messageService.getMessagesfromChannel(Number(req.user.sub), 14);
+		console.log(channel);
+		const messages = [];
+		const userNames = await Promise.all(channel.map(conv => this.userService.getUserName(conv.authorId)));
+		channel.map((chan) => {
+			userNames.forEach(name => messages.push({authorName: name.pseudo, content: chan.content, creationTime: chan.createdAt}));
+		});
+		return messages;
+		} catch (err) {
+			console.log(err.message);
+		}
+	}
 
 	@Post('join-channel')
 	async joinChannel(
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(5, "channel", 14, "coucou"));
+			this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(7, "channel", 14, "coucou"));
 			// this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
 		} catch (err) {
-			console.log(err.message);
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -113,57 +115,62 @@ export class ChatController {
 			console.log("top");
 			this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(7, "channel", 14));
 			// this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
-		} catch(err) {
-			console.log(err.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
 	/**
 	 * return id conversation et nom de la personne avec qui je discute
-	//  */
-	// @Get('get-conversations')
-    // async getPrivateConversations(
-    //     @Request() req: ExpressRequest
-    // ) {
-    //     try {
-    //         // const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
-    //         const conversations = await this.conversationService.getAllUserConversations(1);
+	 */
+	@Get('get-conversations')
+    async getPrivateConversations(
+        @Request() req: ExpressRequest
+    ) {
 
-    //         const convs: privMessageElem[] = []
-    //         const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
-	// 		conversations.map((conv, index) => {
-	// 			convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo});
-	// 		});
-	// 		console.log("la conversations: ", conversations, " \n et ici convs ", convs);
-    //         return convs;
-    //     } catch (err) {
-	// 		console.log(err.message);
-    //     }
-    // }
+        try {
+            // const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
+            const conversations = await this.conversationService.getAllUserConversations(2);
 
-	// @Get('get-privatemessages')
-	// async privateConversation(
-	// 	@Request() req: ExpressRequest
-	// ) {
-	// 	try {
-	// 		const conversations = await this.chatService.getPrivateConversation(Number(req.user.sub), 1);
-	// 		const messages: convMessage[] = [];
-	// 		conversations.forEach(msg => messages.push({authorName: msg.authorId, content: msg.content, creationTime: msg.createdAt}));
-	// 		return messages;
-	// 	} catch (err) {
-	// 		console.log(err.message);
-	// 	}
-	// }
+            const convs = []
+            const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
+			conversations.map((conv, index) => {
+				convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo});
+			});
+			console.log("la conversations: ", conversations, " \n et ici convs ", convs);
+            return convs;
+        } catch (err) {
+			console.log(err.message);
+        }
+    }
+
+	@Get('get-privatemessages')
+	async privateConversation(
+		@Request() req: ExpressRequest
+	) {
+		try {
+			const conversations = await this.chatService.getPrivateConversation(2, 1);
+			const messages = [];
+			conversations.forEach(msg => messages.push({authorName: msg.authorId, content: msg.content, creationTime: msg.createdAt}));
+			return messages;
+		} catch (err) {
+			console.log(err.message);
+		}
+	}
 
 	@Post('invite-user')
 	async handleInvite(
 		@Request() req : ExpressRequest
 	) {
 		try {
-			this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(2, 9, "channel", 1));
+			this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(2, "channel", 9, 1));
 			// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 		} catch (err) {
-			console.log(err.message);
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -172,11 +179,13 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			console.log("coucou");
-			this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, "channel", 9, 1));
+			console.log('hep hep hep');
+			this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, "channel", 17, 7));
 			// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 		} catch (err) {
-			console.log(err.message);
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -188,7 +197,9 @@ export class ChatController {
 			this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(2, "channel", 9, 1))
 			// this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
 		} catch (err) {
-			console.log(err.message);
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -199,7 +210,9 @@ export class ChatController {
 		try {
 			this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(2, "channel", 9, 1));
 		} catch (err) {
-			console.log(err.message);
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -211,7 +224,9 @@ export class ChatController {
 			this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(2, "channel", 9, 1));
 			// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 		} catch (err) {
-			console.log(err.message);
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -222,8 +237,10 @@ export class ChatController {
 		try {
 			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(2, "channel", 9, 4));
 			// this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
-		} catch(err) {
-			console.log(err.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -234,8 +251,10 @@ export class ChatController {
 		try {
 			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(2, "channel", 9, 1));
 			// this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
-		} catch(error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -246,8 +265,10 @@ export class ChatController {
 		try {
 			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(2, "channel", 9, 1));
 			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
-		} catch(error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -258,8 +279,10 @@ export class ChatController {
 		try {
 			this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(2, "channel", 9));
 			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
-		} catch(error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -270,8 +293,10 @@ export class ChatController {
 		try {
 			this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(2, "channel", 9));
 			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
-		} catch(error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -282,8 +307,10 @@ export class ChatController {
 		try {
 			this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(2, "channel", 9, "coucou"));
 			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
-		} catch(error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -294,8 +321,10 @@ export class ChatController {
 		try {
 			this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
-		} catch(error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -307,8 +336,10 @@ export class ChatController {
 			this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, "channel", 9));
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
-		} catch(error) {
-			console.log(error.message);
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
 		}
 	}
 
@@ -320,6 +351,10 @@ export class ChatController {
 			const friends = await this.userService.getFriends(Number(req.user.sub));
 			console.log(friends);
 			return friends;
-		} catch (err) {console.log(err.message)}
+		} catch (err) {
+			if (this.DEBUG == true) {
+				console.log(err);
+			}
+		}
 	}
 }

@@ -1,6 +1,7 @@
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
+import { OnEvent } from '@nestjs/event-emitter';
 
 type ConnectedUsers = {
 	[k: number]: Socket[];
@@ -14,6 +15,21 @@ export class SocketService {
 		) {}
 
 	private connectedUsers : ConnectedUsers = {};
+	private usersInGame = new Set<number>();
+
+	isUserInGame(userId: number) {
+		return this.usersInGame.has(userId);
+	}
+	
+	@OnEvent('game.joined')
+	handleGameJoined(userId: number) {
+		this.usersInGame.add(userId);
+	}
+
+	@OnEvent('game.leaved')
+	handleGameLeaved(userId: number) {
+		this.usersInGame.delete(userId);
+	}
 
 	getSockets(userId: number): Socket[] {
 		if (userId in this.connectedUsers) {
@@ -76,5 +92,31 @@ export class SocketService {
 
 	leaveChannel(userId: number, channelName: string) {
 		this.foreachUserSocket(userId, client => client.leave(channelName));
+	}
+
+	async getUserStatus(userId: number) {
+		try {
+			const users = await this.prismaService.user.findMany({
+				where: {
+					id: {
+						not: userId,
+					},
+				},
+				select: {
+					id: true,
+					pseudo: true,
+				},
+			});
+
+			return users.map(({ id, pseudo }) => {
+				if (this.isUserInGame(id))
+					return [id, pseudo, 'ingame'];
+				if (id in this.connectedUsers)
+					return [id, pseudo,'online'];
+				return [id, pseudo, 'offline'];
+			});
+		} catch {
+			throw new ForbiddenException();
+		}
 	}
 }

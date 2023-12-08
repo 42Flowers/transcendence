@@ -1,11 +1,14 @@
-import React, { MouseEvent, useContext } from "react";
+import React, { MouseEvent, useCallback, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Stack, Popover, List, ListItem, ListItemButton, ListItemText, Divider } from "@mui/material";
 import default_avatar from "../../assets/images/default_avatar.png";
 import { AvatarContext } from "../../contexts/AvatarContext";
+import PopUpInvite from '../PopUpInvite/PopUpInvite.tsx';
 
 import './Navigation.css';
 import { useAuthContext } from "../../contexts/AuthContext";
+import SocketContext from "../Socket/Context/Context";
+import { Socket } from "socket.io-client";
 
 interface Props {
     // onRouteChange: (route: string) => void;
@@ -20,9 +23,33 @@ interface AvatarContextType {
 const Navigation: React.FC<Props> = ({ isSignedIn }) => {
     const navigate = useNavigate();
     const [avatarEl, setAvatarEl] = React.useState<HTMLDivElement | null>(null);
+    const [senderPseudo, setSenderPseudo] = useState<string>("");
     const { signOut } = useAuthContext();
+    const { SocketState } = useContext(SocketContext);
+
+    const launchNormal = useCallback(() => {
+        navigate('/game-normal');
+    }, []);
+
+    const launchSpecial = useCallback(() => {
+        navigate('/game-special');
+    }, []);
+
+    useEffect(() => {
+        SocketState.socket?.on("showGameInvite", showPopup);
+        SocketState.socket?.on("launchNormal", launchNormal);
+        SocketState.socket?.on("launchSpecial", launchSpecial);
+        
+        return () => {
+            SocketState.socket?.off("showGameInvite", showPopup);
+            SocketState.socket?.off("launchNormal", launchNormal);
+            SocketState.socket?.off("launchSpecial", launchSpecial);
+        };
+    }, [SocketState.socket]);
 
     const { avatar } = useContext(AvatarContext) as AvatarContextType;
+
+    const [popup, setPopup] = useState(false);
 
     const handleAvatarClick = (e: MouseEvent<HTMLDivElement>) => {
         setAvatarEl(e.currentTarget);
@@ -30,6 +57,21 @@ const Navigation: React.FC<Props> = ({ isSignedIn }) => {
 
     const handleAvatarClose = () => {
         setAvatarEl(null);
+    };
+
+    const showPopup = (pseudo: string) => {
+        setPopup(true);
+        setSenderPseudo(pseudo);
+    }
+
+    const onAccept = () => {
+        SocketState.socket?.emit('joinInviteGame');
+        setPopup(false);
+    };
+
+    const onDecline = () => {
+        SocketState.socket?.emit('cancelGameSearch');
+        setPopup(false);
     };
 
     const open = Boolean(avatarEl);
@@ -40,6 +82,8 @@ const Navigation: React.FC<Props> = ({ isSignedIn }) => {
     } else {
         return (
             <>
+                <div className="overlay" style={{ display: popup ? 'block': 'none' }}></div>
+                { popup && <PopUpInvite userName={senderPseudo} onAccept={onAccept} onDecline={onDecline} />}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" style={{padding: '5px'}}>
                     <p onClick={() => navigate('/')} className="logo">
                         PONG

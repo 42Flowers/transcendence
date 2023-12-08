@@ -106,6 +106,7 @@ export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('
 
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 
+export const fetchAvailableUsers = () => wrapResponse(authorizedGet('/api/gateway/status'));
 
 export const fetchIsFriended = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isFriended: boolean; }>(`/api/profile/${userId}/isFriendwith/${friendId}`));
 export const addUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`api/profile/${userId}/add/${friendId}`, ''));

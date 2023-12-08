@@ -44,10 +44,10 @@ export class InvitationService {
 	}
 
 	async createInviteGame(socket: Socket, targetId: number, gameMode: GameMode) {
-		if (this.gameService.isUserInGame(Number(socket.user.sub)) || this.gameService.isUserInGame(targetId))
-			return;
+		if (this.gameService.isUserInGame(socket.user.id) || this.gameService.isUserInGame(targetId))
+			return ;
 
-		if (await this.checkBlockedUser(Number(socket.user.sub), targetId)) {
+		if (await this.checkBlockedUser(socket.user.id, targetId)) {
 			return ;
 		}
 

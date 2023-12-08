@@ -19,7 +19,6 @@ import { Module } from '@nestjs/common';
 		ConversationsModule, 
 		SocketModule,
 		MessagesModule,
-		EventEmitterModule.forRoot()
 	],
 	controllers: [ChatController],
 	exports: [ChatService]

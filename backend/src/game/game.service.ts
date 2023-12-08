@@ -65,7 +65,7 @@ export class GameService {
 		for (let i = 0; i < this.friendsGameList.length; ++i) {
 			const currGame = this.friendsGameList[i];
 
-			if (userId == currGame.getLeftPlayerUser().id) {
+			if (userId == currGame.getRightPlayerUser().id) {
 				return currGame;
 			}
 		}
@@ -102,6 +102,10 @@ export class GameService {
 
 		this.inGameUsers.delete(game.getLeftPlayerUser().id);
 		this.inGameUsers.delete(game.getRightPlayerUser().id);
+
+		this.eventEmitter.emit('game.leaved', game.getLeftPlayerUser().id);
+		this.eventEmitter.emit('game.leaved', game.getRightPlayerUser().id);
+
 		/** TODO remove the game from the list */
 	}
 }

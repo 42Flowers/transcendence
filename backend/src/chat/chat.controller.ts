@@ -85,7 +85,7 @@ export class ChatController {
 			return chans;
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
     }
@@ -123,7 +123,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -133,12 +133,11 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			console.log("top");
 			this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(7, "channel", 14));
 			// this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -154,13 +153,11 @@ export class ChatController {
         try {
             // const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
             const conversations = await this.conversationService.getAllUserConversations(2);
-
             const convs = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
 			conversations.map((conv, index) => {
 				convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo});
 			});
-			console.log("la conversations: ", conversations, " \n et ici convs ", convs);
             return convs;
         } catch (err) {
 			console.log(err.message);
@@ -190,7 +187,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -200,12 +197,11 @@ export class ChatController {
 		@Request() req : ExpressRequest
 	) {
 		try {
-			console.log('hep hep hep');
 			this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, "channel", 17, 7));
 			// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -219,7 +215,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -232,7 +228,7 @@ export class ChatController {
 			this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(2, "channel", 9, 1));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -246,7 +242,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -260,7 +256,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -274,7 +270,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -288,7 +284,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -302,7 +298,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -316,7 +312,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -330,7 +326,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -344,7 +340,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -359,7 +355,7 @@ export class ChatController {
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}
@@ -370,11 +366,10 @@ export class ChatController {
 	) {
 		try {
 			const friends = await this.userService.getFriends(Number(req.user.sub));
-			console.log(friends);
 			return friends;
 		} catch (err) {
 			if (this.DEBUG == true) {
-				console.log(err);
+				console.log(err.message);
 			}
 		}
 	}

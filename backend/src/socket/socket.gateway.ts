@@ -114,7 +114,6 @@ export class SocketGateway implements
 	@OnEvent('chat.sendroomtoclient')
 	sendRoomToClient({userId, type, channel}: ChatSendRoomToClientEvent
 	) {
-		console.log(channel);
 		this.socketService.emitToUserSockets(userId, 'channel', {type: type, channel: channel});
 	}
 
@@ -132,7 +131,6 @@ export class SocketGateway implements
 
 	@OnEvent('chat.sendtochannel')
 	sendToChannel(event: ChatSendToChannelEvent) {
-		console.log(event);
 		this.server.to(event.channelName).emit('info', {type: event.type, message: event.message});
 	}
 
@@ -170,8 +168,7 @@ export class SocketGateway implements
 		@ConnectedSocket() client : Socket 
 	) {
 		try {
-			console.log(data);
-			console.log('ici', this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message)));
+			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message));
 		} catch (err) {
 			if (this.DEBUG == true) {
 				console.log(err);

@@ -103,10 +103,8 @@ export class ChatService {
 	) {
 		if (event.message.length > 100)
 			throw new Error("This message is too long");
-		console.log(event);
 		const user = await this.usersService.getUserById(event.userId);
 		if (user) {
-			console.log(user);
 			if (event.targetId != user.id) {
 				const dest = await this.usersService.getUserById(event.targetId);
 				if (dest != undefined) {
@@ -135,7 +133,6 @@ export class ChatService {
 						}
 					}
 					const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation, event.message);
-					console.log(newMsg);
 					this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', dest.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt));
 				} else {
 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "No such connected user"));
@@ -256,7 +253,6 @@ export class ChatService {
 		const target = await this.usersService.getUserById(event.targetId);
 		if (target != null && user != null) {
 			const room = await this.roomService.roomExists(event.channelId);
-			console.log(room);
 			if (room != null) {
 				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
 				if (member && member.permissionMask  >= 2) {
@@ -381,9 +377,7 @@ export class ChatService {
 			if (room != null) {
 				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
 				if (member && member.permissionMask === 4) {
-					console.log(target);
 					const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
-					console.log("coucou");
 					if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
 						const result = await this.roomService.addAdmin(event.targetId, event.channelId);
 						if (result.status === false)
@@ -409,7 +403,6 @@ export class ChatService {
 			if (room != null) {
 				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
 				if (member && member.permissionMask === 4) {
-					console.log(target);
 					const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 					if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
 						const result = await this.roomService.rmAdmin(event.targetId, event.channelId);
@@ -562,7 +555,7 @@ export class ChatService {
 		if (conversation) {
 			return await this.messagesService.getMessagesfromConversation(userId, targetId);
 		}else {
-			return "No such Conversation";
+			return "No such conversation";
 		}
 	}
 }

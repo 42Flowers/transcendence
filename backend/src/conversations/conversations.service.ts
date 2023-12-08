@@ -12,21 +12,10 @@ export class ConversationsService {
 	async conversationExists(userId: number, targetId: number) : Promise<any> {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, include : {userConversations: true}});
-			console.log(user);
 			const conversation = user.userConversations.find((conv) => conv.receiverId == targetId);
 			if (conversation) {
-				console.log(conversation.conversationId);
-				console.log(conversation.receiverId);
 				return conversation.conversationId;
 			}
-			// user.userConversations.map((conv) => {
-			// 	if (conv.receiverId === targetId)
-			// 	{
-			// 		console.log(conv.conversationId);
-			// 		console.log(conv);
-			// 		return {id : conv.conversationId};
-			// 	}
-			// });
 			return null;
 		} catch (err) {
 			throw new Error(err.message);
@@ -124,10 +113,8 @@ export class ConversationsService {
 				},
 				include : {userConversations:true}
 			});
-			console.log(conversations.userConversations);
 			return conversations.userConversations;
 		} catch (err) {
-			console.log("par ici");
 			throw err;
 		}
 	}

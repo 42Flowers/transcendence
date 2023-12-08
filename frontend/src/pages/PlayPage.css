@@ -56,7 +56,7 @@
 
 }
 
-.friend-choice {
+.user-choice {
 	border-top: 2px solid white;
 	padding-top: 20%;
 }
@@ -69,7 +69,7 @@
 	height: 20%;
 }
 
-.friendList {
+.userList {
 	font-family: "Short Stack";
     border: 2px solid white;
     border-radius: 20px;

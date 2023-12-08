@@ -7,7 +7,9 @@ import { GameKeyDownEvent } from 'src/events/game/keyDown.event';
 import { GameKeyUpEvent } from 'src/events/game/keyUp.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SocketGateway } from 'src/socket/socket.gateway';
+import { SocketService } from 'src/socket/socket.service';
 import { Game, GameMode } from './game';
+import { User } from '@prisma/client';
 
 const REFRESH_RATE = 16.66667; // in ms
 
@@ -20,6 +22,7 @@ export class GameService {
 
 	constructor(
 		private readonly prismaService: PrismaService,
+		private readonly socketService: SocketService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly socketGateway: SocketGateway) {
 
@@ -28,20 +31,46 @@ export class GameService {
 		this.inGameUsers = new Set<number>();
 	}
 
-	createGame(leftPlayer: Socket, rightPlayer: Socket, gameMode: GameMode): Game {
-		const game = new Game(this.eventEmitter, leftPlayer, rightPlayer, gameMode);
-		game.start();
+	isUserInGame(userId: number): boolean {
+        return this.inGameUsers.has(userId);
+    }
 
-		this.inGameUsers.add(leftPlayer.user.id);
-		this.inGameUsers.add(rightPlayer.user.id);
+	createRandomGame(leftPlayer: User, rightPlayer: User, gameMode: GameMode): Game {
+		const game = new Game(this.eventEmitter, leftPlayer, rightPlayer, gameMode);
+
+		this.eventEmitter.emit('game.joined', leftPlayer.id);
+		this.eventEmitter.emit('game.joined', rightPlayer.id);
+
+		this.inGameUsers.add(leftPlayer.id);
+		this.inGameUsers.add(rightPlayer.id);
 
 		this.randomGameList.push(game);
 		return game;
 	}
 
-	isUserInGame(socket: Socket): boolean {
-        return this.inGameUsers.has(socket.user.id);
-    }
+	createInviteGame(leftPlayer: User, rightPlayer: User, gameMode: GameMode): Game {
+		const game = new Game(this.eventEmitter, leftPlayer, rightPlayer, gameMode);
+
+		this.eventEmitter.emit('game.joined', leftPlayer.id);
+		this.eventEmitter.emit('game.joined', rightPlayer.id);
+
+		this.inGameUsers.add(leftPlayer.id);
+		this.inGameUsers.add(rightPlayer.id);
+
+		this.friendsGameList.push(game);
+		return game;
+	}
+
+	findInvitedGame(userId: number): Game | null {
+		for (let i = 0; i < this.friendsGameList.length; ++i) {
+			const currGame = this.friendsGameList[i];
+
+			if (userId == currGame.getLeftPlayerUser().id) {
+				return currGame;
+			}
+		}
+		return null;
+	}
 
 	@Interval(REFRESH_RATE)
 	tick() {

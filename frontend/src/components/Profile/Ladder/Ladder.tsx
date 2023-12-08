@@ -16,20 +16,39 @@ import default_avatar from "../../../assets/images/default_avatar.png";
 import AvatarOthers from '../../AvatarOthers/AvatarOthers';
 
 import './Ladder.css';
-import { fetchLadder } from '../../../api';
+import { fetchAvailableUsers, fetchLadder } from '../../../api';
 import { useQuery } from 'react-query';
 
 type LadderProps = {
     auth: number;
 }
 
+type Status = {
+    [id: number]: string
+}
+
 const Ladder: React.FC<LadderProps> = ({ auth }) => {
     const { setSmallLeader, setGreatLeader } = useContext(LeaderContext) as LeaderContextType;
     const [ladder, setLadder] = useState<User[]>([]);
+    const [statusList, setStatusList] = useState<Status>({});
     const { userId } = useParams();
+
+    const usersQuery = useQuery('available-users', fetchAvailableUsers, {
+        onSuccess: (data) => {
+            data.map(([ id, pseudo, status ]) => {
+                const newStatusList: Status = {};
+                data.forEach(([id, pseudo, status]) => {
+                    newStatusList[id] = status;
+                });
+                setStatusList(newStatusList);
+            });
+        }
+    });
     const q = useQuery(['ladder', auth, userId, ladder, setLadder], fetchLadder, {
+        enabled: !!usersQuery.data,
         onSuccess(data) {
             setLadder(calculateRanking(calculateWinsAndLosses(data)));
+
         },
     });
 
@@ -167,9 +186,9 @@ const Ladder: React.FC<LadderProps> = ({ auth }) => {
                                 </TableCell>
                                 <TableCell id="cell-avatar-l">
                                     {user.avatar ?
-                                        <AvatarOthers status="Online" avatar={`http://localhost:3000/static/${user.avatar}`} userId={user.id} />
+                                        <AvatarOthers status={statusList[user.id]} avatar={`http://localhost:3000/static/${user.avatar}`} userId={user.id} />
                                         :
-                                        <AvatarOthers status="Online" avatar={default_avatar} userId={user.id} />
+                                        <AvatarOthers status={statusList[user.id]} avatar={default_avatar} userId={user.id} />
                                     }
                                 </TableCell>
                             </TableRow>

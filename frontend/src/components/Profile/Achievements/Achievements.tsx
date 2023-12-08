@@ -14,7 +14,7 @@ const AchievementsList: React.FC<AchievementsProps> = ({ userId }) => {
     if (isLoading) {
         return 'Loading...';
     }
-
+  
     if (isError) {
         return 'An error has occured';
     }

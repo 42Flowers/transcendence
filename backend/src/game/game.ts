@@ -1,4 +1,5 @@
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { User } from "@prisma/client";
 import { Socket } from "socket.io";
 import { GameEndedEvent } from "src/events/game-ended.event";
 import { v4 as uuidv4 } from 'uuid';
@@ -67,13 +68,15 @@ export enum GameMode {
 
 export class Game {
     private gameState: GameState;
-    private readonly leftPlayerSocket: Socket;
-    private readonly rightPlayerSocket: Socket;
+    private leftPlayerSocket: Socket;
+    private rightPlayerSocket?: Socket;
     private startTime: number;
     private countdown: number;
     private readonly gameMode: GameMode;
     private gameDuration: number;
     private lastCountDownTick: number;
+    private readonly leftPlayer: User;
+    private readonly rightPlayer: User;
 
     private leftPad: Paddle;
 	private rightPad: Paddle;
@@ -85,16 +88,39 @@ export class Game {
 
     private readonly eventEmitter: EventEmitter2;
 
-    constructor(eventEmitter: EventEmitter2, leftPlayerSocket: Socket, rightPlayerSocket: Socket, gameMode: GameMode) {
-        this.leftPlayerSocket = leftPlayerSocket;
-        this.rightPlayerSocket = rightPlayerSocket;
+    constructor(eventEmitter: EventEmitter2, leftPlayer: User, rightPlayer: User, gameMode: GameMode) {
+        this.leftPlayer = leftPlayer;
+        this.rightPlayer = rightPlayer;
         this.gameMode = gameMode;
         this.gameState = GameState.Waiting;
         this.eventEmitter = eventEmitter;
         this.gameDuration = 0;
+    }
 
-        this.leftPlayerSocket.game = this;
-        this.rightPlayerSocket.game = this;
+    private onSocketAttached(socket: Socket) {
+        socket.game = this;
+
+        if (GameState.Waiting === this.gameState) {
+            if (GameMode.Special === this.gameMode) {
+                socket.emit('launchSpecial');
+            } else {
+                socket.emit('launchNormal');
+            }
+        }
+    
+        if (this.leftPlayerSocket !== undefined && this.rightPlayerSocket !== undefined) {
+            this.start();
+        }
+    }
+
+    attachLeftPlayerSocket(socket: Socket) {
+        this.leftPlayerSocket = socket;
+        this.onSocketAttached(socket);
+    }
+
+    attachRightPlayerSocket(socket: Socket) {
+        this.rightPlayerSocket = socket;
+        this.onSocketAttached(socket);
     }
 
     /**
@@ -141,18 +167,12 @@ export class Game {
             y: Math.round(BOARD_HEIGHT / 2),
             radius: BALL_RADIUS,
         };
-
-        if (GameMode.Normal === this.gameMode) {
-            this.emitToPlayers('launchRandomNormal');
-        } else {
-            this.emitToPlayers('launchRandomSpecial');
-        }
     }
 
     getGameState() { return this.gameState; }
     getGameDuration() { return this.gameDuration; }
-    getLeftPlayerUser() { return this.leftPlayerSocket.user; }
-    getRightPlayerUser() { return this.rightPlayerSocket.user; }
+    getLeftPlayerUser() { return this.leftPlayer; }
+    getRightPlayerUser() { return this.rightPlayer; }
     getLeftPlayerScore() { return this.leftPlayerScore; }
     getRightPlayerScore() { return this.rightPlayerScore; }
 
@@ -182,8 +202,8 @@ export class Game {
                             pseudo: this.rightPlayerSocket.user.pseudo,
                         },
                     });
-                    this.countdown -= 1;
 
+                    this.countdown -= 1;
                     this.lastCountDownTick = now;
                 }
             }

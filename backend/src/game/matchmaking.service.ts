@@ -6,6 +6,7 @@ import { GameService } from "./game.service";
 import { Socket } from "socket.io";
 import { GameMode } from "./game";
 import { SocketDisconnectedEvent } from "src/events/socket-disconnected.event";
+import { User } from "@prisma/client";
 
 @Injectable()
 export class MatchmakingService {
@@ -23,8 +24,8 @@ export class MatchmakingService {
         if (this.queuedUsers.has(socket.user.id))
             return ; /* User is already queued */
 
+        /* random queue */
         if (GameMode.Normal === gameMode) {
-            /* random queue */
             this.randomQueue.push(socket);
         
             while (this.randomQueue.length >= 2) {
@@ -34,12 +35,16 @@ export class MatchmakingService {
                 this.queuedUsers.delete(leftPlayer.user.id);
                 this.queuedUsers.delete(rightPlayer.user.id);
 
-                this.gameService.createGame(leftPlayer, rightPlayer, GameMode.Normal);
+                /** TODO Ugly typing hack */
+                const game = this.gameService.createRandomGame(leftPlayer.user as any as User, rightPlayer.user as any as User, GameMode.Normal);
+
+                game.attachLeftPlayerSocket(leftPlayer);
+                game.attachRightPlayerSocket(rightPlayer);
             }
         }
 
+        /* special queue */
         if (GameMode.Special === gameMode) {
-            /* special queue */
             this.specialQueue.push(socket);
             
             while (this.specialQueue.length >= 2) {
@@ -49,7 +54,11 @@ export class MatchmakingService {
                 this.queuedUsers.delete(leftPlayer.user.id);
                 this.queuedUsers.delete(rightPlayer.user.id);
 
-                this.gameService.createGame(leftPlayer, rightPlayer, GameMode.Special);
+                /** TODO Ugly typing hack */
+                const game = this.gameService.createRandomGame(leftPlayer.user as any as User, rightPlayer.user as any as User, GameMode.Special);
+
+                game.attachLeftPlayerSocket(leftPlayer);
+                game.attachRightPlayerSocket(rightPlayer);
             }
         }
     }
@@ -70,10 +79,9 @@ export class MatchmakingService {
 
 	@OnEvent('game.joinRandom')
 	handleJoinRandomGame({ socket, gameMode }: GameJoinRandomEvent) {
-        if (this.gameService.isUserInGame(socket))
+        if (this.gameService.isUserInGame(socket.user.id))
             return ; // User is already is a game
         
-            console.log(gameMode);
         this.joinQueue(socket, gameMode);
     }
 

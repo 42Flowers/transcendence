@@ -1,7 +1,6 @@
 import './Game.css'
 import SocketContext from '../Socket/Context/Context';
 import { useRef, useEffect, useContext, useCallback } from 'react';
-// import { red } from '@mui/material/colors';
 
 const BALL_DEFAULT_RADIUS = 15;
 
@@ -241,16 +240,13 @@ const Game: React.FC<gameProps> = (props) => {
 			if (!gameEnd) {
 				window.requestAnimationFrame(gameLoop);
 			}
-			else {
-				return ;
-			}
 		};
 
-		let frameId = window.requestAnimationFrame(gameLoop);
-		console.log("Quit game canvas")
+		const frameId = window.requestAnimationFrame(gameLoop);
 
 		return () => {
-			window.cancelAnimationFrame(frameId);
+			// finishGame();
+			window.cancelAnimationFrame(frameId)
 			document.removeEventListener('keydown', handleKeyDown);
 			document.removeEventListener('keyup', handleKeyUp);
 		};

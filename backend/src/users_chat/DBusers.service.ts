@@ -189,6 +189,15 @@ export class UsersService {
 		}
 	}
 
+	async getMembershipState(userId: number, channelId: number) {
+		try {
+			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select: {membershipState: true}});
+			return membership.membershipState;
+		} catch (err) {
+			throw new Error("Could not find the user whose ID is " + userId);
+		}
+	}
+
 	async getFriends(userId: number) {
 		try {
 			return await this.prismaService.friendship.findMany({where: {userId: userId}});

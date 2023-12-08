@@ -43,6 +43,21 @@ interface convMessage {
     content: string,
 }
 
+interface channelElem {
+	messages: Message[],
+	users: users[],
+}
+
+interface Message {
+	authorName: string,
+	content: string,
+	createdAt: Date,
+}
+interface users {
+	userId: number,
+	membershipState: number,  
+}
+
 @Controller("chat")
 @UseGuards(AuthGuard)
 export class ChatController {
@@ -80,14 +95,20 @@ export class ChatController {
 		@Request() req: ExpressRequest
 	) {
 		try {
-		const channel = await this.messageService.getMessagesfromChannel(Number(req.user.sub), 14);
-		console.log(channel);
-		const messages = [];
-		const userNames = await Promise.all(channel.map(conv => this.userService.getUserName(conv.authorId)));
-		channel.map((chan) => {
-			userNames.forEach(name => messages.push({authorName: name.pseudo, content: chan.content, creationTime: chan.createdAt}));
+		const channelId = 14;
+		const messagesfromchannel = await this.messageService.getMessagesfromChannel(Number(req.user.sub), channelId);
+		const allusers = await this.roomService.getUsersfromRoom(channelId);
+		const messages : Message[] = [];
+		const users : users[] = [];
+		const membershipStates = await Promise.all(allusers.map(user => this.userService.getMembershipState(user.userId, channelId)));
+		allusers.map((user, index) => {
+			users.push({userId: user.userId, membershipState: membershipStates[index]})});
+		const userNames = await Promise.all(messagesfromchannel.map(conv => this.userService.getUserName(conv.authorId)));
+		messagesfromchannel.map((chan, index) => {
+			messages.push({authorName: userNames[index].pseudo, content: chan.content, createdAt: chan.createdAt});
 		});
-		return messages;
+		const theAll: channelElem = {users, messages};
+		return theAll;
 		} catch (err) {
 			console.log(err.message);
 		}

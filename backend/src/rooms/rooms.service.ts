@@ -271,9 +271,6 @@ export class RoomService {
 		try {
 			const users = await this.prismaService.channelMembership.findMany({
 				where: {channelId: channelId}});
-			// users.map((user) => {
-			// 	console.log(user.userId);
-			// });
 			return users;
 		} catch (err) { throw new Error(err.message) }
 	}

@@ -1,6 +1,6 @@
 import { Avatar, Divider, List, ListItem, ListItemButton, ListItemText, Popover, Stack } from "@mui/material";
 import React, { useContext } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import default_avatar from "../../assets/images/default_avatar.png";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { AvatarContext } from "../../contexts/AvatarContext";
@@ -15,6 +15,7 @@ const Navigation: React.FC = () => {
     const avatarRef = React.useRef<HTMLDivElement>(null);
     const [ isOpen, setOpen ] = React.useState<boolean>(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const [ senderPseudo, setSenderPseudo ] = useState<string>("");
     const { signOut } = useAuthContext();
     const { SocketState } = useContext(SocketContext);
@@ -56,6 +57,9 @@ const Navigation: React.FC = () => {
         setOpen(false);
     };
 
+    /* Close popover on url change */
+    React.useEffect(() => setOpen(false), [ location ]);
+
     const onAccept = () => {
         SocketState.socket?.emit('joinInviteGame');
         setPopup(false);
@@ -72,10 +76,12 @@ const Navigation: React.FC = () => {
             <div className="overlay" style={{ display: popup ? 'block': 'none' }}></div>
             { popup && <MemoizedPopUpInvite userName={senderPseudo} onAccept={onAccept} onDecline={onDecline} />}
             <Stack direction="row" justifyContent="space-between" alignItems="center" style={{padding: '5px'}}>
-                <p onClick={() => navigate('/')} className="logo">
+                <Link to="/" className="logo">
                     PONG
-                </p>
-                <Avatar aria-describedby={id} alt="Avatar" onClick={handleAvatarClick} src={avatar || default_avatar} style={{margin: '5px 10px'}}/>
+                </Link>
+                <div ref={avatarRef}>
+                    <Avatar aria-describedby={id} alt="Avatar" onClick={handleAvatarClick} src={avatar || default_avatar} style={{margin: '5px 10px'}}/>
+                </div>
             </Stack>
 
             <Popover

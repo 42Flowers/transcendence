@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Socket } from 'socket.io';
+import { SocketConnectedEvent } from 'src/events/socket-connected.event';
+import { SocketDisconnectedEvent } from 'src/events/socket-disconnected.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 type ConnectedUsers = {
@@ -36,6 +38,8 @@ export class SocketService {
 		}
 
 		this.connectedUsers[userId].push(socket);
+	
+		this.eventEmitter.emit('socket.connected', new SocketConnectedEvent(socket));
 	}
 
 	removeSocket(socket: Socket) {
@@ -52,6 +56,8 @@ export class SocketService {
 				delete this.connectedUsers[userId];
 			}
 		}
+
+		this.eventEmitter.emit('socket.disconnected', new SocketDisconnectedEvent(socket));
 	}
 
 	deleteAllSockets() {

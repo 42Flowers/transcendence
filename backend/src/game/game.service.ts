@@ -13,8 +13,10 @@ const REFRESH_RATE = 16.66667; // in ms
 
 @Injectable()
 export class GameService {
-	randomGameList: Game[];
-	friendsGameList: Game[];
+	private randomGameList: Game[];
+	private friendsGameList: Game[];
+
+	private readonly inGameUsers: Set<number>;
 
 	constructor(
 		private readonly prismaService: PrismaService,
@@ -23,18 +25,22 @@ export class GameService {
 
 		this.randomGameList = [];
 		this.friendsGameList = [];
+		this.inGameUsers = new Set<number>();
 	}
 
 	createGame(leftPlayer: Socket, rightPlayer: Socket, gameMode: GameMode): Game {
 		const game = new Game(this.eventEmitter, leftPlayer, rightPlayer, gameMode);
 		game.start();
 
+		this.inGameUsers.add(leftPlayer.user.id);
+		this.inGameUsers.add(rightPlayer.user.id);
+
 		this.randomGameList.push(game);
 		return game;
 	}
 
 	isUserInGame(socket: Socket): boolean {
-        return false;
+        return this.inGameUsers.has(socket.user.id);
     }
 
 	@Interval(REFRESH_RATE)
@@ -65,6 +71,8 @@ export class GameService {
 	handleGameEnded({ game }: GameEndedEvent) {
 		console.log('Game ended');
 
+		this.inGameUsers.delete(game.getLeftPlayerUser().id);
+		this.inGameUsers.delete(game.getRightPlayerUser().id);
 		/** TODO remove the game from the list */
 	}
 }

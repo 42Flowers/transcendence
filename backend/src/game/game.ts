@@ -147,15 +147,6 @@ export class Game {
         } else {
             this.emitToPlayers('launchRandomSpecial');
         }
-        
-        this.emitToPlayers('playerData', {
-            left: {
-                pseudo: this.leftPlayerSocket.user.pseudo,
-            },
-            right: {
-                pseudo: this.rightPlayerSocket.user.pseudo,
-            },
-        });
     }
 
     getGameState() { return this.gameState; }
@@ -175,7 +166,6 @@ export class Game {
             const now = Date.now();
             const timeSinceLastCountdownTick = now - this.lastCountDownTick;
 
-
             if (this.countdown === 0) {
                 this.gameState = GameState.Running;
                 this.resetBoard();
@@ -183,6 +173,15 @@ export class Game {
             } else {
                if (timeSinceLastCountdownTick >= 1000) {
                     this.emitToPlayers('countdown');
+
+                    this.emitToPlayers('playerData', {
+                        left: {
+                            pseudo: this.leftPlayerSocket.user.pseudo,
+                        },
+                        right: {
+                            pseudo: this.rightPlayerSocket.user.pseudo,
+                        },
+                    });
                     this.countdown -= 1;
 
                     this.lastCountDownTick = now;

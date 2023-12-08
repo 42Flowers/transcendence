@@ -5,20 +5,20 @@ import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
 import { GameService } from "./game.service";
 import { Socket } from "socket.io";
 import { GameMode } from "./game";
+import { SocketDisconnectedEvent } from "src/events/socket-disconnected.event";
 
 @Injectable()
 export class MatchmakingService {
-    private queuedSocketsIds: Set<string>;
+    private queuedUsers: Set<number>;
     private randomQueue: Socket[];
     
     constructor(private readonly gameService: GameService) {
-
-        this.queuedSocketsIds = new Set<string>();
+        this.queuedUsers = new Set<number>();
         this.randomQueue = [];
     }
 
     private joinQueue(socket: Socket, gameMode: number) {
-        if (this.queuedSocketsIds.has(socket.id))
+        if (this.queuedUsers.has(socket.user.id))
             return ; /* User is already queued */
 
         if (0 === gameMode) {
@@ -29,8 +29,8 @@ export class MatchmakingService {
                 /* While we have a least two players, add them to a game */
                 const [ leftPlayer, rightPlayer ] = this.randomQueue.splice(0, 2);
 
-                this.queuedSocketsIds.delete(leftPlayer.id);
-                this.queuedSocketsIds.delete(rightPlayer.id);
+                this.queuedUsers.delete(leftPlayer.user.id);
+                this.queuedUsers.delete(rightPlayer.user.id);
 
                 this.gameService.createGame(leftPlayer, rightPlayer, GameMode.Normal);
             }
@@ -38,7 +38,12 @@ export class MatchmakingService {
     }
 
     private leaveQueue(socket: Socket) {
+        const queueIndex = this.randomQueue.findIndex(e => e.id === socket.id);
+        this.queuedUsers.delete(socket.user.id);
 
+        if (queueIndex >= 0) {
+            this.randomQueue.splice(queueIndex, 1);
+        }
     }
 
 	@OnEvent('game.joinRandom')
@@ -51,6 +56,11 @@ export class MatchmakingService {
 
 	@OnEvent('game.cancelSearch')
 	handleCancelSearch({ socket }: GameCancelSearchEvent) {
+        this.leaveQueue(socket);
+    }
+
+    @OnEvent('socket.disconnected')
+    handleSocketDisconnected({ socket }: SocketDisconnectedEvent) {
         this.leaveQueue(socket);
     }
 }

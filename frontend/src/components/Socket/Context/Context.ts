@@ -19,7 +19,7 @@ export type TSocketContextPayload = string | string[] | Socket;
 
 export interface ISocketContextActions {
 	type: TSocketContextActions;
-	payload: TSocketContextPayload
+	payload: TSocketContextPayload;
 }
 
 export const SocketReducer = (state: ISocketContextState, action: ISocketContextActions) => {
@@ -41,12 +41,14 @@ export const SocketReducer = (state: ISocketContextState, action: ISocketContext
 
 export interface ISocketContextProps {
 	SocketState: ISocketContextState;
-	SocketDispatch: React.Dispatch<ISocketContextActions>; 
+	SocketDispatch: React.Dispatch<ISocketContextActions>;
+	socket: Socket;
 }
 
-const SocketContext = createContext<ISocketContextProps>({
+export const SocketContext = createContext<ISocketContextProps>({
 	SocketState: defaultSocketContextState,
-	SocketDispatch: () => {}
+	SocketDispatch: () => {},
+	socket: undefined as any,
 });
 
 export const SocketContextConsumer = SocketContext.Consumer;

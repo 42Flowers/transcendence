@@ -15,7 +15,7 @@ import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 
 import './Profile.css';
 import { useAuthContext } from "../../contexts/AuthContext";
-import { fetchAddAchievementToUser, fetchProfile, fetchAddAvatar, fetchChangePseudo, patchUserProfile, PatchUserProfile } from "../../api";
+import { fetchAddAchievementToUser, fetchProfile, fetchAddAvatar, patchUserProfile, PatchUserProfile } from "../../api";
 import { useMutation } from "react-query";
 
 import { AxiosError } from 'axios';
@@ -75,7 +75,7 @@ type gamesParticipated = {
     score2: number
     createdAt: Date
 };
-   
+
 type Game = {
     game: gamesParticipated;
 };
@@ -102,7 +102,6 @@ const Profile: React.FC = () => {
         'You\'re a looser': false,
     });
     const [popupQueue, setPopupQueue] = useState<string[]>([]);
-    const [isPseudoAdded, setIsPseudoAdded] = useState(false);
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
     const { pseudo, setPseudo } = useContext(PseudoContext) as PseudoContextType;
@@ -199,9 +198,6 @@ const Profile: React.FC = () => {
                 }
                 return prevState;
             });
-            if (data.achievements["Newwww Pseudo"].users.length > 0) {
-                setIsPseudoAdded(true);
-            }
 
             if (data !== null) {
                 const handleAchievement = (achievementName: string) => {
@@ -325,21 +321,7 @@ const Profile: React.FC = () => {
     return (
         <>
         {/* IF current user */}
-            <div className="overlay" style={{ display: currentPopup['Newwww Avatar'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Newwww Pseudo'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['3 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['10 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['100 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['First Game'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re getting used to Pong'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re playing a lot'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['3'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['10'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['100'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Small Leader'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Great Leader'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Perfect win'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re a looser'] ? 'block': 'none' }}></div>
+            <div className="overlay" style={{ display: Object.values(currentPopup).some(a => a) ? 'block': 'none' }}></div>
             <div className="Profile">
                 {popupQueue.length > 0 && <PopUp userId={Number(auth.user?.id)} infos={profileInfos?.achievements[popupQueue[0]]} onClose={closePopup}/>}
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />

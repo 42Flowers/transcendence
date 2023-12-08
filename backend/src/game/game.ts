@@ -197,6 +197,7 @@ export class Game {
                 this.gameState = GameState.Ended;
                 this.leftPlayerSocket.game = undefined;
                 this.rightPlayerSocket.game = undefined;
+                this.emitToPlayers('gameFinished');
                 this.eventEmitter.emit('game.ended', new GameEndedEvent(this));
             }
         }

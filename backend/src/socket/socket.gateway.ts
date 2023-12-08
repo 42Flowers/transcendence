@@ -23,6 +23,9 @@ import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
 import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
 import { UserPayload } from "src/auth/user.payload";
 import { JwtService } from "@nestjs/jwt";
+import { GameInviteToNormal } from "src/events/game/inviteToNormalGame.event";
+import { GameJoinInvite } from "src/events/game/joinInvite.event";
+import { GameInviteToSpecial } from "src/events/game/inviteToSpecialGame.event";
 import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -254,6 +257,32 @@ export class SocketGateway implements
 		@MessageBody() key: string)
 	{
 		this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
+	}
+
+	@SubscribeMessage("inviteNormal")
+	onInviteNormal(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() targetId: number,
+	)
+	{
+		this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, targetId));
+	}
+	
+	@SubscribeMessage("inviteSpecial")
+	onInviteSpecial(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() targetId: number,
+	)
+	{
+		this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, targetId));
+	}
+
+	@SubscribeMessage("joinInviteGame")
+	onJoinInviteGame(
+		@ConnectedSocket() socket: Socket
+	)
+	{
+		this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
 	}
 
 }

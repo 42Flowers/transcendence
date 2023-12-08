@@ -2,6 +2,9 @@ import './FriendItem.css';
 import MainButton from '../MainButton/MainButton'
 import AvatarOthers from '../AvatarOthers/AvatarOthers';
 import default_avatar from '../../assets/images/default_avatar.png'
+import { useState } from 'react';
+import { useQuery } from 'react-query';
+import { fetchAvailableUsers } from '../../api';
 
 const SENDER = 0;
 const RECEIVER = 1;
@@ -27,6 +30,18 @@ interface Props {
 }
 
 const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friendId, parentRerender}) => {
+
+	const [availability, setAvailability] = useState<string>('');
+
+    const usersQuery = useQuery('available-users', fetchAvailableUsers, {
+        onSuccess: (data) => {
+            data.map(([ id, pseudo, availability ]) => {
+                if (friendId === id) {
+                    setAvailability(availability);
+                }
+            });
+        }
+    });
 
 	const handleUnblock = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/unblock/${friendId}`, {
@@ -126,9 +141,9 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 					<div className="input-box">
 						{ 
 							avatar ?
-								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+								<AvatarOthers status={availability} avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
 							:
-								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+								<AvatarOthers status={availability} avatar={default_avatar} userId={friendId} />
 						}
 						<p>{friendName}</p>
 					</div>
@@ -150,9 +165,9 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 					<div className="input-box">
 					{ 
 							avatar ?
-								<AvatarOthers status="Offline" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+								<AvatarOthers status={availability} avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
 							:
-								<AvatarOthers status="Offline" avatar={default_avatar} userId={friendId} />
+								<AvatarOthers status={availability} avatar={default_avatar} userId={friendId} />
 						}
 						<p>{friendName}</p>
 					</div>
@@ -172,9 +187,9 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 					<div className="input-box">
 					{ 
 							avatar ?
-								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+								<AvatarOthers status={availability} avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
 							:
-								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+								<AvatarOthers status={availability} avatar={default_avatar} userId={friendId} />
 						}
 						<p>{friendName}</p>
 					</div>
@@ -193,9 +208,9 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 					<div className="input-box">
 						{ 
 							avatar ?
-								<AvatarOthers status="Online" avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
+								<AvatarOthers status={availability} avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
 							:
-								<AvatarOthers status="Online" avatar={default_avatar} userId={friendId} />
+								<AvatarOthers status={availability} avatar={default_avatar} userId={friendId} />
 						}
 						<p>{friendName}</p>
 					</div>

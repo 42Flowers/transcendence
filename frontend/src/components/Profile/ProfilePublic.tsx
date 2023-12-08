@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
+import { Achievement, fetchAvailableUsers } from "../../api";
 import default_avatar from '../../assets/images/default_avatar.png';
 import { useAuthContext } from "../../contexts/AuthContext";
 import AvatarOthers from "../AvatarOthers/AvatarOthers";
@@ -9,7 +11,6 @@ import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 import Ladder from "./Ladder/Ladder";
 import MatchHistory from "./MatchHistory/MatchHistory";
 import './Profile.css';
-
 
 export interface LeaderContextType {
     smallLeader: boolean
@@ -25,27 +26,8 @@ export interface PerfectContextType {
     setPerfectLose: (perfectLose: boolean) => void;
 }
 
-interface Achievement {
-    id: number;
-    name: string;
-    description: string;
-    difficulty: number;
-    isHidden: boolean;
-    createdAt: Date;
- }
- 
-interface UserAchievement {
-    userId: number;
-    achievement: Achievement;
-}
-
 type Achievements = {
     achievements: Achievement[]
-}
-
-interface AchievementsListContextType {
-    achievementsList: UserAchievement[];
-    setAchievementsList: (achievementsList: UserAchievement[]) => void;
 }
 
 type gamesParticipated = {
@@ -61,8 +43,19 @@ const ProfilePublic: React.FC = () => {
 
     const [profileInfos, setProfileInfos] = useState(null);
     const [error, setError] = useState<string | null>(null);
+    const [status, setStatus] = useState<string>('');
     const { userId } = useParams();
     const auth = useAuthContext();
+
+    const usersQuery = useQuery('available-users', fetchAvailableUsers, {
+        onSuccess: (data) => {
+            data.map(([ id, pseudo, status ]) => {
+                if (Number(userId) === id) {
+                    setStatus(status);
+                }
+            });
+        }
+    });
  
     useEffect(() => {
         const fetchData = async () => {
@@ -99,9 +92,9 @@ const ProfilePublic: React.FC = () => {
             <div className="Profile">
                 {/* <ChangeAvatar handleUploadAvatar={handleUploadAvatar} /> */}
                 {profileInfos?.avatar ?
-                    <AvatarOthers status="Online" avatar={`http://localhost:3000/static/${profileInfos.avatar}`} userId={profileInfos.id} />
+                    <AvatarOthers status={status} avatar={`http://localhost:3000/static/${profileInfos.avatar}`} userId={profileInfos.id} />
                     :
-                    <AvatarOthers status="Online" avatar={default_avatar} userId={profileInfos?.id} />
+                    <AvatarOthers status={status} avatar={default_avatar} userId={profileInfos?.id} />
                 }                
                 <p>{profileInfos?.pseudo}</p>
                 { Number(auth.user?.id) === Number(userId) ?

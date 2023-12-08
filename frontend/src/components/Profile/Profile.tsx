@@ -68,28 +68,8 @@ const Profile: React.FC = () => {
         onSuccess(data) {
             if (data.avatar !== avatar) {
                 setAvatar(`http://localhost:3000/static/${data.avatar}`);
-                setProfileInfos(data);
             }
         },
-    });
-
-    const [profileInfos, setProfileInfos] = useState(null);
-    const [currentPopup, setCurrentPopup] = useState({
-        'Newwww Avatar': false,
-        'Newwww Pseudo': false,
-        '3 total': false,
-        '10 total': false,
-        '100 total': false,
-        'First Game': false,
-        'You\'re getting used to Pong': false,
-        'You\'re playing a lot': false,
-        '3': false,
-        '10': false,
-        '100': false,
-        'Small Leader': false,
-        'Great Leader': false,
-        'Perfect win': false,
-        'You\'re a looser': false,
     });
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
@@ -208,7 +188,6 @@ const Profile: React.FC = () => {
     return (
         <>
         {/* IF current user */}
-            <div className="overlay" style={{ display: Object.values(currentPopup).some(a => a) ? 'block': 'none' }}></div>
             <div className="Profile">
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
                 <PseudoButton currentPseudo={pseudo} onChangePseudo={handleChangePseudo} />

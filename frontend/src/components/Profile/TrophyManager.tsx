@@ -4,7 +4,6 @@ import SocketContext from "../Socket/Context/Context";
 import { Achievement } from "../../api";
 import map from 'lodash/map';
 import cx from 'classnames';
-import { useAuthContext } from "../../contexts/AuthContext";
 import { queryClient } from "../../query-client";
 
 function useGatewayEvent<E = any>(ev: string, handleEvent: (evt: E) => void) {

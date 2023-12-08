@@ -1,6 +1,7 @@
-import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Socket } from 'socket.io';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 type ConnectedUsers = {
 	[k: number]: Socket[];
@@ -10,7 +11,8 @@ type ConnectedUsers = {
 export class SocketService {
 	
 	constructor(
-		private readonly prismaService : PrismaService,
+		private readonly prismaService: PrismaService,
+		private readonly eventEmitter: EventEmitter2
 		) {}
 
 	private connectedUsers : ConnectedUsers = {};

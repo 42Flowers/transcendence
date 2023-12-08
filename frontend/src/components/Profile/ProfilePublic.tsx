@@ -1,21 +1,15 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import default_avatar from '../../assets/images/default_avatar.png';
+import { useAuthContext } from "../../contexts/AuthContext";
+import AvatarOthers from "../AvatarOthers/AvatarOthers";
 import Stats from "../Stats/Stats";
+import Achievements from "./Achievements/Achievements";
+import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 import Ladder from "./Ladder/Ladder";
 import MatchHistory from "./MatchHistory/MatchHistory";
-import Achievements from "./Achievements/Achievements";
-import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
-import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
-import { useAuthContext } from "../../contexts/AuthContext";
-import { useParams } from "react-router-dom";
-import AvatarOthers from "../AvatarOthers/AvatarOthers";
-import default_avatar from '../../assets/images/default_avatar.png';
-
 import './Profile.css';
 
-export interface AvatarContextType {
-    avatar: string;
-    setAvatar: (avatar: string) => void;
-}
 
 export interface LeaderContextType {
     smallLeader: boolean

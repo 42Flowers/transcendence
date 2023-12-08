@@ -3,7 +3,10 @@ import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import { Achievement } from "@prisma/client";
 import { AchievementGrantedEvent } from "src/events/achievement-granted.event";
 import { AvatarUpdatedEvent } from "src/events/avatar-updated.event";
+import { GameEndedEvent } from "src/events/game-ended.event";
+import { UserJoinedGameEvent } from "src/events/user-joined-game.event";
 import { UsernameUpdateEvent } from "src/events/username-update.event";
+import { Game } from "src/game/game";
 import { PrismaService } from "src/prisma/prisma.service";
 
 export const ACHIEVEMENT_NEW_USERNAME = 'new-username';
@@ -100,5 +103,29 @@ export class AchievementsService {
     @OnEvent('avatar.updated')
     handleAvatarUpdated(evt: AvatarUpdatedEvent) {
         this.grantAchievementToUser(evt.userId, 'new-avatar');
+    }
+
+    @OnEvent('game.ended')
+    handleGameEnded({ game }: GameEndedEvent) {
+        const perfectWin = Math.abs(game.getLeftPlayerScore() - game.getRightPlayerScore()) === 3;
+        const leftPlayer = game.getLeftPlayerUser();
+        const rightPlayer = game.getRightPlayerUser();
+
+        /* Grant "First Game" achievement */
+        this.grantAchievementToUser(leftPlayer.id, 'first-game');
+        this.grantAchievementToUser(rightPlayer.id, 'first-game');
+
+        /* Grant "Perfect Win" and "Perfect Loose" achievement */
+        if (game.getLeftPlayerScore() === 0 && game.getRightPlayerScore() === 3) {
+            this.grantAchievementToUser(leftPlayer.id, 'loose-10-0');
+            this.grantAchievementToUser(rightPlayer.id, 'won-10-0');
+        }
+
+        if (game.getLeftPlayerScore() === 3 && game.getRightPlayerScore() === 0) {
+            this.grantAchievementToUser(rightPlayer.id, 'loose-10-0');
+            this.grantAchievementToUser(leftPlayer.id, 'won-10-0');
+        }
+        
+
     }
 }

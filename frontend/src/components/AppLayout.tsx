@@ -7,7 +7,7 @@ import { TrophyManager } from "./Profile/TrophyManager";
 export const AppLayout: React.FC = withAuthGuard(() => (
     <SocketContextComponent>
         <TrophyManager />
-        <Navigation isSignedIn={true} />
+        <Navigation />
         <Outlet />
     </SocketContextComponent>
 ));

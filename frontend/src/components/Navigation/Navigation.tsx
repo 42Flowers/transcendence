@@ -1,106 +1,97 @@
-import React, { MouseEvent, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { Avatar, Stack, Popover, List, ListItem, ListItemButton, ListItemText, Divider } from "@mui/material";
+import { Avatar, Divider, List, ListItem, ListItemButton, ListItemText, Popover, Stack } from "@mui/material";
+import React, { useContext } from "react";
+import { Link } from "react-router-dom";
 import default_avatar from "../../assets/images/default_avatar.png";
 import { AvatarContext } from "../../contexts/AvatarContext";
-
-import './Navigation.css';
 import { useAuthContext } from "../../contexts/AuthContext";
+import './Navigation.css';
 
-interface Props {
-    // onRouteChange: (route: string) => void;
-    isSignedIn: boolean;
-}
-
-interface AvatarContextType {
-    avatar: string;
-    setAvatar: (avatar: string) => void;
-}
-
-const Navigation: React.FC<Props> = ({ isSignedIn }) => {
-    const navigate = useNavigate();
-    const [avatarEl, setAvatarEl] = React.useState<HTMLDivElement | null>(null);
+const Navigation: React.FC = () => {
+    const avatarRef = React.useRef<HTMLDivElement>(null);
+    const [ isOpen, setOpen ] = React.useState<boolean>(false);
     const { signOut } = useAuthContext();
 
-    const { avatar } = useContext(AvatarContext) as AvatarContextType;
+    const { avatar } = useContext(AvatarContext);
 
-    const handleAvatarClick = (e: MouseEvent<HTMLDivElement>) => {
-        setAvatarEl(e.currentTarget);
+    const handleAvatarClick = () => {
+        setOpen(true);
     };
 
     const handleAvatarClose = () => {
-        setAvatarEl(null);
+        setOpen(false);
     };
 
-    const open = Boolean(avatarEl);
-    const id: string | undefined = open ? "menu-popover" : undefined;
-    /* if user is not signed in, no navigation*/
-    if (!isSignedIn) {
-        return (null);
-    } else {
-        return (
-            <>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" style={{padding: '5px'}}>
-                    <p onClick={() => navigate('/')} className="logo">
-                        PONG
-                    </p>
-                    <Avatar aria-describedby={id} alt="Avatar" onClick={handleAvatarClick} src={avatar || default_avatar} style={{margin: '5px 10px'}}/>
-                </Stack>
+    const id: string | undefined = isOpen ? "menu-popover" : undefined;
 
-                <Popover
-                    id={id}
-                    open={open}
-                    anchorEl={avatarEl}
-                    onClose={handleAvatarClose}
-                    anchorOrigin={{
+    return (
+        <>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" style={{ padding: '5px' }}>
+                <Link to="/" className="logo">
+                    PONG
+                </Link>
+                <div ref={avatarRef}>
+                    <Avatar
+                        aria-describedby={id}
+                        alt="Avatar"
+                        onClick={handleAvatarClick}
+                        src={avatar || default_avatar}
+                        style={{ margin: '5px 10px' }} />
+                </div>
+            </Stack>
+
+            <Popover
+                id={id}
+                open={isOpen}
+                anchorEl={avatarRef.current}
+                onClose={handleAvatarClose}
+                anchorOrigin={{
                     vertical: "bottom",
                     horizontal: "left"
-                    }}
-                    sx={{
-                        '& .MuiPopover-paper': {
-                            backgroundColor: '#F8A38B', 
-                            borderLeft: '3px solid #9747FF', 
-                            borderBottom: '3px solid #9747FF',
-                            borderRadius: '20px',
-                        }
-                      }}
-                >
-                    <List disablePadding>
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => navigate('/profile')}>
-                                <ListItemText primary="Profile"/>
-                            </ListItemButton>
-                        </ListItem>
+                }}
+                sx={{
+                    '& .MuiPopover-paper': {
+                        backgroundColor: '#F8A38B',
+                        borderLeft: '3px solid #9747FF',
+                        borderBottom: '3px solid #9747FF',
+                        borderRadius: '20px',
+                    }
+                }}
+            >
+                <List disablePadding>
+                    <ListItem disablePadding>
+                        <ListItemButton component={Link} to="/profile">
+                            <ListItemText primary="Profile" />
+                        </ListItemButton>
+                    </ListItem>
 
-                        <Divider />
+                    <Divider />
 
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => navigate('/friends')}>
-                                <ListItemText primary="Friends" />
-                            </ListItemButton>
-                        </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton component={Link} to="/friends">
+                            <ListItemText primary="Friends" />
+                        </ListItemButton>
+                    </ListItem>
 
-                        <Divider />
+                    <Divider />
 
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => navigate('/chat')}>
-                                <ListItemText primary="Chat" />
-                            </ListItemButton>
-                        </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton component={Link} to="/chat">
+                            <ListItemText primary="Chat" />
+                        </ListItemButton>
+                    </ListItem>
 
-                        <Divider />
+                    <Divider />
 
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={signOut}>
-                                <ListItemText primary="Log Out" />
-                            </ListItemButton>
-                        </ListItem>
-                        
-                    </List>
-                </Popover>
-            </>
-        );
-    }
+                    <ListItem disablePadding>
+                        <ListItemButton onClick={signOut}>
+                            <ListItemText primary="Log Out" />
+                        </ListItemButton>
+                    </ListItem>
+
+                </List>
+            </Popover>
+        </>
+    );
 }
 
 export default Navigation;

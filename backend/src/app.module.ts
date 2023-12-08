@@ -12,6 +12,7 @@ import { ProfilePublicModule } from './profilePublic/profilePublic.module';
 import { SocketModule } from './socket/socket.module';
 import { TestModule } from './users/users.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AchievementsModule } from './achievements/achievements.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     GlobalJwtModule,
     AuthModule,
     GameModule,

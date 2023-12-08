@@ -104,7 +104,6 @@ const Ladder: React.FC<LadderProps> = ({ auth }) => {
         return ranking;
     };
 
-
     useEffect(() => {
         const currentDiv = tableBodyRef.current;
         const currentFirstRow = firstRowRef.current;
@@ -118,14 +117,12 @@ const Ladder: React.FC<LadderProps> = ({ auth }) => {
 
         if (currentDiv) {
             currentDiv.addEventListener("scroll", handleScroll);
-        }
 
-        return () => {
-            if (currentDiv) {
+            return () => {
                 currentDiv.removeEventListener("scroll", handleScroll);
-            }
-        };
-    }, [userId]);
+            };
+        }
+    }, []);
 
     return (
         <div className="ladder">

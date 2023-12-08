@@ -25,10 +25,21 @@ import { UserPayload } from "src/auth/user.payload";
 import { JwtService } from "@nestjs/jwt";
 import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
+import { PrismaService } from "src/prisma/prisma.service";
+import { Game } from "src/game/game";
 
 declare module 'socket.io' {
 	interface Socket {
+		/**
+		 * Authenticated user for this socket.
+		 * Should always be defined.
+		 */
 		user?: UserPayload;
+
+		/**
+		 * Current game for this socket.
+		 */
+		game?: Game;
 	}
 }
 
@@ -52,35 +63,37 @@ export class SocketGateway implements
 	OnGatewayConnection,
 	OnGatewayDisconnect
 {
-
-	sockets: Socket[] = [];
-	
 	@WebSocketServer()
 	server: Server;
 
 	constructor(
 		private readonly socketService: SocketService,
 		private readonly eventEmitter: EventEmitter2,
+		private readonly prismaService: PrismaService,
 		private readonly jwtService: JwtService
 		) {}
 
 	afterInit() {
-		console.log("Init socket Gateway")
+		this.server.use((socket, next) => {
+			this.authenticateUser(socket).then(
+				() => next(),
+				err => next(err));
+		})
+	}
+
+	private async authenticateUser(socket: Socket): Promise<void> {
+		const { auth } = socket.handshake;
+
+		const payload = await this.jwtService.verifyAsync<UserPayload>(auth['token']);
+		const userPayload = await this.prismaService.user.findUniqueOrThrow({
+			where: {
+				id: Number(payload.sub),
+			},
+		});
+		socket.user = { ...userPayload, ...payload };
 	}
 
 	async handleConnection(client: Socket) {
-		const { authorization: token } = client.handshake.headers;
-		
-		try {
-			const payload = await this.jwtService.verifyAsync<UserPayload>(token);
-
-			client.user = payload;
-		} catch {
-			console.warn('Socket %s disconnected : bad token', client.id);
-			client.disconnect(true);
-			return ;
-		}
-
 		console.log(`Client connected: ${client.id}`);
 
 		client.join('server');
@@ -88,15 +101,9 @@ export class SocketGateway implements
 	}
 
 	async handleDisconnect(client: Socket) {
-		if (!client.user) {
-			return ;
-		}
-
 		client.leave('server');
 		this.socketService.removeSocket(client);
-		console.log(`Client disconnected: ${client.id}`);
-		// this.socketService.removeSocket(token.id, client);
-		
+		console.log(`Client disconnected: ${client.id}`);		
 	}
 
 	@OnEvent('chat.sendtoclient')
@@ -204,7 +211,7 @@ export class SocketGateway implements
 	@SubscribeMessage('handshake')
 	// @UseGuards(AuthGuard)
 	chatHandshake(
-		@ConnectedSocket()  client:Socket
+		@ConnectedSocket() client: Socket
 	) {
 		console.log("Received Handshake");
 		return {}

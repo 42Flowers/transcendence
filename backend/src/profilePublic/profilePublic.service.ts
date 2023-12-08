@@ -10,7 +10,7 @@ export class ChangeIsPopupShown {
 
 @Injectable()
 export class ProfilePublicService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) {}
 
     async getProfileInfosPublic(userId: number): Promise<any> {
         const user = await this.prisma.user.findUnique({

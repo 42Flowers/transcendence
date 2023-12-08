@@ -26,7 +26,7 @@ import { JwtService } from "@nestjs/jwt";
 import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
 import { PrismaService } from "src/prisma/prisma.service";
-import { Game } from "src/game/game";
+import { Game, GameMode } from "src/game/game";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -223,14 +223,14 @@ export class SocketGateway implements
 	onJoinRandomNormal(
 		@ConnectedSocket() socket: Socket)
 	{
-		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 0));
+		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, GameMode.Normal));
 	}
 	
 	@SubscribeMessage("joinRandomSpecial")
 	onRandomSpecial(
 		@ConnectedSocket() socket: Socket)
 	{
-		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 1));
+		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, GameMode.Special));
 	}
 
 	@SubscribeMessage('cancelGameSearch')

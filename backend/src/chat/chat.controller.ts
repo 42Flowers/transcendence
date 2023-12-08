@@ -50,12 +50,17 @@ interface channelElem {
 
 interface Message {
 	authorName: string,
+	authorId: number,
+	id: number,
 	content: string,
 	createdAt: Date,
 }
+
 interface users {
 	userId: number,
-	membershipState: number,  
+	userName: string,
+	membershipState: number,
+	avatar: string  
 }
 
 /**
@@ -100,14 +105,14 @@ export class ChatController {
 	) {
 		try {
 			const userId = Number(req.user.sub);
-			const channelId = 24;
+			const channelId = 14;
 			const member = await this.roomService.isUserinRoom(userId, channelId);
 			if (member != null && member.membershipState !== 4 && channelId >= 0) {
 				const messagesfromchannel = await this.messageService.getMessagesfromChannel(userId, channelId);
 				const messages : Message[] = [];
 				const userNames = await Promise.all(messagesfromchannel.map(conv => this.userService.getUserName(conv.authorId)));
 				messagesfromchannel.map((chan, index) => {
-					messages.push({authorName: userNames[index].pseudo, content: chan.content, createdAt: chan.createdAt});
+					messages.push({authorName: userNames[index].pseudo, authorId: chan.authorId, content: chan.content, createdAt: chan.createdAt, id:chan.id});
 				});
 				return messages;
 			}
@@ -122,7 +127,7 @@ export class ChatController {
 		@Request() req: ExpressRequest
 	) {
 		try {
-			const userId = Number(req.user.sub);
+			const userId = 3;
 			const channelId = 14;
 			const member = await this.roomService.isUserinRoom(userId, channelId);
 			if (member != null && member.membershipState !== 4 && channelId >= 0) {
@@ -130,7 +135,8 @@ export class ChatController {
 				const allusers = await this.roomService.getUsersfromRoom(channelId);
 				const membershipStates = await Promise.all(allusers.map(user => this.userService.getMembershipState(user.userId, channelId)));
 				allusers.map((user, index) => {
-					users.push({userId: user.userId, membershipState: membershipStates[index]})});
+					users.push({userId: user.userId, userName: user.user.pseudo, membershipState: membershipStates[index], avatar: user.user.avatar})});
+				console.log(users);
 				return users;
 			}
 			return null;
@@ -196,8 +202,12 @@ export class ChatController {
 		try {
 			const conversations = await this.chatService.getPrivateConversation(2, 1);
 			const messages = [];
-			conversations.forEach(msg => messages.push({authorName: msg.authorId, content: msg.content, creationTime: msg.createdAt}));
-			return messages;
+			if (conversations != null) {
+				const authorNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.authorId)));
+				conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, creationTime: msg.createdAt, id: msg.id}));
+				return messages;
+			}
+			return "nope";
 		} catch (err) {
 			console.log(err.message);
 		}

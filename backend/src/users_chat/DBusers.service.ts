@@ -39,7 +39,9 @@ export class UsersService {
 
 	async getUserName(userId: number) : Promise<any> {
 		try {
-			const name = this.prismaService.user.findUnique({where: {id: userId}, select : {pseudo: true}});
+			const name = this.prismaService.user.findUnique({
+				where: {id: userId}, 
+				select : {pseudo: true}});
 			return name;
 		} catch (err) {
 			throw err

@@ -9,6 +9,9 @@ import { Socket } from 'socket.io';
 
 @Injectable()
 export class RoomService {
+	getUserName(authorId: any): any {
+		throw new Error('Method not implemented.');
+	}
 	
 	constructor(
 		private readonly prismaService : PrismaService,
@@ -263,6 +266,7 @@ export class RoomService {
 		}
 	}
 
+
 	/**
 	 * 
 	 * @param channelId 
@@ -271,7 +275,17 @@ export class RoomService {
 	async getUsersfromRoom(channelId: number) : Promise<any> {
 		try {
 			const users = await this.prismaService.channelMembership.findMany({
-				where: {channelId: channelId}});
+				where: {channelId: channelId},
+				select: {
+					userId: true,
+					membershipState:true,
+					user: {select: {
+						pseudo:true, 
+						avatar: true
+					}},
+				},
+				});
+				console.log(users);
 			return users;
 		} catch (err) { throw new Error(err.message) }
 	}
@@ -471,10 +485,10 @@ export class RoomService {
 			const channel = await this.prismaService.channel.findUnique({where: {id: channelId}, select: {name: true}});
 			const users = await this.getUsersfromRoom(channelId);
 			users.map((user) => {
-				this.socketService.leaveChannel(user.id, channel.name);
+				this.socketService.leaveChannel(user.user.id, channel.name);
 			});
-			this.clearUsersfromRoom(channelId);
-			this.messageService.clearAllMessages(channelId);
+			await this.clearUsersfromRoom(channelId);
+			await this.messageService.clearAllMessages(channelId);
 			return this.prismaService.channel.delete({
 				where: {id: channelId}
 			});

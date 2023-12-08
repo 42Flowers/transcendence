@@ -2,7 +2,7 @@ import axios, { RawAxiosRequestHeaders, AxiosRequestConfig, AxiosResponse } from
 import { getAuthenticationToken } from './storage';
 
 export const client = axios.create({
-    baseURL: 'http://localhost:3000/',
+    baseURL: '/',
     timeout: 5000,
 });
 

@@ -13,6 +13,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { SocketGateway } from 'src/socket/socket.gateway';
 import { v4 as uuidv4 } from 'uuid';
 import { Game, GameMode } from './game';
+import { SocketService } from 'src/socket/socket.service';
 
 const REFRESH_RATE = 16.66667; // in ms
 
@@ -26,6 +27,7 @@ export class GameService {
 	constructor(
 		private readonly prismaService: PrismaService,
 		private readonly eventEmitter: EventEmitter2,
+		private readonly socketService: SocketService,
 		private readonly socketGateway: SocketGateway) {
 
 		this.randomGameList = [];
@@ -44,28 +46,19 @@ export class GameService {
 
 		return game;
 	}
-	@OnEvent('game.joinInvite')
-	handleJoinInvite(event: GameJoinInvite) {
-		this.joinInviteGame(event.socket);
-	}
 
-	@OnEvent('game.inviteToNormal')
-	handleInviteToNormal(event: GameInviteToNormal) {
-		this.createInviteGame(event.socket, event.targetId, NORMAL_MODE);
-	}
+	// @OnEvent('game.inviteToSpecial')
+	// handleInviteToSpecial(event: GameInviteToSpecial) {
+	// 	this.createInviteGame(event.socket, event.targetId, SPECIAL_MODE);
+	// }
 
-	@OnEvent('game.inviteToSpecial')
-	handleInviteToSpecial(event: GameInviteToSpecial) {
-		this.createInviteGame(event.socket, event.targetId, SPECIAL_MODE);
-	}
+	// @OnEvent('game.joinRandom')
+	// handleJoinRandomGame(event: GameJoinRandomEvent) {
+	// 	this.joinRandomGame(event.socket, event.gameMode);
+	// }
 
-	@OnEvent('game.joinRandom')
-	handleJoinRandomGame(event: GameJoinRandomEvent) {
-		this.joinRandomGame(event.socket, event.gameMode);
-	}
-
-	isUserInGame(socket: Socket): boolean {
-        return this.inGameUsers.has(socket.user.id);
+	isUserInGame(userId: number): boolean {
+        return this.inGameUsers.has(userId);
     }
 
 	@Interval(REFRESH_RATE)
@@ -92,43 +85,26 @@ export class GameService {
 		}
 	}
 
-	async checkBlockedUser(userAId, userBId) {
-		const userAToB = await this.prismaService.blocked.findUnique({
-			where: {
-				userId_blockedId: {
-					userId: userAId,
-					blockedId: userBId,
-				}
-			}
-		});
-
-		const userBToA = await this.prismaService.blocked.findUnique({
-			where: {
-				userId_blockedId: {
-					userId: userBId,
-					blockedId: userAId,
-				}
-			}
-		});
-
-		console.log(userAToB, "    ", userBToA);
-
-		if (userAToB || userBToA) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	async createInviteGame(socket: Socket, targetId: number, gameMode: number) {
-		if (this.isUserInGame(Number(socket.user.sub)) || this.isUserInGame(targetId))
+	async createInviteGame(socket: Socket, targetId: number, gameMode: GameMode) {
+		if (this.isUserInGame(socket.user.id) || this.isUserInGame(targetId))
 			return;
 
-		if (await this.checkBlockedUser(Number(socket.user.sub), targetId)) {
+		const isBlocked = false; //await this.checkBlockedUser(Number(socket.user.sub), targetId);
+
+		/**
+		 * Silently drop the request
+		 */
+		if (isBlocked) {
 			return ;
 		}
 
+			this.socketService.emitToUserSockets(targetId, 'showGameInvite', 'James');
+	}
+
+		/*
+		
+
+		
 		const roomName: string = uuidv4();
 		const userData = await this.prismaService.user.findUnique({
 			where: {
@@ -206,7 +182,7 @@ export class GameService {
 			}
 		}
 	}
-
+*/
 	@OnEvent('game.ended')
 	handleGameEnded({ game }: GameEndedEvent) {
 		console.log('Game ended');

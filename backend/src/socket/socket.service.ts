@@ -41,6 +41,10 @@ export class SocketService {
 		return [];
 	}
 
+	isOnline(userId: number): boolean {
+		return this.getSockets(userId).length > 0;
+	}
+
 	emitToUserSockets(userId: number, ev: string, ...args: any[]) {
 		this.foreachUserSocket(userId, client => client.emit(ev, ...args));
 	}

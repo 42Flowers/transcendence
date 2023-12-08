@@ -70,10 +70,9 @@ export class MatchmakingService {
 
 	@OnEvent('game.joinRandom')
 	handleJoinRandomGame({ socket, gameMode }: GameJoinRandomEvent) {
-        if (this.gameService.isUserInGame(socket))
+        if (this.gameService.isUserInGame(socket.user.id))
             return ; // User is already is a game
         
-            console.log(gameMode);
         this.joinQueue(socket, gameMode);
     }
 

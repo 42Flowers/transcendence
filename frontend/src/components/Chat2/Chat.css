@@ -40,7 +40,7 @@
 	color: white;
     background: linear-gradient(to right, #BF9CE8 10%, #FFEA95 100%) no-repeat;
 	border: 2px solid white;
-	
+	/* border-top-right-radius: 20px; */
 }
 
 /**************************************** List ****************************************/
@@ -140,37 +140,115 @@
     /* overflow-y: scroll; */
 	/* display: flex; */
     /* flex-direction: column-reverse; */
-
+	/* width: 80%;
+	overflow: auto; */
 }
+
+.userConvBubble, .otherConvBubble {
+	border: 2px solid white;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+    background: transparent;
+	/* max-width: 90%; */
+	/* overflow: auto; */
+	overflow-wrap: break-word;
+  	hyphens: auto;
+	width:fit-content;
+	/* margin: 2px; */
+	padding: 2px;
+	padding-left: 4px;
+	padding-right: 4px;
+ }
+   
 
 .userBubble {
 	align-self: flex-start;
-    border: 2px solid white;
-    border-radius: 20px;
-    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
-    background: transparent;
-    font-size: 1em;
     color: white;
-            text-shadow: 0 0 4px var(--color-light-pink);
+    text-shadow: 0 0 4px var(--color-light-pink);
     margin: 1%;
     margin-right: 25%;
     padding: 5px;
-}
-
-.otherBubble {
-    align-self: flex-end;
-    border: 2px solid white;
+    /* border: 2px solid white;
     border-radius: 20px;
     box-shadow: 0 0 30px rgb(0, 0, 0, .5);
-    background: transparent;
-    font-size: 1em;
-    color: white;
-            text-shadow: 0 0 4px var(--color-blue);
+    background: transparent; */
+
+    /* font-size: 1em; */
+	/* width: max-content; */
+	/* width:fit-content; */
+}
+
+.userNameBubble {
+	text-align: left;
+    margin-left: 2%;
+
+	/* text-align: center; */
+ 	/* white-space: nowrap; */
+}
+
+.userConvBubble {
+	/* border: 2px solid white;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+    background: transparent; */
+	/* max-width: 80%; */
+}
+
+/* .otherBubble {
+    align-self: flex-end;
+	color: white;
+    text-shadow: 0 0 4px var(--color-light-blue);
     margin: 1%;
     margin-left: 25%;
     padding: 5px;
 }
 
+.otherNameBubble {
+	text-align: right;
+    margin-right: 2%;
+} */
+
+.otherBubble {
+	float: right;
+	clear: both;
+	color: white;
+	text-shadow: 0 0 4px var(--color-blue);
+	margin: 1%;
+	margin-left: 25%;
+	padding: 5px;
+	/* flex-direction: "column-reverse", */
+ }
+ 
+ .otherNameBubble {
+	/* float: right;
+	clear: both; */
+	text-align: right;
+	margin-right: 2%;
+ }
+ 
+ .otherConvBubble {
+	float: right;
+	clear: both;
+	/* text-align: right; */
+	/* border: 2px solid white;
+	border-radius: 20px;
+	box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+	background: transparent; */
+ }
+ 
+
+/* .otherConvBubble {
+	float: right;
+   } */
+   
+   
+/* .otherConvBubble {
+	float: right;
+} */
+
+/* .nextElement {
+	clear: both;
+} */
 
 /**************************************** SEND MESSAGE ****************************************/
 

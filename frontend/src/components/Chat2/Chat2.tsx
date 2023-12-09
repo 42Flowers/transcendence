@@ -31,6 +31,7 @@ const Chat2: React.FC = () => {
         flexDirection: "column",
         // height: "80vh",
         height: "100%",
+        // maxWidth: "20%",
     };
        
     const containerWideStyle: React.CSSProperties = {
@@ -39,6 +40,10 @@ const Chat2: React.FC = () => {
         // height: "80vh",
         height: "100%",
         minWidth: isDm ? "80%" : "60%", 
+        // minWidth: "60%",
+        maxWidth: isDm ? "80%" : "60%", 
+        // maxWidth: "80%",
+        // border: "1px solid blue",
     };
 
     const itemStyle: React.CSSProperties = {
@@ -68,7 +73,11 @@ const Chat2: React.FC = () => {
     // Center
     const titleStyle: React.CSSProperties = {
         flex: "0 0 10%",
-        // border: "1px solid red",
+        // border: "2px solid red",
+        // borderTopRightRadius: isDm ? "25px" : "none",
+        // maxWidth: isDm ? "80%" : "60%", 
+        // maxWidth: "80%",
+
     };
 
     const displayStyle: React.CSSProperties = {
@@ -78,11 +87,14 @@ const Chat2: React.FC = () => {
         // flexDirection: "column-reverse",
         overflow: "hidden",
         overflowY: "scroll",
+        // maxWidth: "80%",
     };
        
     const sendStyle: React.CSSProperties = {
         flex: "0 0 15%",
         // border: "1px solid red",
+        // maxWidth: "80%",
+
     };
 
     // Right
@@ -97,6 +109,7 @@ const Chat2: React.FC = () => {
         border: "2px solid white",
         borderBottomRightRadius: "20px",
         overflow: "hidden",
+        // maxWidth: "20%",
     };
 
     // const containerStyle: React.CSSProperties = {

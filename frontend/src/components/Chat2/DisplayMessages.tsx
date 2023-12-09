@@ -21,7 +21,8 @@ const DisplayMessages: React.FC = () => {
         {   
             messageId: 1,
             authorName: "Macron", 
-            content: "Hello",
+            content: "HEllo frehugiherwuibgrwubgobwrgyubrewytubvuyerwbveyrtbbibibuibuibububibibiubuibuibgvuvkvkygvyvicyibuverhveruv ertihubiv hreubvyerbvubwiyuberuvyberbvgeybvgrwbvgiebruvwbrehibovuejvcij;hwbvphobuy",
+            // content: "HEllo",
         },
         {   
             messageId: 2,
@@ -96,14 +97,14 @@ const DisplayMessages: React.FC = () => {
             <div className="displayMessageClass">
                 {channel1.map(msg => (
                     <div key={msg.messageId} className="userBubble">
-                        <p>{msg.authorName}</p>
-                        <p>{msg.content}</p>
+                        <p className="userNameBubble">{msg.authorName}</p>
+                        <p className="userConvBubble">{msg.content}</p>
                     </div>
                 ))}
                 {channel1.map(msg => (
                     <div key={msg.messageId} className="otherBubble">
-                        <p>{msg.authorName}</p>
-                        <p>{msg.content}</p>
+                        <p className="otherNameBubble">{msg.authorName}</p>
+                        <p className="otherConvBubble">{msg.content}</p>
                     </div>
                 ))}
             </div>

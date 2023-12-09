@@ -217,7 +217,7 @@ export class ChatService {
 			if (event.message.length > 100)
 				throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
-			if (user != undefined) {
+			if (user != undefined && event.channelId != null) {
 				const room = await this.roomService.getRoom(event.channelId);
 				if (room != undefined && room.name === room.name ) {
 					const member = await this.roomService.isUserinRoom(user.id, event.channelId);
@@ -299,7 +299,7 @@ export class ChatService {
 		try {
 			const user = await this.usersService.getUserById(event.userId);
 			const target = await this.usersService.getUserById(event.targetId);
-			if (user != null && target != null) {
+			if (user != null && target != null && event.channelId != null) {
 				const room = await this.roomService.getRoom(event.channelId);
 				if (room != undefined) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);

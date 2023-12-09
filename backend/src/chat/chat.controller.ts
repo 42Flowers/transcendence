@@ -128,7 +128,7 @@ export class ChatController {
 			return blockedUsers;
 		} catch(err) {
                 console.log(err.message);
-
+		}
 	}
 
     @Get('get-channels')
@@ -211,7 +211,6 @@ export class ChatController {
             }
         }
     }
-
 
     @Post('exit-channel')
     async exitChannel(

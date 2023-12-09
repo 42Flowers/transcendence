@@ -156,7 +156,7 @@ export class ChatService {
 		const user = await this.usersService.getUserById(event.userId);
 		if (user != undefined) {
 			const room = await this.roomService.getRoom(event.channelId);
-			if (room != undefined && room.name === event.channelName) {
+			if (room != undefined) {
 				const member = await this.roomService.isUserinRoom(user.id, event.channelId);
 				if ( member != undefined ) {
 					if (member.membershipState == 2) {
@@ -173,7 +173,7 @@ export class ChatService {
 					return;
 				}
 			}
-			const msg = event.channelName + " does not exists or you are not a member";
+			const msg = room.name + " does not exists or you are not a member";
 			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'channel', msg));
 		} else {
 			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, "message", "You are unknowwn to the database"));

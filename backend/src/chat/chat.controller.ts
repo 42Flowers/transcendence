@@ -105,10 +105,7 @@ export class ChatController {
 					blockedId: true,
 				}
 			});
-			console.log(blockedUsers)
-			const blocked = [];
-            blockedUsers.forEach(bloblo => blocked.push({blockedId: bloblo.blockedId}));
-			return blocked;
+			return blockedUsers;
 		} catch(err) {
 			if (this.DEBUG == true) {
                 console.log(err.message);

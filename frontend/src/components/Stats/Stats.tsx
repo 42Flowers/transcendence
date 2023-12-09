@@ -48,7 +48,6 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
     const q = useQuery([ 'stats', userId ], fetchStats, {
         enabled: userId === auth,
         onSuccess(data) {
-            console.log("HEY2", userId, auth);
             setResult(calculateWinsAndLosses(data));
             setGamesWonInARowFunc(gamesWonInARowFunc(data));
         }, 

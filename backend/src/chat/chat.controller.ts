@@ -305,7 +305,7 @@ export class ChatController {
 	async handleMute(
 		@Request() req : ExpressRequest
 	) {
-		this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, "channel", 17, 7));
+		this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, 17, 7));
 		// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 
 	}
@@ -314,7 +314,7 @@ export class ChatController {
 	async handleUnMute(
 		@Request() req : ExpressRequest
 	) {
-		this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(2, "channel", 9, 1))
+		this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(2, 9, 1))
 		// this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
 
 	}
@@ -323,14 +323,14 @@ export class ChatController {
 	async handleBan(
 		@Request() req : ExpressRequest
 	) {
-		this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(2, "channel", 9, 1));
+		this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(2, 9, 1));
 	}
 
 	@Post('unban-user')
 	async handleUnBan(
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(2, "channel", 9, 1));
+			this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(2, 9, 1));
 			// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 	}
 
@@ -338,7 +338,7 @@ export class ChatController {
 	async handleKick(
 		@Request() req: ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(2, "channel", 9, 4));
+			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(2, 9, 4));
 			// this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
 	}
 
@@ -346,7 +346,7 @@ export class ChatController {
 	async handleAddAdmin(
 		@Request() req: ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(2, "channel", 9, 1));
+			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(2, 9, 1));
 			// this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
 	}
 
@@ -354,7 +354,7 @@ export class ChatController {
 	async handleRemoveAdmin(
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(2, "channel", 9, 1));
+			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(2, 9, 1));
 			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
 	}
 

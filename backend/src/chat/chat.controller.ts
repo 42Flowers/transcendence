@@ -67,6 +67,28 @@ interface users {
 	avatar: string,
 }
 
+import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
+
+export class JoinChannelDto {
+    @IsString()
+    name: string;
+
+    @IsString()
+    password: string;
+}
+
+export class QuitDto {
+    @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
+    channelId: number;
+}
+
+export class TargetDto {
+    @IsString()
+    //@IsNotEmpty() ??
+    targetName: string;
+}
 
 /**
  * !Faire les vérifications si la personne est bien dans le channel et si elle est BAN
@@ -181,10 +203,11 @@ export class ChatController {
 
     @Post('join-channel')
     async joinChannel(
+        @Body() joinChannelDto: JoinChannelDto,
         @Request() req : ExpressRequest
     ) {
         try {
-            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(7, "channel", 14, "coucou"));
+            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.name, joinChannelDto.password));
             // this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
         } catch (err) {
             if (this.DEBUG == true) {
@@ -193,17 +216,27 @@ export class ChatController {
         }
     }
 
+    // @Post('create-channel')
+    // async createChannel(
+    //     @Body() createChannelDto: CreateChannelDto,
+    //     @Request() req :ExpressRequest
+    // ) {
+    //     this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), createChannelDto.name, undefined, createChannelDto.password));
+    // }
+
 
     @Post('exit-channel')
     async exitChannel(
+        @Body() quitDto: QuitDto,
         @Request() req : ExpressRequest
     ) {
         try {
-            this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(7, "channel", 14));
+            console.log("Hello2");
+            this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), quitDto.channelId)); // TODO: quitDto.channelId
             // this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
         } catch (err) {
             if (this.DEBUG == true) {
-                console.log(err.message);
+                console.log("Hello", err.message);
             }
         }
     }
@@ -228,6 +261,19 @@ export class ChatController {
             return convs;
         } catch (err) {
             console.log(err.message);
+        }
+    }
+
+    @Post('create-conversation')
+    async createConversation(
+        @Body() targetDto: TargetDto,
+        @Request() req: ExpressRequest
+    ) {
+        try {
+            const conversation = await this.chatService.createConversation(Number(req.user.sub), targetDto.targetName);
+            return conversation;
+        } catch(error) {
+            console.log(error.message);
         }
     }
 

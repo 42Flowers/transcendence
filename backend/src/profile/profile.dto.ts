@@ -3,8 +3,9 @@ import { IsNotEmpty, IsString, IsInt, MinLength, MaxLength, IsNumber, Min } from
 import { IsNoSpecialCharacters } from './profile.pipe';
 
 export class CreateUserAchievementDto {
+    @IsNumber()
     @IsNotEmpty()
-    @IsInt()
+    @Min(1)
     achievementId: number;
 }
 

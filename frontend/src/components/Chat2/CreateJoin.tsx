@@ -1,26 +1,54 @@
 import React from "react";
 import { useState } from "react";
+import { useMutation } from "react-query";
 
 import { ChatContext } from "../../contexts/ChatContext";
 import { useContext } from "react";
 import { ChatContextType } from "./Menu";
+import { joinChannel, addDm } from "../../api";
 
 const CreateJoin: React.FC = () => {
     const { isDm } = useContext(ChatContext) as ChatContextType;
 
-    const [input1, setInput1] = useState("");
-    const [input2, setInput2] = useState("");
+    const [channelName, setChannelName] = useState("");
+    const [userName, setUserName] = useState("");
+    const [password, setPassword] = useState("");
 
-    const handleSubmitJoin = (event: React.FormEvent) => {
+
+    const joinChannelMutation = useMutation({
+        mutationFn: joinChannel,
+        onError(e: AxiosError) {
+            alert("Choose a more secured password or a valid channel name");
+        }
+    });
+
+    const addDmMutation = useMutation({
+        mutationFn: addDm,
+        onError(e: AxiosError) {
+            alert("Choose a more secured password or a valid channel name");
+        }
+    });
+
+    // const createChannelMutation = useMutation({
+    //     mutationFn: createChannel,
+    //     onError(e: AxiosError) {
+    //         alert("Choose a more secured password or a valid channel name");
+    //     }
+    // });
+
+    const handleSubmitJoin = (event) => {
         event.preventDefault();
         // Handle form submission here
-        console.log(input1, input2);
+        joinChannelMutation.mutate({ channelName, password });
+        //createChannelMutation.mutate({ name, password });
+        console.log("name", name, "password", password);
     };
 
-    const handleSubmitAdd = (event: React.FormEvent) => {
+    const handleSubmitAdd = (event) => {
         event.preventDefault();
         // Handle form submission here
-        console.log(input1);
+        addDmMutation.mutate({ targetName: userName });
+        console.log(userName);
     };
 
     return (
@@ -29,15 +57,15 @@ const CreateJoin: React.FC = () => {
                 <form onSubmit={handleSubmitJoin} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <input
                         type="text"
-                        value={input1}
-                        onChange={(e) => setInput1(e.target.value)}
+                        value={channelName}
+                        onChange={(e) => setChannelName(e.target.value)}
                         style={{ flex: "1 1 auto" }}
                         placeholder="name"
                     />
                     <input
                         type="password"
-                        value={input2}
-                        onChange={(e) => setInput2(e.target.value)}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         style={{ flex: "1 1 auto" }}
                         placeholder="password"
                     />
@@ -47,8 +75,8 @@ const CreateJoin: React.FC = () => {
                 <form onSubmit={handleSubmitAdd} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <input
                         type="text"
-                        value={input1}
-                        onChange={(e) => setInput1(e.target.value)}
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
                         style={{ flex: "1 1 auto" }}
                         placeholder="name"
                     />

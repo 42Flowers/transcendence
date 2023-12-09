@@ -1,5 +1,6 @@
 import { ChatContext } from "../../contexts/ChatContext";
 import { useContext } from "react";
+import './Chat.css';
 
 type Props = {
     side: string
@@ -19,25 +20,25 @@ const Menu: React.FC<Props> = ({ side }) => {
     return (
         side === 'left'
             ?
-                <>
-                    <button style={buttonStyle} onClick={() => {
+                <div className="menuLeftClass">
+                    <button style={buttonStyle} className="buttonClass" onClick={() => {
                         setChanOrDm('channel');
                         setIsDm(false);
                     }}
                     >
                         Channels</button>
-                    <button style={buttonStyle} onClick={() => {
+                    <button style={buttonStyle} className="buttonClass" onClick={() => {
                         setChanOrDm('dm');
                         setIsDm(true);
                     }}
                     >
                         Direct Messages</button>
-                </>
+                </div>
             :
-                <>
-                    <button style={buttonStyle} onClick={() => setUsersOrBanned('users')}>Users</button>
-                    <button style={buttonStyle} onClick={() => setUsersOrBanned('banned')}>Banned Users</button>
-                </>
+                <div className="menuRightClass">
+                    <button style={buttonStyle} className="buttonClass" onClick={() => setUsersOrBanned('users')}>Users</button>
+                    <button style={buttonStyle} className="buttonClass" onClick={() => setUsersOrBanned('banned')}>Banned Users</button>
+                </div>
     );
 };
 

@@ -412,6 +412,6 @@ export class ChatController {
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;
-        this.eventEmitter.emit('chat.delete', new ChatDeleteChannelEvent(userId, deleteDto.channelName, deleteDto.channelId));
+        this.eventEmitter.emit('chat.delete', new ChatDeleteChannelEvent(userId, deleteDto.channelId));
     }
 }

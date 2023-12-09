@@ -19,7 +19,7 @@ const MembersList: React.FC = () => {
                 ?
                     <>
                         {allMembers.isFetched && allMembers.data.map(member => (
-                            member.membershipState === 1
+                            member.membershipState !== 4
                                 ?
                                     <div key={member.userId}>
                                         <p>{member.userName}</p>

@@ -6,6 +6,7 @@ import { ChatContext } from "../../contexts/ChatContext";
 import { useContext } from "react";
 import { ChatContextType } from "./Menu";
 import { joinChannel, addDm } from "../../api";
+import './Chat.css';
 
 const CreateJoin: React.FC = () => {
     const { isDm } = useContext(ChatContext) as ChatContextType;
@@ -52,7 +53,7 @@ const CreateJoin: React.FC = () => {
     };
 
     return (
-        <div>
+        <div style={{height: "100%"}} className="CreateJoin">
             {!isDm ?
                 <form onSubmit={handleSubmitJoin} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <input
@@ -61,6 +62,7 @@ const CreateJoin: React.FC = () => {
                         onChange={(e) => setChannelName(e.target.value)}
                         style={{ flex: "1 1 auto" }}
                         placeholder="name"
+                        className="inputClass"
                     />
                     <input
                         type="password"
@@ -68,8 +70,9 @@ const CreateJoin: React.FC = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         style={{ flex: "1 1 auto" }}
                         placeholder="password"
+                        className="inputClass"
                     />
-                    <button type="submit" style={{ flex: "1 1 auto" }}>JOIN</button>
+                    <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">JOIN</button>
                 </form>
             :
                 <form onSubmit={handleSubmitAdd} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -79,8 +82,9 @@ const CreateJoin: React.FC = () => {
                         onChange={(e) => setUserName(e.target.value)}
                         style={{ flex: "1 1 auto" }}
                         placeholder="name"
+                        className="inputClass"
                     />
-                    <button type="submit" style={{ flex: "1 1 auto" }}>ADD</button>
+                    <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">ADD</button>
                 </form>
             }
         </div>

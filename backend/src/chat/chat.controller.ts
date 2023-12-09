@@ -24,6 +24,7 @@ import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event'
 import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
 import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
 import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
+import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
 
@@ -62,9 +63,10 @@ interface Message {
 
 interface users {
     userId: number,
-	userName: string,
+    userName: string,
     membershipState: number,
-	avatar: string,
+    avatar: string,
+    permissionMask: number
 }
 
 import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
@@ -176,19 +178,22 @@ export class ChatController {
     @Get('get-channelmembers/:channelId')
     async getChannelMembers(
         @Request() req: ExpressRequest,
-		@Param('channelId', CheckIntPipe) channelId: number,
+        @Param('channelId', CheckIntPipe) channelId: number,
     ) {
         try {
             const userId = Number(req.user.sub);
+            if (userId == undefined)
+                return;
             const member = await this.roomService.isUserinRoom(userId, channelId);
             if (member != null && member.membershipState !== 4) {
                 const users : users[] = [];
                 const allusers = await this.roomService.getUsersfromRoom(channelId);
                 const membershipStates = await Promise.all(allusers.map(user => this.userService.getMembershipState(user.userId, channelId)));
+                const permissionMasks = await Promise.all(allusers.map(user => this.userService.getPermissionMask(user.userId, channelId)));
                 allusers.map((user, index) => {
-					users.push({userId: user.userId, userName: user.user.pseudo, membershipState: membershipStates[index], avatar: user.user.avatar})
-				});
-				return users;
+                    users.push({userId: user.userId, userName: user.user.pseudo, membershipState: membershipStates[index], permissionMask: permissionMasks[index], avatar: user.user.avatar})
+                });
+                return users;
             }
             return null;
         } catch (error) {
@@ -398,4 +403,15 @@ export class ChatController {
 			console.log(err.message);
 		}
 	}
+
+    @Post('delete-channel') //TODO les DTO
+    async handleDeleteRoom(
+        @Body() deleteDto: DeleteChannelDto,
+        @Request() req: ExpressRequest
+    ) {
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+        this.eventEmitter.emit('chat.delete', new ChatDeleteChannelEvent(userId, deleteDto.channelName, deleteDto.channelId));
+    }
 }

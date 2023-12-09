@@ -846,6 +846,7 @@ async function main() {
       data: {
         channelId: chan1.id,
         userId: user2.id,
+        permissionMask: 1,
         channelName: "chan1",
       }
     })
@@ -853,6 +854,7 @@ async function main() {
       data: {
         channelId: chan1.id,
         userId: user3.id,
+        permissionMask: 1,
         channelName: "chan1",
       }
     })
@@ -860,6 +862,7 @@ async function main() {
       data: {
         channelId: chan1.id,
         userId: user4.id,
+        permissionMask: 2,
         channelName: "chan1",
       }
     })
@@ -867,6 +870,7 @@ async function main() {
       data: {
         channelId: chan1.id,
         userId: user5.id,
+        permissionMask: 2,
         channelName: "chan1",
       }
     })
@@ -874,6 +878,7 @@ async function main() {
       data: {
         channelId: chan1.id,
         userId: user6.id,
+        permissionMask: 2,
         channelName: "chan1",
       }
     })
@@ -881,6 +886,7 @@ async function main() {
       data: {
         channelId: chan1.id,
         userId: user7.id,
+        permissionMask: 4,
         channelName: "chan1",
       }
     })
@@ -898,6 +904,7 @@ async function main() {
       data: {
         channelId: chan2.id,
         userId: user2.id,
+        permissionMask: 4,
         channelName: "chan2",
       }
     })
@@ -908,7 +915,7 @@ async function main() {
         userId: user3.id,
         
         membershipState: 4,
-        
+        permissionMask: 4,
         channelName: "chan2",
       }
     })
@@ -927,6 +934,7 @@ async function main() {
       data: {
         channelId: chan3.id,
         userId: user2.id,
+        permissionMask: 4,
         membershipState: 2,
         channelName: "chan3",
       }

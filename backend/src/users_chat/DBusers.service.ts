@@ -13,6 +13,15 @@ export class UsersService {
 		private readonly socketService: SocketService
 		) {}
 
+	async getPermissionMask(userId: number, channelId: number) {
+		try {
+			const mask = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId},}, select: {permissionMask:true}});
+			return mask.permissionMask;
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
 	async getWhoBlockedMe(userId: number) {
 		try {
 			const blocked = await this.prismaService.blocked.findMany({where: {blockedId: userId}, select: {userId: true}});

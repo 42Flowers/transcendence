@@ -17,9 +17,9 @@ export interface ChatContextType {
 export const ChatContext = createContext<ChatContextType>(undefined as any);
 
 export const ChatProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  const [chanOrDm, setChanOrDm] = useState('');
-  const [usersOrBanned, setUsersOrBanned] = useState('');
-  const [isDm, setIsDm] = useState('');
+  const [chanOrDm, setChanOrDm] = useState('channel');
+  const [usersOrBanned, setUsersOrBanned] = useState('users');
+  const [isDm, setIsDm] = useState(false);
   const [currentChannel, setCurrentChannel] = useState(null);
   const [currentDm, setCurrentDm] = useState(null);
 

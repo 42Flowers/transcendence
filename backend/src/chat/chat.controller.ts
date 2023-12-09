@@ -110,7 +110,6 @@ export class ChatController {
         private readonly prismaService: PrismaService
         ) {}
 
-        DEBUG = true;
 
 	@Get('get-blocked-users')
 	async getBlockedUsers(
@@ -143,9 +142,7 @@ export class ChatController {
             rooms.forEach(room => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask}));
             return chans;
         } catch (err) {
-            if (this.DEBUG == true) {
                 console.log(err.message);
-            }
         }
     }
 
@@ -200,17 +197,13 @@ export class ChatController {
 
     @Post('join-channel')
     async joinChannel(
-        // @Body() joinChannelDto: JoinChannelDto,
+        @Body() joinChannelDto: JoinChannelDto,
         @Request() req : ExpressRequest
     ) {
         try {
-
-            // this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.channelName, joinChannelDto.password));
-            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", "coucou"));
+            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.channelName, joinChannelDto.password));
         } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
+			console.log(err.message);
         }
     }
 

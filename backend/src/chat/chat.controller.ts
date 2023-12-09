@@ -68,6 +68,7 @@ interface users {
 }
 
 import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
+import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 
 export class JoinChannelDto {
     @IsString()
@@ -109,7 +110,6 @@ export class ChatController {
         private readonly prismaService: PrismaService
         ) {}
 
-        DEBUG = true;
 
 	@Get('get-blocked-users')
 	async getBlockedUsers(
@@ -142,9 +142,7 @@ export class ChatController {
             rooms.forEach(room => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask}));
             return chans;
         } catch (err) {
-            if (this.DEBUG == true) {
                 console.log(err.message);
-            }
         }
     }
 
@@ -204,11 +202,8 @@ export class ChatController {
     ) {
         try {
             this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.channelName, joinChannelDto.password));
-            // this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
         } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
+			console.log(err.message);
         }
     }
 
@@ -247,11 +242,12 @@ export class ChatController {
 
     @Post('create-conversation')
     async createConversation(
-        @Body() targetDto: TargetDto,
+        // @Body() targetDto: TargetDto,
         @Request() req: ExpressRequest
     ) {
         try {
-            const conversation = await this.chatService.createConversation(Number(req.user.sub), targetDto.targetName);
+            const conversation = await this.chatService.createConversation(2, "User3");
+            // const conversation = await this.chatService.createConversation(Number(req.user.sub), targetDto.targetName);
             return conversation;
         } catch(error) {
             console.log(error.message);
@@ -385,6 +381,14 @@ export class ChatController {
 			this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, "channel", 9));
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
+	}
+
+	@Post('delete-channel')
+	async handleDeleteRoom(
+		@Request() req: ExpressRequest
+	) {
+		console.log("super, j'adore");
+		this.eventEmitter.emit('chat.delete', new ChatDeleteChannelEvent(2, "channel", 4));
 	}
 
 	@Get('get-friends')

@@ -39,7 +39,7 @@ export class UsersService {
 					userId: userId,
 					friendId: friendId
 				}
-			}
+			},
 		});
 		if (friends == null) {
 			return await this.prismaService.friendship.findUnique({
@@ -123,20 +123,6 @@ export class UsersService {
 		}
 	}
 
-	async alreadyRegisterdById(id: number) : Promise<any> {
-		try {
-			const user = await this.prismaService.user.findUnique({
-				where: {
-					id: id
-				}
-			});
-			return user;
-		}
-		catch (err) {
-			throw (new Error(err.message));
-		}
-	}
-
 	async updateName(pseudo: string, id: number) : Promise<any> {
 		try {
 			const user = await this.prismaService.user.update({
@@ -174,7 +160,10 @@ export class UsersService {
 					userId_blockedId: {
 					userId: userId,
 					blockedId: targetId
-				}}
+				}}, select: {
+					userId: true,
+					blockedId: true
+				}
 			});
 			return blocked;
 		} catch (err) {
@@ -189,7 +178,7 @@ export class UsersService {
 					userId_blockedId : {
 					userId: targetId,
 					blockedId: userId
-				}}
+				}},
 			});
 			return blocked;
 		} catch (err) {

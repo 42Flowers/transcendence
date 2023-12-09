@@ -27,30 +27,6 @@ import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
 
-interface convElem {
-    isChannel: boolean,
-    channelId?: number,
-    channelName?: string,
-    targetId?: number
-    targetName?: string,
-    userPermissionMask?: number,
-    messages: convMessage[],
-}
-
-
-interface convMessage {
-    authorName: string,
-    authorId: number,
-    creationTime: Date,
-    content: string,
-}
-
-
-interface channelElem {
-    messages: Message[],
-    users: users[],
-}
-
 
 interface Message {
 	authorName: string,

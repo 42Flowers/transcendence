@@ -1,27 +1,13 @@
 import { ChatContext } from "../../contexts/ChatContext";
 import { useContext } from "react";
 
-export interface ChatContextType {
-    chanOrDm: string
-    setChanOrDm: (chanOrDm: string) => void;
-    usersOrBanned: string
-    setUsersOrBanned: (usersOrBanned: string) => void;
-    isDm: boolean
-    setIsDm: (isDm: boolean) => void;
-    currentChannel: number
-    setCurrentChannel: (currentChannel: number) => void;
-    currentDm: number
-    setCurrentDm: (currentDm: number) => void;
-}
-
 type Props = {
     side: string
 }
 
 const Menu: React.FC<Props> = ({ side }) => {
-    const { setChanOrDm, setUsersOrBanned, setIsDm } = useContext(ChatContext) as ChatContextType;
+    const { setChanOrDm, setUsersOrBanned, setIsDm } = useContext(ChatContext);
     
-
     const buttonStyle: React.CSSProperties = {
         width: "50%",
         height: "100%",

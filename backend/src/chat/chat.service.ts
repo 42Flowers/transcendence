@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { ChatRemoveAdminFromChannelEvent } from 'src/events/chat/removeAdminFromChannel.event';
 import { ChatAddAdminToChannelEvent } from 'src/events/chat/addAdminToChannel.event';
 import { ChatUnBanFromChannelEvent } from 'src/events/chat/unBanFromChannel.event';
@@ -97,6 +98,42 @@ export class ChatService {
 	// 	return;
 	// }
 
+	async createConversation(
+        userId: number,
+        targetName: string
+    ) {
+        const target = await this.usersService.getUserByName(targetName);
+        const user = await this.usersService.getUserById(userId);
+        if (target != null && user != null) {
+            const blocked = await this.usersService.isUserBlocked(user.id, target.id);
+            const isblocked = await this.usersService.blockedByUser(user.id, target.id);
+            if (blocked != null)
+            {
+                const msg = target.pseudo + " is blocked";
+                this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
+                return;
+            }
+            else if (isblocked != null) {
+                const msg = target.pseudo + " has blocked you";
+                this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
+                return;
+            }
+            let conversation = await this.conversationsService.conversationExists(user.id, target.id);
+            if (conversation === null) {
+                conversation = await this.conversationsService.createConversation(user.id, target.id);
+                const convName = await this.conversationsService.getConversationName(user.id, target.id);
+                if (convName !== null && conversation !== null) {
+                    this.socketService.joinConversation(user.id, target.id, convName.name);
+                }
+                else {
+                    this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'error', "The server failed to create this conversation, please try again later"));
+                    throw new Error("The Conversation couldn't be created");
+                }
+            }
+            return conversation;
+        }
+    }
+
 	@OnEvent('chat.privatemessage')
 	async chatPrivateMessage(
 		event : ChatPrivateMessageEvent
@@ -181,40 +218,52 @@ export class ChatService {
 	}
 
 	@OnEvent('chat.joinchannel')
-	async joinRoom(
-		event: ChatJoinChannelEvent
-	) {
-		const user = await this.usersService.getUserById(event.userId);
-		if (user != null) {
-			const join = await this.roomService.joinRoom(user.id, event.channelId, event.channelName, event.pwd);
-			if (join != undefined) {
-				this.socketService.joinChannel(user.id, event.channelName);
-				this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'channel', user.pseudo + " joined this channel"));
-			}
-		}
-	}
+    async joinRoom(
+        event: ChatJoinChannelEvent
+    ) {
+        try {
+            const channelId = await this.roomService.getChannelId(event.channelName);
+            const user = await this.usersService.getUserById(event.userId);
+            if (user != null) {
+                const join = await this.roomService.joinRoom(user.id, channelId, event.channelName, event.pwd);
+                if (join != undefined) {
+                    this.socketService.joinChannel(user.id, event.channelName);
+                    this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'channel', user.pseudo + " joined this channel"));
+                }
+            }
+        } catch (error) {
+            //if (this.DEBUG == true)
+                console.log(error.message);
+        }
+    }
 
 	@OnEvent('chat.exitchannel')
-	async exitRoom(
-		event: ChatExitChannelEvent
-	) {
-		const user = await this.usersService.getUserById(event.userId);
-		if (user != null) {
-			const room = await this.roomService.roomExists(event.channelId);
-			if (room != null ){
-				const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-				if (member !== undefined && member.membershipState !== 4) {
-					this.roomService.removeUserfromRoom(user.id, event.channelId);
-					this.socketService.leaveChannel(user.id, event.channelName);
-					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.pseudo + " has left this channel"));
-				} else {
-					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave this channel"));
-				}
-			} else {
-				throw new Error(event.channelName + ": This channel does not exist");
-			}
-		}
-	}
+    async exitRoom(
+        event: ChatExitChannelEvent
+    ) {
+        try {
+            const user = await this.usersService.getUserById(event.userId);
+            if (user != null) {
+                const room = await this.roomService.roomExists(event.channelId);
+                if (room != null ){
+                    console.log("marche");
+                    const member = user.channelMemberships.find(channel => channel.channelId === room.id);
+                    if (member !== undefined && member.membershipState !== 4) {
+                        this.roomService.removeUserfromRoom(user.id, room.id);
+                        this.socketService.leaveChannel(user.id, room.name);
+                        this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.pseudo + " has left this channel"));
+                    } else {
+                        this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave this channel"));
+                    }
+                } else {
+                    throw new Error(": This channel does not exist");
+                }
+            }
+        } catch (err) {
+            console.log(err.message);
+        }
+    }
+
 
 	@OnEvent('chat.invitechannel')
 	async inviteInChannel(

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { MessagesService } from 'src/messages/messages.service';
 import { SocketService } from 'src/socket/socket.service';
@@ -15,6 +16,21 @@ export class RoomService {
 		private readonly socketService: SocketService,
 		private readonly eventEmitter: EventEmitter2
 		) {}
+
+		async getChannelId(name: string) {
+			try{
+				const chanId = await this.prismaService.channel.findUnique({where: {name: name}, select: {id: true}});
+				if (chanId == null)
+					return undefined;
+				return chanId.id;
+			}catch( error) {
+				if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+					throw error;
+				}
+				else
+				console.log(error.message);
+			}
+		}
 
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
 		try {
@@ -135,8 +151,8 @@ export class RoomService {
 	}
 
 	async roomExists(id: number) : Promise<any> {
-		return this.prismaService.channel.findUnique({where:{id: id}});
-	}
+        return this.prismaService.channel.findUnique({where:{id: id}, select: {name: true, id: true}});
+    }
 
 
 	async isUserinRoom(userId: number, channelId: number) : Promise<any> {

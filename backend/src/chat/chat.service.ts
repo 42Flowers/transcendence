@@ -106,26 +106,34 @@ export class ChatService {
 	async socketJoinChannels(
 		event: ChatSocketJoinChannelsEvent
 	) {
-		const channels = await this.roomService.getPublicRooms(event.userId);
-		const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-		console.log(channels, conversations);
-		if (channels != null)
-			channels.map(chan => event.client.join(chan.name));
-		if (conversations != null)
-			conversations.map(conv => event.client.join(conv.name));
+		try {
+			const channels = await this.roomService.getPublicRooms(event.userId);
+			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
+			console.log(channels, conversations);
+			if (channels != null)
+				channels.map(chan => event.client.join(chan.name));
+			if (conversations != null)
+				conversations.map(conv => event.client.join(conv.name));
+		} catch(error) {
+			console.log(error.message);
+		}
 	}
 
 	@OnEvent('chat.socketleavechannels')
 	async socketLeaveChannels(
 		event: ChatSocketLeaveChannelsEvent
 	) {
-		const channels = await this.roomService.getPublicRooms(event.userId);
-		const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-		console.log(channels, conversations);
-		if (channels != null)
-			channels.map(chan => event.client.leave(chan.name));
-		if (conversations != null)
-			conversations.map(conv => event.client.leave(conv.name));
+		try {
+			const channels = await this.roomService.getPublicRooms(event.userId);
+			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
+			console.log(channels, conversations);
+			if (channels != null)
+				channels.map(chan => event.client.leave(chan.name));
+			if (conversations != null)
+				conversations.map(conv => event.client.leave(conv.name));
+		} catch (error) {
+			console.log(error.message);
+		}
 	}
 
 	async createConversation(
@@ -170,42 +178,46 @@ export class ChatService {
 	async chatPrivateMessage(
 		event : ChatPrivateMessageEvent
 	) {
-		if (event.message.length > 100)
-			throw new MyError("This message is too long");
-		const user = await this.usersService.getUserById(event.userId);
-		if (user) {
-			if (event.targetId != user.id) {
-				const dest = await this.usersService.getUserById(event.targetId);
-				if (dest != undefined) {
-					const blocked = await this.usersService.isUserBlocked(user.id, dest.id);
-					const isblocked = await this.usersService.blockedByUser(user.id, dest.id);
-					if (blocked != null)
-					{
-						const msg = dest.name + " is blocked";
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
+		try {
+			if (event.message.length > 100)
+				throw new MyError("This message is too long");
+			const user = await this.usersService.getUserById(event.userId);
+			if (user) {
+				if (event.targetId != user.id) {
+					const dest = await this.usersService.getUserById(event.targetId);
+					if (dest != undefined) {
+						const blocked = await this.usersService.isUserBlocked(user.id, dest.id);
+						const isblocked = await this.usersService.blockedByUser(user.id, dest.id);
+						if (blocked != null)
+						{
+							const msg = dest.name + " is blocked";
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
+							return;
+						}
+						else if (isblocked != null) {
+							const msg = dest.name + " has blocked you";
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
+							return;
+						}
+						let conversation = await this.conversationsService.conversationExists(user.id, dest.id);
+						if (conversation === null) {
+							throw new MyError("This Conversation does not exist");
+						}
+						const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation, event.message);
+						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', dest.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, undefined));
+					} else {
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "No such connected user"));
 						return;
 					}
-					else if (isblocked != null) {
-						const msg = dest.name + " has blocked you";
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
-						return;
-					}
-					let conversation = await this.conversationsService.conversationExists(user.id, dest.id);
-					if (conversation === null) {
-						throw new MyError("This Conversation does not exist");
-					}
-					const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation, event.message);
-					this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', dest.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, undefined));
 				} else {
-					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "No such connected user"));
+					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "You cannot send a message to yourself"));
 					return;
 				}
 			} else {
-				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "You cannot send a message to yourself"));
-				return;
+				throw new Error("This user could not be found in the database");
 			}
-		} else {
-			throw new Error("This user could not be found in the database");
+		}catch (error) {
+			console.log(error.message);
 		}
 	}
 
@@ -285,7 +297,7 @@ export class ChatService {
 						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave this channel"));
 					}
 				} else {
-					throw new MyError(": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -337,7 +349,7 @@ export class ChatService {
 				const room = await this.roomService.roomExists(event.channelId);
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member && member.permissionMask  >= 2) {
+					if (member && member.permissionMask  >= 2 && member.membershipState !== 4) {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask)) {
 							const result = await this.roomService.muteUser(event.targetId, event.channelId);
@@ -478,7 +490,7 @@ export class ChatService {
 				const room = await this.roomService.roomExists(event.channelId);
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member && member.permissionMask === 4) {
+					if (member && member.permissionMask <= 2 && member.membershipState !== 4) {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
 							const result = await this.roomService.addAdmin(event.targetId, event.channelId);
@@ -589,7 +601,7 @@ export class ChatService {
 				const room = await this.roomService.roomExists(event.channelId);
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member && member.permissionMask === 4) {
+					if (member && member.permissionMask === 4 && member.membershipState !== 4) {
 							const result = await this.roomService.addPwd(event.channelId, event.pwd);
 							if (result.status === false)
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
@@ -663,16 +675,20 @@ export class ChatService {
 	async deleteChannel(
 		event: ChatDeleteChannelEvent
 	) {
-		const user = await this.usersService.getUserById(event.userId);
-		if (await this.roomService.roomExists(event.channelId)) {
-			const member = user.channelMemberships.find(channel => channel.id === event.channelId);
-			if (member && member.permissionMask === 4) {
-				const result = await this.roomService.deleteRoom(event.channelId);
-				if (result.status === false)
-					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-			} else {
-				console.log("pas owner");
+		try {
+			const user = await this.usersService.getUserById(event.userId);
+			if (await this.roomService.roomExists(event.channelId)) {
+				const member = user.channelMemberships.find(channel => channel.id === event.channelId);
+				if (member && member.permissionMask === 4) {
+					const result = await this.roomService.deleteRoom(event.channelId);
+					if (result.status === false)
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+				} else {
+					console.log("pas owner");
+				}
 			}
+		} catch (error) {
+			console.log(error.message);
 		}
 	}
 

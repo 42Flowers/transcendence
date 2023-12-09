@@ -82,7 +82,7 @@ export class ConversationsService {
 				}
 			})
 			if (conversationId !== undefined) {
-				return await this.prismaService.conversation.findUnique({where: {id: conversationId}});
+				return await this.prismaService.conversation.findUnique({where: {id: conversationId}, select: {name: true}});
 			}
 			return null;
 		} catch (err) {

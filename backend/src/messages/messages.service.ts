@@ -42,7 +42,7 @@ export class MessagesService {
 		try {
 			const channel = await this.prismaService.channel.findUnique({
 				where: 
-				{id : channelId}});
+				{id : channelId}, select: {id: true}});
 			if (channel != null){
 				return await this.prismaService.message.create({data: {
 					authorId: userId,

@@ -59,7 +59,7 @@ export class RoomService {
 
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
 		try {
-			const user = await this.prismaService.user.findUnique({where: {id: userId}});
+			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
 			let accessMask = 1;
 			if (pwd != '')
 				accessMask = 4;
@@ -118,7 +118,7 @@ export class RoomService {
 				}
 				return undefined;
 			}
-			else if (channelId !== undefined) { // && this.prismaService.channelMembership.findUnique({where: {userId_channelId : {channelId : channelId, userId: userId}}}) === null
+			else if (channelId !== undefined) {
 				const channel = await this.getRoom(channelId);
 				if (channel !== null) {
 					if (channel.accessMask !== 0) {
@@ -181,7 +181,7 @@ export class RoomService {
 
 	async isUserinRoom(userId: number, channelId: number) : Promise<any> {
 		try {
-			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}});
+			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select:{channelName: true, membershipState: true, permissionMask:true, channelId: true}});
 			return membership;
 		} catch (err) {
 			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -198,8 +198,8 @@ export class RoomService {
 
 	async isRoomAdmin(userId: number, channelId: number) : Promise<any> {
 		try {
-			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}});
-			if (membership.membershipState === 2) {
+			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select: {permissionMask: true }});
+			if (membership.permissionMask === 2) {
 				return true; 
 			} return false;
 		} catch (err) {
@@ -216,7 +216,7 @@ export class RoomService {
 
 	async isRoomOwner(userId: number, channelId: number) : Promise<any> {
 		try {
-			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select :{permissionMask: true}});
+			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select :{permissionMask: true},});
 			if (membership.permissionMask === 4)
 				return true;
 			return false;
@@ -343,7 +343,7 @@ export class RoomService {
 		try {
 			if (channelId == null)
 				return null;
-			return await this.prismaService.channel.findUnique({where: {id: channelId}});
+			return await this.prismaService.channel.findUnique({where: {id: channelId}, select: {id: true, name:true, accessMask: true}});
 		} catch (err) {throw new MyError(err.message) }
 	}
 
@@ -364,7 +364,7 @@ export class RoomService {
 		try {
 			const membership = await this.prismaService.channelMembership.update({
 				where : {userId_channelId: {userId: targetId, channelId: channelId}}, 
-				data: {membershipState: 4}});
+				data: {membershipState: 4, permissionMask: 1}});
 			if (membership != null) {
 				return {status: true};
 			}
@@ -380,7 +380,7 @@ export class RoomService {
 		try {
 			const membership = await this.prismaService.channelMembership.update({
 				where: { userId_channelId: {userId: targetId, channelId: channelId}},
-				data: {membershipState : 1}
+				data: {membershipState : 1, permissionMask: 1}
 			});
 			if (membership != null) {
 				return {status: true};
@@ -557,23 +557,4 @@ export class RoomService {
 		}
 	}
 }
-
-
-	async addSocketToAllChannels(client: Socket, userId: number) {
-		try {
-			const memberships = await this.prismaService.channelMembership.findMany({
-				where: {
-					userId: userId
-				},
-				select: {
-					channelId: true
-				}
-			});
-			const names = await Promise.all(memberships.map((chan, index) => this.prismaService.channel.findUnique({where: {id: memberships[index].channelId}})));
-			console.log(names);
-			// memberships.channel.
-		} catch(error) {
-			throw new Error(error.message);
-		}
-	}
 }

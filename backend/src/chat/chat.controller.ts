@@ -68,6 +68,7 @@ interface users {
 }
 
 import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
+import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 
 export class JoinChannelDto {
     @IsString()
@@ -385,6 +386,13 @@ export class ChatController {
 			this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, "channel", 9));
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
 			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
+	}
+
+	@Post('delete-channel')
+	async handleDeleteRoom(
+		@Request() req: ExpressRequest
+	) {
+		this.eventEmitter.emit('chat.deletechannel', new ChatDeleteChannelEvent(2, "channel", 14));
 	}
 
 	@Get('get-friends')

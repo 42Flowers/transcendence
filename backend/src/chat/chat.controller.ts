@@ -71,7 +71,7 @@ import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
 
 export class JoinChannelDto {
     @IsString()
-    name: string;
+    channelName: string;
 
     @IsString()
     password: string;
@@ -203,7 +203,7 @@ export class ChatController {
         @Request() req : ExpressRequest
     ) {
         try {
-            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.name, joinChannelDto.password));
+            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.channelName, joinChannelDto.password));
             // this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
         } catch (err) {
             if (this.DEBUG == true) {

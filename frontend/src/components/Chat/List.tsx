@@ -21,6 +21,7 @@ type DisplayProps = {
     userPermissionMask: number
     myPermissionMask: number
     currentChannel: number
+    memberShipState: number
 }
 
 type DropdownProps = {
@@ -58,7 +59,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
     );
    };
 
-const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel}) => {
+const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel, memberShipState}) => {
     const [availability, setAvailability] = useState<string>('');
     const [options, setOptions] = useState([]);
 
@@ -78,11 +79,17 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     useEffect(() => {
         if (myPermissionMask > userPermissionMask) {
-            setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            if (memberShipState === 1) {
+                setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            } else if (memberShipState === 2) {
+                setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            } else if (memberShipState === 4) {
+                setOptions(['Mute', 'Kick', 'Unban', 'Add Admin', 'Play']);
+            }
         } else {
             setOptions(['Play']);
         }
-    }, [myPermissionMask, userPermissionMask]);
+    }, [myPermissionMask, userPermissionMask, memberShipState]);
 
     const muteMutation = useMutation({
         mutationFn: mute,
@@ -216,7 +223,7 @@ const MembersList: React.FC = () => {
                             member.membershipState !== 4
                                 ?
                                     <div key={member.userId} className="listRightClass">
-                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel}/>
+                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
                                     </div>
                                 :
                                     null

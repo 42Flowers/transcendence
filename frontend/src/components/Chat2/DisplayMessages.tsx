@@ -1,8 +1,10 @@
 import { ChatContext } from "../../contexts/ChatContext";
-import { useContext } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { ChatContextType } from "./Menu";
 import { useQuery } from "react-query";
 import { fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../api";
+import SocketContext from "../Socket/Context/Context";
+import { Socket } from "socket.io-client";
 
 const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
     for (let i = 0; i < blockedIdArray.length; ++i) {
@@ -15,8 +17,21 @@ const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
 
 const MessagesChannel: React.FC = () => {
     const { currentChannel } = useContext(ChatContext) as ChatContextType;
+    const { SocketState } = useContext(SocketContext);
     const channelMessages = useQuery(['channel-messages', currentChannel], () => fetchChannelMessages(currentChannel));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
+
+    // const updateChannelMessages = useCallback(() => {
+
+    // }, []);
+
+    // useEffect(() => {
+    //     SocketState.socket?.on("message", updateChannelMessages);
+        
+    //     return () => {
+    //         SocketState.socket?.off("message", updateChannelMessages);
+    //     }
+    // }, [SocketState.socket]);
 
     return (
         <>

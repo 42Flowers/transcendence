@@ -142,7 +142,7 @@ export class ChatController {
                 const messagesfromchannel = await this.messageService.getMessagesfromChannel(userId, channelId);
                 const messages : Message[] = [];
                 const userNames = await Promise.all(messagesfromchannel.map(conv => this.userService.getUserName(conv.authorId)));
-                messagesfromchannel.map((chan, index) => {
+				messagesfromchannel.map((chan, index) => {
 					messages.push({authorName: userNames[index].pseudo, authorId: chan.authorId, content: chan.content, createdAt: chan.createdAt, id:chan.id});
 				});
                 return messages;

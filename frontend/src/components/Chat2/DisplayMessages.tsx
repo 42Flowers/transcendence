@@ -6,7 +6,6 @@ import { fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../
 
 const MessagesChannel: React.FC = () => {
     const { currentChannel } = useContext(ChatContext) as ChatContextType;
-    console.log("currentChannel", currentChannel);
     const channelMessages = useQuery(['channel-messages', currentChannel], () => fetchChannelMessages(currentChannel));
     const blockedUsers = useQuery('blocked-users', () => fetchBlockedUsers);
     console.log("Blocked users IDs", blockedUsers.data);
@@ -17,7 +16,7 @@ const MessagesChannel: React.FC = () => {
     */
     return (
         <>
-            {channelMessages.isFetched && channelMessages?.data?.map(msg => (
+            {channelMessages.isFetched && channelMessages.data.map(msg => (
                 <div key={msg.id}>
                     <p>{msg.authorName}</p>
                     <p>{msg.content}</p>
@@ -50,7 +49,6 @@ const MessagesDm: React.FC = () => {
 
 const DisplayMessages: React.FC = () => {
     const { chanOrDm, currentChannel, currentDm } = useContext(ChatContext) as ChatContextType;
-    console.log("currentChannel2", currentChannel);
 
     /*
         If (chanOrDm === 'channel')
@@ -58,6 +56,55 @@ const DisplayMessages: React.FC = () => {
         else if (chanOrDm === 'dm))
             query dm conv qui correspond à mon id + l'id de l'autre user currentDm
     */
+
+    /*
+        chanOrDm === 'channel'
+        currentChannel === 1 (channel1) 
+    */
+    // const channel1 = [
+    //     {   
+    //         messageId: 1,
+    //         authorName: "Macron", 
+    //         content: "Hello",
+    //     },
+    //     {   
+    //         messageId: 2,
+    //         authorName: "Poutine", 
+    //         content: "Hellooo",
+    //     },
+    //     {   
+    //         messageId: 3,
+    //         authorName: "Coluche", 
+    //         content: "Hello",
+    //     },
+    // ]
+
+    // const channel2 = [
+    //     {   
+    //         authorName: "Macron", 
+    //         content: "A",
+    //     },
+    //     {   
+    //         authorName: "Poutine", 
+    //         content: "B",
+    //     },
+    //     {   
+    //         authorName: "Coluche", 
+    //         content: "C",
+    //     },
+    // ]
+
+    // const dmMacron = [
+    //     {
+    //         authorName: "Macron",
+    //         content: "Heyy Coluche",
+    //     },
+    //     {
+    //         authorName: "Coluche",
+    //         content: "Heyy Macron",
+    //     },
+    // ]
+
     return (
         chanOrDm === 'channel' ?
             currentChannel && <MessagesChannel />

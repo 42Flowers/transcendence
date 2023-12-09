@@ -1,9 +1,13 @@
 import { ChatContext } from "../../contexts/ChatContext";
-import { useContext } from "react";
+import React, { useContext } from "react";
 import './Chat.css';
 import { ChatContextType } from "./Menu";
 
-const DisplayMessages: React.FC = () => {
+type Props = {
+    containerRef: React.RefObject<HTMLDivElement>;
+}
+
+const DisplayMessages: React.FC<Props> = ({ containerRef }) => {
     const { chanOrDm, currentChannel, currentDm } = useContext(ChatContext) as ChatContextType;
 
     /*
@@ -91,6 +95,12 @@ const DisplayMessages: React.FC = () => {
             content: "Heyy Macron",
         },
     ]
+
+    React.useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+    }, [ containerRef, channel1 ]);
 
     return (
         chanOrDm === 'channel' && currentChannel === 1 ?

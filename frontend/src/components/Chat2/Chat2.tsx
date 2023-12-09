@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ComponentProps, PropsWithChildren } from "react";
 import Menu from "./Menu";
 import List from "./List";
 import CreateJoin from "./CreateJoin";
@@ -182,6 +182,8 @@ const Chat2: React.FC = () => {
     //     border: "1px solid red",
     // };
 
+    const containerRef = React.useRef<HTMLDivElement>(null);
+
     return (
         <div style={containerStyle}>
             <div style={itemStyle}>
@@ -201,8 +203,8 @@ const Chat2: React.FC = () => {
                 <div style={titleStyle}>
                     <Title />
                 </div>
-                <div style={displayStyle}>
-                    <DisplayMessages />
+                <div style={displayStyle} ref={containerRef}>
+                    <DisplayMessages containerRef={containerRef} />
                 </div>
                 <div style={sendStyle}>
                     <SendMessages />

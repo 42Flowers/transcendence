@@ -37,8 +37,7 @@ const SendMessages: React.FC = () => {
                     placeholder="msg"
                     className="inputSendMessageClass"
                 />
-                <AiOutlineSend className="icon-send"/>
-                {/* <button type="submit" style={{ flex: "1 1 auto" }}>SEND</button> */}
+                <button type="submit" style={{ background: "none", border: "none" }}><AiOutlineSend className="icon-send"/></button>
             </form>
         </div>
     );

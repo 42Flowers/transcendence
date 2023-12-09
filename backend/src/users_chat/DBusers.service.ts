@@ -2,6 +2,7 @@
 import { SocketService } from 'src/socket/socket.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import {MyError } from '../errors/errors'
 
 
 @Injectable()
@@ -11,6 +12,15 @@ export class UsersService {
 		private readonly prismaService : PrismaService,
 		private readonly socketService: SocketService
 		) {}
+
+	async getWhoBlockedMe(userId: number) {
+		try {
+			const blocked = await this.prismaService.blocked.findMany({where: {blockedId: userId}, select: {userId: true}});
+			return blocked;
+		} catch(error) {
+			console.log(error.message);
+		}
+	}
 
 	async getUserByName(targetName: string) {
 		try {
@@ -49,7 +59,9 @@ export class UsersService {
 
 	async getUserName(userId: number) : Promise<any> {
 		try {
-			const name = this.prismaService.user.findUnique({where: {id: userId}, select : {pseudo: true}});
+			const name = this.prismaService.user.findUnique({
+				where: {id: userId}, 
+				select : {pseudo: true}});
 			return name;
 		} catch (err) {
 			throw err
@@ -204,7 +216,7 @@ export class UsersService {
 			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select: {membershipState: true}});
 			return membership.membershipState;
 		} catch (err) {
-			throw new Error("Could not find the user whose ID is " + userId);
+			throw new MyError("Could not find the user whose ID is " + userId);
 		}
 	}
 

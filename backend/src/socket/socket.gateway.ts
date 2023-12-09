@@ -29,6 +29,10 @@ import { GameInviteToSpecial } from "src/events/game/inviteToSpecialGame.event";
 import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
 import { ChatSendRoomToClientEvent } from "src/events/chat/sendRoomToClient.event";
+import { ChatSocketJoinChannelsEvent } from "src/events/chat/socketJoinChannels.event";
+import { ChatSocketLeaveChannelsEvent } from "src/events/chat/socketLeaveChannels.event";
+import { v4 as uuidv4 } from 'uuid';
+
 
 declare module 'socket.io' {
 	interface Socket {
@@ -68,8 +72,6 @@ export class SocketGateway implements
 		private readonly jwtService: JwtService
 		) {}
 
-		DEBUG=true;
-
 	afterInit() {
 		console.log("Init socket Gateway")
 	}
@@ -86,11 +88,10 @@ export class SocketGateway implements
 			client.disconnect(true);
 			return ;
 		}
-
 		console.log(`Client connected: ${client.id}`);
-
 		client.join('server');
 		this.socketService.addSocket(client);
+		this.eventEmitter.emit('chat.socketjoinchannels', new ChatSocketJoinChannelsEvent(Number(client.user.sub), client))
 	}
 
 	async handleDisconnect(client: Socket) {
@@ -98,6 +99,7 @@ export class SocketGateway implements
 			return ;
 		}
 		client.leave('server');
+		this.eventEmitter.emit('chat.socketleavechannels', new ChatSocketLeaveChannelsEvent(Number(client.user.sub), client));
 		this.socketService.removeSocket(client);
 		console.log(`Client disconnected: ${client.id}`);
 		// this.socketService.removeSocket(token.id, client);
@@ -126,7 +128,22 @@ export class SocketGateway implements
 	@OnEvent('chat.sendmessage')
 	sendMessage(event: ChatSendMessageEvent) 
 	{
-		this.server.to(event.destination).emit('message', {type: event.type, id: event.id, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
+		let dest;
+		if (event.type == "channel") {
+			dest = uuidv4();
+			event.channelUsers.forEach(user => {
+				this.socketService.joinChannel(user.userId, dest);
+			})
+		}
+		else {
+			dest = event.destination;
+		}
+		this.server.to(dest).emit('message', {type: event.type, id: event.id, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
+		if (event.type == "channel") {
+			event.channelUsers.forEach(user => {
+				this.socketService.leaveChannel(user.userId, dest);
+			})
+		}
 	}
 
 	@OnEvent('chat.sendtochannel')
@@ -143,9 +160,7 @@ export class SocketGateway implements
 		try {
 			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(data.userId, data.targetId));
 		} catch (err) {
-			if (this.DEBUG == true) {
-				console.log(err);
-			}
+			console.log(err.message);
 		}
 	}
 
@@ -156,9 +171,7 @@ export class SocketGateway implements
 		try {
 			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(data.userId, data.targetId));
 		} catch (err) {
-			if (this.DEBUG == true) {
-				console.log(err);
-			}
+			console.log(err.message);
 		}
 	}
 
@@ -170,9 +183,7 @@ export class SocketGateway implements
 		try {
 			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message));
 		} catch (err) {
-			if (this.DEBUG == true) {
-				console.log(err);
-			}
+			console.log(err.message);
 		}
 	}
 
@@ -186,10 +197,9 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, data.channelId, data.message));
+
 		} catch (err) {
-			if (this.DEBUG == true) {
-				console.log(err);
-			}
+			console.log(err.message);
 		}
 	}
 

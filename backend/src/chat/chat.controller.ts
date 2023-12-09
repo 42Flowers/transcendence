@@ -27,7 +27,6 @@ import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
 
-
 interface convElem {
     isChannel: boolean,
     channelId?: number,
@@ -54,12 +53,13 @@ interface channelElem {
 
 
 interface Message {
-    authorName: string,
-    authorId: number,
-    id: number,
-    content: string,
-    createdAt: Date,
+	authorName: string,
+	authorId: number,
+	id: number,
+	content: string,
+	createdAt: Date,
 }
+
 interface users {
     userId: number,
 	userName: string,
@@ -94,7 +94,6 @@ export class TargetDto {
  * !Faire les vérifications si la personne est bien dans le channel et si elle est BAN
  */
 
-
 @Controller("chat")
 @UseGuards(AuthGuard)
 export class ChatController {
@@ -109,7 +108,6 @@ export class ChatController {
         private readonly eventEmitter: EventEmitter2,
         private readonly prismaService: PrismaService
         ) {}
-
 
         DEBUG = true;
 
@@ -129,10 +127,8 @@ export class ChatController {
 			});
 			return blockedUsers;
 		} catch(err) {
-			if (this.DEBUG == true) {
                 console.log(err.message);
-            }
-		}
+
 	}
 
     @Get('get-channels')
@@ -170,7 +166,7 @@ export class ChatController {
 				});
                 return messages;
             }
-            return "looser";
+            return null;
         } catch (err) {
             console.log(err.message);
         }
@@ -216,29 +212,15 @@ export class ChatController {
         }
     }
 
-    // @Post('create-channel')
-    // async createChannel(
-    //     @Body() createChannelDto: CreateChannelDto,
-    //     @Request() req :ExpressRequest
-    // ) {
-    //     this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), createChannelDto.name, undefined, createChannelDto.password));
-    // }
-
 
     @Post('exit-channel')
     async exitChannel(
         @Body() quitDto: QuitDto,
         @Request() req : ExpressRequest
     ) {
-        try {
-            console.log("Hello2");
-            this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), quitDto.channelId)); // TODO: quitDto.channelId
-            // this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log("Hello", err.message);
-            }
-        }
+          console.log("Hello2");
+          this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), quitDto.channelId)); // TODO: quitDto.channelId
+          // this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
     }
 
 
@@ -299,212 +281,122 @@ export class ChatController {
     }
 
 
-    @Post('invite-user')
-    async handleInvite(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(2, "channel", 9, 1));
-            // this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Post('invite-user')
+	async handleInvite(
+		@Request() req : ExpressRequest
+	) {
+		this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(2, "channel", 9, 1));
+		// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 
+	}
 
-    @Post('mute-user')
-    async handleMute(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, "channel", 17, 7));
-            // this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Post('mute-user')
+	async handleMute(
+		@Request() req : ExpressRequest
+	) {
+		this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, "channel", 17, 7));
+		// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 
+	}
 
-    @Post('unmute-user')
-    async handleUnMute(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(2, "channel", 9, 1))
-            // this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Post('unmute-user')
+	async handleUnMute(
+		@Request() req : ExpressRequest
+	) {
+		this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(2, "channel", 9, 1))
+		// this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
 
+	}
 
-    @Post('ban-user')
-    async handleBan(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(2, "channel", 9, 1));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Post('ban-user')
+	async handleBan(
+		@Request() req : ExpressRequest
+	) {
+		this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(2, "channel", 9, 1));
+	}
 
+	@Post('unban-user')
+	async handleUnBan(
+		@Request() req : ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(2, "channel", 9, 1));
+			// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
+	}
 
-    @Post('unban-user')
-    async handleUnBan(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(2, "channel", 9, 1));
-            // this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Post('kick-user')
+	async handleKick(
+		@Request() req: ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(2, "channel", 9, 4));
+			// this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
+	}
 
+	@Post('add-admin')
+	async handleAddAdmin(
+		@Request() req: ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(2, "channel", 9, 1));
+			// this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
+	}
 
-    @Post('kick-user')
-    async handleKick(
-        @Request() req: ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(2, "channel", 9, 4));
-            // this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Post('rm-admin')
+	async handleRemoveAdmin(
+		@Request() req : ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(2, "channel", 9, 1));
+			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
+	}
 
+	@Post('add-invite')
+	async handleAddInvite(
+		@Request() req : ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(2, "channel", 9));
+			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
+	}
 
-    @Post('add-admin')
-    async handleAddAdmin(
-        @Request() req: ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(2, "channel", 9, 1));
-            // this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Post('rm-invite')
+	async handleRemoveInvite(
+		@Request() req : ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(2, "channel", 9));
+			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
+	}
 
+	@Post('change-pwd')
+	async handleChangePassword(
+		@Request() req : ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(2, "channel", 9, "coucou"));
+			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
+	}
 
-    @Post('rm-admin')
-    async handleRemoveAdmin(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(2, "channel", 9, 1));
-            // this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Post('add-pwd')
+	async handleAddPwd(
+		@Request() req : ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
+			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
+	}
 
+	@Post('rm-pwd')
+	async handleRemovePwd(
+		@Request() req : ExpressRequest
+	) {
+			this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, "channel", 9));
+			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
+			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
+	}
 
-    @Post('add-invite')
-    async handleAddInvite(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(2, "channel", 9));
-            // this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
-
-
-    @Post('rm-invite')
-    async handleRemoveInvite(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(2, "channel", 9));
-            // this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
-
-
-    @Post('change-pwd')
-    async handleChangePassword(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(2, "channel", 9, "coucou"));
-            // this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
-
-
-    @Post('add-pwd')
-    async handleAddPwd(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
-            // this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
-
-
-    @Post('rm-pwd')
-    async handleRemovePwd(
-        @Request() req : ExpressRequest
-    ) {
-        try {
-            this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, "channel", 9));
-            // this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
-            // this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
-
-
-    @Get('get-friends')
-    async getFriends(
-        @Request() req: ExpressRequest
-    ) {
-        try {
-            const friends = await this.userService.getFriends(Number(req.user.sub));
-            return friends;
-        } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
-        }
-    }
+	@Get('get-friends')
+	async getFriends(
+		@Request() req: ExpressRequest
+	) {
+		try {
+			const friends = await this.userService.getFriends(Number(req.user.sub));
+			return friends;
+		} catch (err) {
+			console.log(err.message);
+		}
+	}
 }

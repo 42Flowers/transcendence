@@ -6,9 +6,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { Socket } from 'socket.io';
+import { MyError } from 'src/errors/errors';
 
 @Injectable()
 export class RoomService {
+	getUserName(authorId: any): any {
+		throw new Error('Method not implemented.');
+	}
 	
 	constructor(
 		private readonly prismaService : PrismaService,
@@ -17,20 +22,40 @@ export class RoomService {
 		private readonly eventEmitter: EventEmitter2
 		) {}
 
-		async getChannelId(name: string) {
-			try{
-				const chanId = await this.prismaService.channel.findUnique({where: {name: name}, select: {id: true}});
-				if (chanId == null)
-					return undefined;
-				return chanId.id;
-			}catch( error) {
-				if (error instanceof Prisma.PrismaClientUnknownRequestError) {
-					throw error;
+	async getUsersFromRoomWithoutBlocked(userId: number, channelId: number) {
+		try {
+			const users = await this.prismaService.channelMembership.findMany({
+				where: {
+					userId: {
+						not: userId
+					},
+					channelId: channelId
+				},
+				select: {
+					userId: true
 				}
-				else
-				console.log(error.message);
-			}
+			})
+			console.log(users);
+			return users;
+		} catch(error) {
+			console.log(error);
 		}
+	}
+
+	async getChannelId(name: string) {
+		try{
+			const chanId = await this.prismaService.channel.findUnique({where: {name: name}, select: {id: true}});
+			if (chanId == null)
+				return undefined;
+			return chanId.id;
+		}catch( error) {
+			if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+				throw error;
+			}
+			else 
+			console.log(error.message);
+		}
+	}
 
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
 		try {
@@ -49,7 +74,7 @@ export class RoomService {
 			});
 			return channel.id;
 		} catch (err) {
-			throw new Error("Could not create this channel, please try another combination");
+			throw new MyError("Could not create this channel, please try another combination");
 		}
 	}
 
@@ -98,16 +123,15 @@ export class RoomService {
 				if (channel !== null) {
 					if (channel.accessMask !== 0) {
 							if (channel.accessMask == 2) {
-								throw (new Error("This is an invite only channel"));
+								throw (new MyError("This is an invite only channel"));
 							}
 							if (!await bcrypt.compare(pwd, channel.password))
-								throw new Error("This channel is password protected");
+								throw new MyError("This channel is password protected");
 					}
 				}
 				else {
-					console.log("No channel under this id/name combination");
 					this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: "No room registered under this id/name combination"});
-					return null;
+					throw new MyError("No channels under this id/name combination");
 				}
 				try {
 					const channelMembership = await this.prismaService.channelMembership.create({
@@ -133,8 +157,7 @@ export class RoomService {
 					}
 					else {
 						this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: 'You are already in this channel'});
-						throw new Error("User already in channel");
-						return;
+						throw new MyError("User already in channel");
 					}
 				}
 			}
@@ -143,7 +166,7 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: "This channel is password protected"});
+				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.message});
 				console.log(err.message);
 				return;
 			}
@@ -153,6 +176,7 @@ export class RoomService {
 	async roomExists(id: number) : Promise<any> {
         return this.prismaService.channel.findUnique({where:{id: id}, select: {name: true, id: true}});
     }
+
 
 
 	async isUserinRoom(userId: number, channelId: number) : Promise<any> {
@@ -278,21 +302,29 @@ export class RoomService {
 		}
 	}
 
+
 	/**
 	 * 
 	 * @param channelId 
 	 * @returns list of channelMemberships and not users ?? And with the select ? 
 	 */
 	async getUsersfromRoom(channelId: number) : Promise<any> {
-        try {
-            const users = await this.prismaService.channelMembership.findMany({
-                where: {channelId: channelId},
-                include : {
-                    user: true,
-                }});
-            return users;
-        } catch (err) { throw new Error(err.message) }
-    }
+		try {
+			const users = await this.prismaService.channelMembership.findMany({
+				where: {channelId: channelId},
+				select: {
+					userId: true,
+					membershipState:true,
+					user: {select: {
+						pseudo:true, 
+						avatar: true
+					}},
+				},
+				});
+				console.log(users);
+			return users;
+		} catch (err) { throw new Error(err.message) }
+	}
 	
 	async getRooms() : Promise<any> {
 		try {
@@ -305,7 +337,7 @@ export class RoomService {
 	async getRoom(channelId: number) : Promise<any> {
 		try {
 			return await this.prismaService.channel.findUnique({where: {id: channelId}});
-		} catch (err) {throw new Error(err.message) }
+		} catch (err) {throw new MyError(err.message) }
 	}
 
 
@@ -489,10 +521,10 @@ export class RoomService {
 			const channel = await this.prismaService.channel.findUnique({where: {id: channelId}, select: {name: true}});
 			const users = await this.getUsersfromRoom(channelId);
 			users.map((user) => {
-				this.socketService.leaveChannel(user.id, channel.name);
+				this.socketService.leaveChannel(user.user.id, channel.name);
 			});
-			this.clearUsersfromRoom(channelId);
-			this.messageService.clearAllMessages(channelId);
+			await this.clearUsersfromRoom(channelId);
+			await this.messageService.clearAllMessages(channelId);
 			return this.prismaService.channel.delete({
 				where: {id: channelId}
 			});
@@ -515,7 +547,26 @@ export class RoomService {
 				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
 				console.log(err.message);
 				return;
-			}
+		}
+	}
+}
+
+
+	async addSocketToAllChannels(client: Socket, userId: number) {
+		try {
+			const memberships = await this.prismaService.channelMembership.findMany({
+				where: {
+					userId: userId
+				},
+				select: {
+					channelId: true
+				}
+			});
+			const names = await Promise.all(memberships.map((chan, index) => this.prismaService.channel.findUnique({where: {id: memberships[index].channelId}})));
+			console.log(names);
+			// memberships.channel.
+		} catch(error) {
+			throw new Error(error.message);
 		}
 	}
 }

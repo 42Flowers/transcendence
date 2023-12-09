@@ -200,12 +200,13 @@ export class ChatController {
 
     @Post('join-channel')
     async joinChannel(
-        @Body() joinChannelDto: JoinChannelDto,
+        // @Body() joinChannelDto: JoinChannelDto,
         @Request() req : ExpressRequest
     ) {
         try {
-            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.channelName, joinChannelDto.password));
-            // this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
+
+            // this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.channelName, joinChannelDto.password));
+            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", "coucou"));
         } catch (err) {
             if (this.DEBUG == true) {
                 console.log(err.message);
@@ -392,7 +393,8 @@ export class ChatController {
 	async handleDeleteRoom(
 		@Request() req: ExpressRequest
 	) {
-		this.eventEmitter.emit('chat.deletechannel', new ChatDeleteChannelEvent(2, "channel", 14));
+		console.log("super, j'adore");
+		this.eventEmitter.emit('chat.delete', new ChatDeleteChannelEvent(2, "channel", 4));
 	}
 
 	@Get('get-friends')

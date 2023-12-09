@@ -677,14 +677,17 @@ export class ChatService {
 	) {
 		try {
 			const user = await this.usersService.getUserById(event.userId);
-			if (await this.roomService.roomExists(event.channelId)) {
-				const member = user.channelMemberships.find(channel => channel.id === event.channelId);
-				if (member && member.permissionMask === 4) {
-					const result = await this.roomService.deleteRoom(event.channelId);
-					if (result.status === false)
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-				} else {
-					console.log("pas owner");
+			if (user != null) {
+				const room = await this.roomService.roomExists(event.channelId);
+				if (room != null) {
+					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+					if (member && member.permissionMask === 4) {
+						const result = await this.roomService.deleteRoom(event.channelId);
+						if (result.status === false)
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+					} else {
+						console.log("pas owner");
+					}
 				}
 			}
 		} catch (error) {

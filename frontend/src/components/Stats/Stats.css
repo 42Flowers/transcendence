@@ -24,7 +24,6 @@
     background: transparent;
     border: 2px solid white;
     border-radius: 20px;
-    backdrop-filter: blur(20px);
     box-shadow: 0 0 30px rgb(0, 0, 0, .5);
     display: flex;
 }

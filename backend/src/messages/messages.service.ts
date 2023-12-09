@@ -13,14 +13,9 @@ export class MessagesService {
 			const messages = await this.prismaService.message.findMany({
 				where: {
 					channelId: channelId
-				}, select: {
-					channelId: true,
-					content:true,
-					createdAt: true,
-					id: true,
-					authorId:true
-				}
+				},
 			});
+			return messages;
 		} catch (err) {
 			throw new Error(err.message);
 		}

@@ -10,9 +10,15 @@ export class MessagesService {
 
 	async getMessagesfromChannel(userId: number, channelId: number): Promise<any> {
 		try {
-			return await this.prismaService.message.findMany({
+			const messages = await this.prismaService.message.findMany({
 				where: {
 					channelId: channelId
+				}, select: {
+					channelId: true,
+					content:true,
+					createdAt: true,
+					id: true,
+					authorId:true
 				}
 			});
 		} catch (err) {

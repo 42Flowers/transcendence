@@ -249,11 +249,12 @@ export class ChatController {
 
     @Post('create-conversation')
     async createConversation(
-        @Body() targetDto: TargetDto,
+        // @Body() targetDto: TargetDto,
         @Request() req: ExpressRequest
     ) {
         try {
-            const conversation = await this.chatService.createConversation(Number(req.user.sub), targetDto.targetName);
+            const conversation = await this.chatService.createConversation(2, "User3");
+            // const conversation = await this.chatService.createConversation(Number(req.user.sub), targetDto.targetName);
             return conversation;
         } catch(error) {
             console.log(error.message);

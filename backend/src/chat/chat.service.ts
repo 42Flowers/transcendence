@@ -200,11 +200,12 @@ export class ChatService {
 							return;
 						}
 						let conversation = await this.conversationsService.conversationExists(user.id, dest.id);
-						if (conversation === null) {
+						console.log(conversation);
+						if (conversation == null) {
 							throw new MyError("This Conversation does not exist");
 						}
-						const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation, event.message);
-						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', dest.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, undefined));
+						const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation.id, event.message);
+						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', conversation.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, newMsg.id));
 					} else {
 						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "No such connected user"));
 						return;
@@ -245,7 +246,7 @@ export class ChatService {
 						const newMsg = await this.messagesService.newChannelMessage(user.id, event.channelId, event.message);
 						const channelName = await this.roomService.getRoom(event.channelId);
 						const channelUsers = await this.roomService.getUsersFromRoomWithoutBlocked(user.id, event.channelId);
-						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.channelId, user.id, user.pseudo, newMsg.content, newMsg.createdAt, channelUsers));
+						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, newMsg.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, channelUsers));
 						return;
 					}
 				}

@@ -138,11 +138,20 @@
 	/* height: 100%; */
     /* overflow: hidden; */
     /* overflow-y: scroll; */
-	/* display: flex; */
-    /* flex-direction: column-reverse; */
+	/* display: flex;
+    flex-direction: column-reverse; */
 	/* width: 80%;
 	overflow: auto; */
 }
+
+/* .userBubble:last-child {
+	order: 1;
+   }
+   
+   .otherBubble:last-child {
+	order: 1;
+   } */
+   
 
 .userConvBubble, .otherConvBubble {
 	border: 2px solid white;
@@ -159,7 +168,6 @@
 	padding-left: 4px;
 	padding-right: 4px;
  }
-   
 
 .userBubble {
 	align-self: flex-start;

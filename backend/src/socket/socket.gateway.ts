@@ -172,11 +172,10 @@ export class SocketGateway implements
 		@MessageBody() data: {targetId: number, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
+		const userId = Number(client.user.sub);
+		if (userId == undefined)
+			return;
 		try {
-			const userId = Number(client.user.sub);
-			if (userId == undefined) {
-				return;
-			}
 			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, data.targetId, data.message));
 		} catch (err) {
 			console.log(err.message);

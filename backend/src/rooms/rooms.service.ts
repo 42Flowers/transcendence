@@ -6,6 +6,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Socket } from 'socket.io';
+import { MyError } from 'src/errors/errors';
 
 @Injectable()
 export class RoomService {
@@ -19,6 +20,41 @@ export class RoomService {
 		private readonly socketService: SocketService,
 		private readonly eventEmitter: EventEmitter2
 		) {}
+
+	async getUsersFromRoomWithoutBlocked(userId: number, channelId: number) {
+		try {
+			const users = await this.prismaService.channelMembership.findMany({
+				where: {
+					userId: {
+						not: userId
+					},
+					channelId: channelId
+				},
+				select: {
+					userId: true
+				}
+			})
+			console.log(users);
+			return users;
+		} catch(error) {
+			console.log(error);
+		}
+	}
+
+	async getChannelId(name: string) {
+		try{
+			const chanId = await this.prismaService.channel.findUnique({where: {name: name}, select: {id: true}});
+			if (chanId == null)
+				return undefined;
+			return chanId.id;
+		}catch( error) {
+			if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+				throw error;
+			}
+			else 
+			console.log(error.message);
+		}
+	}
 
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
 		try {
@@ -37,7 +73,7 @@ export class RoomService {
 			});
 			return channel.id;
 		} catch (err) {
-			throw new Error("Could not create this channel, please try another combination");
+			throw new MyError("Could not create this channel, please try another combination");
 		}
 	}
 
@@ -86,16 +122,15 @@ export class RoomService {
 				if (channel !== null) {
 					if (channel.accessMask !== 0) {
 							if (channel.accessMask == 2) {
-								throw (new Error("This is an invite only channel"));
+								throw (new MyError("This is an invite only channel"));
 							}
 							if (!await bcrypt.compare(pwd, channel.password))
-								throw new Error("This channel is password protected");
+								throw new MyError("This channel is password protected");
 					}
 				}
 				else {
-					console.log("No channel under this id/name combination");
 					this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: "No room registered under this id/name combination"});
-					return null;
+					throw new MyError("No channels under this id/name combination");
 				}
 				try {
 					const channelMembership = await this.prismaService.channelMembership.create({
@@ -121,8 +156,7 @@ export class RoomService {
 					}
 					else {
 						this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: 'You are already in this channel'});
-						throw new Error("User already in channel");
-						return;
+						throw new MyError("User already in channel");
 					}
 				}
 			}
@@ -131,7 +165,7 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: "This channel is password protected"});
+				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.message});
 				console.log(err.message);
 				return;
 			}
@@ -139,7 +173,7 @@ export class RoomService {
 	}
 
 	async roomExists(id: number) : Promise<any> {
-		return this.prismaService.channel.findUnique({where:{id: id}});
+		return this.prismaService.channel.findUnique({where:{id: id}, select: {name: true, id: true}});
 	}
 
 
@@ -301,7 +335,7 @@ export class RoomService {
 	async getRoom(channelId: number) : Promise<any> {
 		try {
 			return await this.prismaService.channel.findUnique({where: {id: channelId}});
-		} catch (err) {throw new Error(err.message) }
+		} catch (err) {throw new MyError(err.message) }
 	}
 
 

@@ -6,9 +6,7 @@ import { fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../
 
 const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
     for (let i = 0; i < blockedIdArray.length; ++i) {
-        // console.log("id: ", id, "     blockedIdcurr: ", blockedIdArray[i].blockedId)
         if (id === blockedIdArray[i].blockedId) {
-            // console.log("blocked !!!");
             return true;
         }
     }
@@ -22,13 +20,16 @@ const MessagesChannel: React.FC = () => {
 
     return (
         <>
-            {channelMessages.isFetched && blockedUsers.isFetched && channelMessages.data.map(msg => {
-                isBlocked(blockedUsers.data, msg.authorId) == true ? null :
+            {channelMessages.isFetched && blockedUsers.isFetched && channelMessages.data.map(msg => (
+                isBlocked(blockedUsers.data, msg.authorId)
+                    ? 
+                        null
+                    :
                         <div key={msg.id}>
                             <p>{msg.authorName}</p>
                             <p>{msg.content}</p>
                         </div>
-            })}
+            ))}
         </>
     );
 };
@@ -36,20 +37,20 @@ const MessagesChannel: React.FC = () => {
 const MessagesDm: React.FC = () => {
     const { currentDm } = useContext(ChatContext) as ChatContextType;
     const dmMessages = useQuery(['dm-messages', currentDm], () => fetchDmMessages(currentDm));
-    // const blockedUsers = useQuery('blocked-users', () => fetchBlockedUsers);
+    const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
 
-    /*
-    //  TODO
-    // hide messages from blocked users (using their ID for example)
-    */
     return (
         <>
-            {dmMessages.isFetched && dmMessages.data.map(msg => {
-                <div key={msg.id}>
-                    <p>{msg.authorName}</p>
-                    <p>{msg.content}</p>
-                </div>
-            })}
+            {dmMessages.isFetched && blockedUsers.isFetched && dmMessages.data.map(msg => (
+                isBlocked(blockedUsers.data, msg.authorId)
+                    ? 
+                        null
+                    :
+                        <div key={msg.id}>
+                            <p>{msg.authorName}</p>
+                            <p>{msg.content}</p>
+                        </div>
+            ))}
         </>
     );
 };

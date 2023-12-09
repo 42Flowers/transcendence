@@ -7,6 +7,7 @@ import SocketContext from "../Socket/Context/Context";
 import { Socket } from "socket.io-client";
 import './Chat.css';
 import { queryClient } from "../../query-client";
+import { useAuthContext } from "../../contexts/AuthContext";
 
 interface messageElem {
     type: string, //conversation/channel
@@ -31,6 +32,7 @@ const MessagesChannel: React.FC = () => {
     const { SocketState } = useContext(SocketContext);
     const channelMessages = useQuery(['channel-messages', currentChannel], () => fetchChannelMessages(currentChannel));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
+    const { user } = useAuthContext();
 
     const updateChannelMessages = useCallback((msg: messageElem) => {
         console.log(msg)
@@ -60,10 +62,17 @@ const MessagesChannel: React.FC = () => {
                     ? 
                         null
                     :
-                        <div key={msg.id} className="userBubble">
-                            <p className="userNameBubble">{msg.authorName}</p>
-                            <p className="userConvBubble">{msg.content}</p>
-                        </div>
+                        msg.authorId === user.id 
+                            ?
+                                <div key={msg.id} className="userBubble">
+                                    <p className="userNameBubble">{msg.authorName}</p>
+                                    <p className="userConvBubble">{msg.content}</p>
+                                </div>
+                            :
+                                <div key={msg.id} className="otherBubble">
+                                    <p className="otherNameBubble">{msg.authorName}</p>
+                                    <p className="otherConvBubble">{msg.content}</p>
+                                </div>
             ))}
         </div>
     );
@@ -74,6 +83,7 @@ const MessagesDm: React.FC = () => {
     const { SocketState } = useContext(SocketContext);
     const dmMessages = useQuery(['dm-messages', currentDm], () => fetchDmMessages(currentDm));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
+    const { user } = useAuthContext();
 
     const updateDmMessages = useCallback((msg: messageElem) => {
         if (msg.type === "channel" || msg.id != currentDm)
@@ -102,10 +112,17 @@ const MessagesDm: React.FC = () => {
                     ? 
                         null
                     :
-                        <div key={msg.id} className="otherBubble">
-                            <p className="otherNameBubble">{msg.authorName}</p>
-                            <p className="otherConvBubble">{msg.content}</p>
-                        </div>
+                        msg.authorId === user.id 
+                            ?
+                                <div key={msg.id} className="userBubble">
+                                    <p className="userNameBubble">{msg.authorName}</p>
+                                    <p className="userConvBubble">{msg.content}</p>
+                                </div>
+                            :
+                                <div key={msg.id} className="otherBubble">
+                                    <p className="otherNameBubble">{msg.authorName}</p>
+                                    <p className="otherConvBubble">{msg.content}</p>
+                                </div>
             ))}
         </div>
     );

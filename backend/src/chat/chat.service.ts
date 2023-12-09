@@ -247,6 +247,7 @@ export class ChatService {
 		}
 	}
 
+	@OnEvent('chat.joinchannel')
 	async joinRoom(
 		event: ChatJoinChannelEvent
 	) {

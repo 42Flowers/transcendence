@@ -1,13 +1,12 @@
-import { ChatContext } from "../../contexts/ChatContext";
-import { useContext } from "react";
-import { ChatContextType} from "./Menu";
 import filter from 'lodash/filter';
-import { quit } from "../../api";
+import { useContext } from "react";
 import { useMutation } from "react-query";
+import { quit } from "../../api";
+import { ChatContext } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 
 const Title: React.FC = () => {
-    const { currentChannel, setCurrentChannel } = useContext(ChatContext) as ChatContextType;
+    const { currentChannel, setCurrentChannel } = useContext(ChatContext);
 
     const titleStyle: React.CSSProperties = {
         width: "70%",

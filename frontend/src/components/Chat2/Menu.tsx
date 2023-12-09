@@ -20,6 +20,7 @@ type Props = {
 
 const Menu: React.FC<Props> = ({ side }) => {
     const { setChanOrDm, setUsersOrBanned, setIsDm } = useContext(ChatContext) as ChatContextType;
+    
 
     const buttonStyle: React.CSSProperties = {
         width: "50%",

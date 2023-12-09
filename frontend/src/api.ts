@@ -95,6 +95,7 @@ export type PatchUserProfile = Partial<Exclude<UserProfile, 'id' | 'avatar'>>;
 export const patchUserProfile = (profile: '@me' | number, data: Partial<PatchUserProfile>) =>
     wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
 
+/* ==== PROFILE ==== */
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
 export const fetchAchievements = () => wrapResponse(authorizedGet('/api/profile/achievements'));
 export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
@@ -104,10 +105,21 @@ export const fetchAddAchievementToUser = (payload: any) => wrapResponse(authoriz
 export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-avatar', payload));
 export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('/api/profile/change-pseudo', payload));
 
+/* ==== CHAT ==== */
+export const fetchAvailableChannels = () => wrapResponse(authorizedGet(`/api/chat/get-channels`));
+export const fetchAvailableDMs = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
+export const fetchChannelMembers = (channelId: number) => wrapResponse(authorizedGet(`/api/chat/get-channelmembers/${channelId}`));
+export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet(`/api/chat/get-channelmessages/${channelId}`));
+export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet(`/api/chat/get-privatemessages/${channelId}`));
+export const fetchBlockedUsers = () => wrapResponse(authorizedGet(`/api/chat/get-blocked-users`));
+
+// OLD CHAT
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 
+/* ==== STATUS ==== */
 export const fetchAvailableUsers = () => wrapResponse(authorizedGet('/api/gateway/status'));
 
+/* ==== FRIENDS ==== */
 export const fetchIsFriended = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isFriended: boolean; }>(`/api/profile/${userId}/isFriendwith/${friendId}`));
 export const addUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`api/profile/${userId}/add/${friendId}`, ''));
 export const fetchIsBlocked = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isBlocked: boolean; }>(`/api/profile/${userId}/isBlockWith/${friendId}`));

@@ -268,12 +268,15 @@ export class RoomService {
 	 * @returns list of channelMemberships and not users ?? And with the select ? 
 	 */
 	async getUsersfromRoom(channelId: number) : Promise<any> {
-		try {
-			const users = await this.prismaService.channelMembership.findMany({
-				where: {channelId: channelId}});
-			return users;
-		} catch (err) { throw new Error(err.message) }
-	}
+        try {
+            const users = await this.prismaService.channelMembership.findMany({
+                where: {channelId: channelId},
+                include : {
+                    user: true,
+                }});
+            return users;
+        } catch (err) { throw new Error(err.message) }
+    }
 	
 	async getRooms() : Promise<any> {
 		try {

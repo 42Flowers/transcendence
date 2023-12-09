@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { ChatRemoveAdminFromChannelEvent } from 'src/events/chat/removeAdminFromChannel.event';
 import { ChatAddAdminToChannelEvent } from 'src/events/chat/addAdminToChannel.event';
 import { ChatUnBanFromChannelEvent } from 'src/events/chat/unBanFromChannel.event';
@@ -216,7 +217,7 @@ export class ChatService {
 			if (event.message.length > 100)
 				throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
-			if (user != undefined) {
+			if (user != undefined && event.channelId != null) {
 				const room = await this.roomService.getRoom(event.channelId);
 				if (room != undefined && room.name === room.name ) {
 					const member = await this.roomService.isUserinRoom(user.id, event.channelId);
@@ -232,7 +233,6 @@ export class ChatService {
 						const newMsg = await this.messagesService.newChannelMessage(user.id, event.channelId, event.message);
 						const channelName = await this.roomService.getRoom(event.channelId);
 						const channelUsers = await this.roomService.getUsersFromRoomWithoutBlocked(user.id, event.channelId);
-						// const blocked = await this.usersService.getWhoBlockedMe(user.id);
 						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.channelId, user.id, user.pseudo, newMsg.content, newMsg.createdAt, channelUsers));
 						return;
 					}
@@ -300,7 +300,7 @@ export class ChatService {
 		try {
 			const user = await this.usersService.getUserById(event.userId);
 			const target = await this.usersService.getUserById(event.targetId);
-			if (user != null && target != null) {
+			if (user != null && target != null && event.channelId != null) {
 				const room = await this.roomService.getRoom(event.channelId);
 				if (room != undefined) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);

@@ -1,74 +1,128 @@
-import React, { useCallback, useState } from 'react';
-import ChatChannels from './Channels/ChatChannels';
-import ChatConv from './Conv/ChatConv';
-import ChatPrivMessages from './PrivMessages/ChatPrivMessages';
-import './Chat.scss';
-import { getConversations } from '../../api';
-import { useQuery } from 'react-query';
-import { useAuthContext } from '../../contexts/AuthContext';
+import React from "react";
+import Menu from "./Menu";
+import List from "./List";
+import CreateJoin from "./CreateJoin";
+import Title from "./Title";
+import DisplayMessages from "./DisplayMessages";
+import SendMessages from "./SendMessages";
 
-interface convMessage {
-	authorName: string,
-	authorId: number,
-	creationTime: Date,
-	content: string,
-}
-
-interface Conversation {
-	targetId: number;
-	targetName: string;
-}
-
-interface Channel {
-	channelId: number,
-	channelName: string,
-	targetId: number
-	targetName: string,
-	userPermissionMask: number,
-}
-
-type convElem2 = { isChannel: boolean; } & Partial<Conversation> & Partial<Channel>;
-
-interface convElem {
-	isChannel: boolean,
-	channelId?: number,
-	channelName?: string,
-	targetId?: number
-	targetName?: string,
-	userPermissionMask?: number,
-	messages: convMessage[],
-}
+import { ChatContext } from "../../contexts/ChatContext";
+import { useContext } from "react";
+import { ChatContextType } from "./Menu";
 
 const Chat: React.FC = () => {
-	const [selectedConv, setSelectedConv] = useState< convElem | null>(null);
-	const convs = useQuery('get-convs', getConversations);
+    const { isDm } = useContext(ChatContext) as ChatContextType;
 
-	const channels = React.useMemo(() => {
-		if (convs.isFetched) {
-			return (convs.data as convElem[]).filter(({ isChannel }) => isChannel);
-		}
-		return [];
-	}, [ convs ]);
-	const privateMessages = React.useMemo(() => {
-		if (convs.isFetched) {
-			return (convs.data as convElem[]).filter(({ isChannel }) => !isChannel);
-		}
-		return [];
-	}, [ convs ]);
+    const containerStyle: React.CSSProperties = {
+        display: "flex",
+        flexDirection: "row",
+        height: "80vh",
+        minHeight: 150,
+        border: "1px solid black",
+        fontSize: 30,
+        textAlign: "center"
+    };
 
-	const handleClickConv = useCallback((conv: convElem | null) => {
-		setSelectedConv(conv);
-	}, []);
+    const containerStyleSides: React.CSSProperties = {
+        display: "flex",
+        flexDirection: "column",
+        height: "80vh",
+    };
+       
+    const containerWideStyle: React.CSSProperties = {
+        display: "flex",
+        flexDirection: "column",
+        minWidth: isDm ? "80%" : "60%", 
+    };
 
-	return (
-		<div className="chat-wrapper">
-			<ChatChannels channels={channels} handleClickConv={ handleClickConv } />
+    const itemStyle: React.CSSProperties = {
+        flex: 1,
+        border: "1px solid red",
+    };
 
-			{selectedConv && <ChatConv conversation={selectedConv} />}
-			
-			<ChatPrivMessages privMessages={privateMessages} handleClickConv={ handleClickConv } />
-		</div>
-	);
-}
+    // Left
+    const menuLeftStyle: React.CSSProperties = {
+        flex: "0 0 15%",
+        border: "1px solid red",
+    };
+       
+    const listLeftStyle: React.CSSProperties = {
+        flex: "0 0 65%",
+        border: "1px solid red",
+    };
+       
+    const createJoinStyle: React.CSSProperties = {
+        flex: "0 0 20%",
+        border: "1px solid red",
+    };
+
+    // Center
+    const titleStyle: React.CSSProperties = {
+        flex: "0 0 15%",
+        border: "1px solid red",
+    };
+
+    const displayStyle: React.CSSProperties = {
+        flex: "0 0 65%",
+        border: "1px solid red",
+    };
+       
+    const sendStyle: React.CSSProperties = {
+        flex: "0 0 20%",
+        border: "1px solid red",
+    };
+
+    // Right
+    const menuRightStyle: React.CSSProperties = {
+        flex: "0 0 15%",
+        border: "1px solid red",
+    };
+       
+    const listRightStyle: React.CSSProperties = {
+        flex: "0 0 65%",
+        border: "1px solid red",
+    };
+
+    return (
+        <div style={containerStyle}>
+            <div style={itemStyle}>
+                <div style={containerStyleSides}>
+                    <div style={menuLeftStyle}>
+                        <Menu side='left' />
+                    </div>
+                    <div style={listLeftStyle}>
+                        <List side='left' />
+                    </div>
+                    <div style={createJoinStyle}>
+                        <CreateJoin />
+                    </div>
+                </div>
+            </div>
+            <div style={containerWideStyle}>
+                <div style={titleStyle}>
+                    <Title />
+                </div>
+                <div style={displayStyle}>
+                    <DisplayMessages />
+                </div>
+                <div style={sendStyle}>
+                    <SendMessages />
+                </div>
+            </div>
+            {!isDm && (
+                <div style={itemStyle}>
+                    <div style={containerStyleSides}>
+                        <div style={menuRightStyle}>
+                            <Menu side='right' />
+                        </div>
+                        <div style={listRightStyle}>
+                            <List side='right' />
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export default Chat;

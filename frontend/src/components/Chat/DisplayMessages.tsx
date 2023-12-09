@@ -51,8 +51,21 @@ const MessagesChannel: React.FC = () => {
 
 const MessagesDm: React.FC = () => {
     const { currentDm } = useContext(ChatContext) as ChatContextType;
+    const { SocketState } = useContext(SocketContext);
     const dmMessages = useQuery(['dm-messages', currentDm], () => fetchDmMessages(currentDm));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
+
+    // const updateChannelMessages = useCallback(() => {
+
+    // }, []);
+
+    // useEffect(() => {
+    //     SocketState.socket?.on("message", updateChannelMessages);
+        
+    //     return () => {
+    //         SocketState.socket?.off("message", updateChannelMessages);
+    //     }
+    // }, [SocketState.socket]);
 
     return (
         <>

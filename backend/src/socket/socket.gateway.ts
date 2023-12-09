@@ -189,13 +189,15 @@ export class SocketGateway implements
 
 	@SubscribeMessage('channelmessage')
 	handleChannelMessage(
-		@MessageBody('') data: {userId: number, channelId: number, channelName: string, message: string},
+		@MessageBody('') data: {channelId: number, channelName: string, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
-		if (data.userId == undefined)
+		const userId = Number(client.user.sub);
+		if (userId == undefined)
 			return;
 		try {
-			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.channelId, data.message));
+			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, data.channelId, data.message));
+
 		} catch (err) {
 			console.log(err.message);
 		}

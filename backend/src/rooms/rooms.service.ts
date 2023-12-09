@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { MessagesService } from 'src/messages/messages.service';
 import { SocketService } from 'src/socket/socket.service';
@@ -173,8 +174,9 @@ export class RoomService {
 	}
 
 	async roomExists(id: number) : Promise<any> {
-		return this.prismaService.channel.findUnique({where:{id: id}, select: {name: true, id: true}});
-	}
+        return this.prismaService.channel.findUnique({where:{id: id}, select: {name: true, id: true}});
+    }
+
 
 
 	async isUserinRoom(userId: number, channelId: number) : Promise<any> {
@@ -232,16 +234,21 @@ export class RoomService {
 
 	async changePassword(userId: number, channelId: number, option : {invite: boolean, key: boolean, value: string}) : Promise<any> {
 		try {
-			const channel = await this.getRoom(channelId);
-			if (channel.accessMask === 2)
-				return 'cannot put a pasword on an invite only channel';
-			return this.prismaService.channel.update({
-				where: {id : channelId },
-				data : {password : option.value}
-			});
+			if (channelId != null) {
+				const channel = await this.getRoom(channelId);
+				if (channel.accessMask === 2)
+					return 'cannot put a pasword on an invite only channel';
+				return this.prismaService.channel.update({
+					where: {id : channelId },
+					data : {password : option.value}
+				});
+			}
+			else {
+				throw new MyError("Undefined channelId");
+			}
 		} catch (err) {
 			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
-				throw Error(err.message);
+				throw new Error(err.message);
 			}
 			else {
 				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
@@ -334,6 +341,8 @@ export class RoomService {
 
 	async getRoom(channelId: number) : Promise<any> {
 		try {
+			if (channelId == null)
+				return null;
 			return await this.prismaService.channel.findUnique({where: {id: channelId}});
 		} catch (err) {throw new MyError(err.message) }
 	}
@@ -545,9 +554,10 @@ export class RoomService {
 				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
 				console.log(err.message);
 				return;
-			}
 		}
 	}
+}
+
 
 	async addSocketToAllChannels(client: Socket, userId: number) {
 		try {

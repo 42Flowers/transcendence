@@ -11,8 +11,8 @@ type Props = {
 }
 
 const MembersList: React.FC = () => {
-    const { currentChannel, usersOrBanned } = useContext(ChatContext) as ChatContextType;
-    const allMembers = useQuery(['channel-members', currentChannel], () => fetchChannelMembers(currentChannel));
+    const { currentChannel, setCurrentChannel, usersOrBanned } = useContext(ChatContext) as ChatContextType;
+    const allMembers = useQuery(['channel-members', currentChannel, setCurrentChannel], () => fetchChannelMembers(currentChannel));
 
     return (
         usersOrBanned === 'users' 
@@ -47,7 +47,7 @@ const MembersList: React.FC = () => {
 const List: React.FC<Props> = ({ side }) => {
     const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, currentDm } = useContext(ChatContext) as ChatContextType;
     
-    const channels = useQuery('channels-list', fetchAvailableChannels);
+    const channels = useQuery(['channels-list'], fetchAvailableChannels);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
 
     // right // 1 not ban | 4 ban 

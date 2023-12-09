@@ -25,7 +25,7 @@ import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
 import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
 import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { PrismaService } from 'src/prisma/prisma.service';
-import DOMPurify from 'dompurify';
+import { CheckIntPipe } from 'src/profile/profile.pipe';
 
 interface convElem {
     isChannel: boolean,
@@ -37,6 +37,7 @@ interface convElem {
     messages: convMessage[],
 }
 
+
 interface convMessage {
     authorName: string,
     authorId: number,
@@ -44,10 +45,12 @@ interface convMessage {
     content: string,
 }
 
+
 interface channelElem {
-	messages: Message[],
-	users: users[],
+    messages: Message[],
+    users: users[],
 }
+
 
 interface Message {
 	authorName: string,
@@ -58,10 +61,33 @@ interface Message {
 }
 
 interface users {
-	userId: number,
+    userId: number,
 	userName: string,
-	membershipState: number,
-	avatar: string  
+    membershipState: number,
+	avatar: string,
+}
+
+import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
+
+export class JoinChannelDto {
+    @IsString()
+    channelName: string;
+
+    @IsString()
+    password: string;
+}
+
+export class QuitDto {
+    @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
+    channelId: number;
+}
+
+export class TargetDto {
+    @IsString()
+    //@IsNotEmpty() ??
+    targetName: string;
 }
 
 /**
@@ -72,172 +98,187 @@ interface users {
 @UseGuards(AuthGuard)
 export class ChatController {
 
+
     constructor(
         private readonly roomService: RoomService,
-		private readonly chatService: ChatService,
-		private readonly userService: UsersService,
-		private readonly conversationService: ConversationsService,
-		private readonly messageService : MessagesService,
-		private readonly eventEmitter: EventEmitter2, 
-		private readonly prismaService: PrismaService
-		) {}
+        private readonly chatService: ChatService,
+        private readonly userService: UsersService,
+        private readonly conversationService: ConversationsService,
+        private readonly messageService : MessagesService,
+        private readonly eventEmitter: EventEmitter2,
+        private readonly prismaService: PrismaService
+        ) {}
 
-	@Get('get-blocked')
-	async getblocked()
-	{
-		const channel = await this.prismaService.channel.findUnique({where: {name: 'channel'}});
-		const user = await this.prismaService.blocked.findMany({
-			where: {
-				userId: 2
-			},
-			select: {
-				blockedId: true
-			}
-		});
-		console.log(user);
-		return channel;
-	}
+        DEBUG = true;
 
-    @Get('get-channels')
-    async getChannels( 
-		@Request() req: ExpressRequest
-	) {
-		try {
-			const data = {channelId: 1, userId: 3, channelName: "coucou"};
-			const cleanData = DOMPurify.sanitize(data)
-			const rooms = await this.roomService.getPublicRooms(2);
-			const chans = [];
-			rooms.forEach(room => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask}));
-			return chans;
-		} catch (err) {
-			console.log(err.message);
-		}
-    }
-
-	@Get('get-channelmessages')
-	async getChannelContext(
+	@Get('get-blocked-users')
+	async getBlockedUsers(
 		@Request() req: ExpressRequest
 	) {
 		try {
 			const userId = Number(req.user.sub);
-			const channelId = 14;
-			const member = await this.roomService.isUserinRoom(userId, channelId);
-			if (member != null && member.membershipState !== 4 && channelId >= 0) {
-				const messagesfromchannel = await this.messageService.getMessagesfromChannel(userId, channelId);
-				const messages : Message[] = [];
-				const userNames = await Promise.all(messagesfromchannel.map(conv => this.userService.getUserName(conv.authorId)));
-				messagesfromchannel.map((chan, index) => {
-					messages.push({authorName: userNames[index].pseudo, authorId: chan.authorId, content: chan.content, createdAt: chan.createdAt, id:chan.id});
-				});
-				return messages;
-			}
-			return null;
-		} catch (err) {
-			console.log(err.message);
+			const blockedUsers = await this.prismaService.blocked.findMany({
+				where: {
+					userId: userId,
+				},
+				select: {
+					blockedId: true,
+				}
+			});
+			return blockedUsers;
+		} catch(err) {
+                console.log(err.message);
 		}
 	}
 
-	@Get('get-channelmembers')
-	async getChannelMembers(
-		@Request() req: ExpressRequest
-	) {
-		try {
-			const userId = 3;
-			const channelId = 14;
-			const member = await this.roomService.isUserinRoom(userId, channelId);
-			if (member != null && member.membershipState !== 4 && channelId >= 0) {
-				const users : users[] = [];
-				const allusers = await this.roomService.getUsersfromRoom(channelId);
-				const membershipStates = await Promise.all(allusers.map(user => this.userService.getMembershipState(user.userId, channelId)));
-				allusers.map((user, index) => {
-					users.push({userId: user.userId, userName: user.user.pseudo, membershipState: membershipStates[index], avatar: user.user.avatar})});
-				console.log(users);
-				return users;
-			}
-			return null;
-		} catch (error) {
-			console.log(error.message);
-		}
-	}
-
-	@Post('join-channel')
-	async joinChannel(
-		@Request() req : ExpressRequest
-	) {
-		this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(2, "coucouuuuuuuu", "coucou"));
-		// this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
-	}
-
-	// @Post('create-channel')
-	// async createChannel(
-	// 	@Request() req :ExpressRequest	
-	// ) {
-	// 	this.EventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), channelName, undefined, password))
-	// }
-
-	@Post('exit-channel')
-	async exitChannel(
-		@Request() req : ExpressRequest
-	) {
-		console.log("arrive");
-		this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(3, 14));
-		return "marche";
-		// this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
-	}
-
-	/**
-	 * return id conversation et nom de la personne avec qui je discute
-	 */
-	@Get('get-conversations')
-    async getPrivateConversations(
+    @Get('get-channels')
+    async getChannels(
         @Request() req: ExpressRequest
     ) {
-
         try {
-            // const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
-            const conversations = await this.conversationService.getAllUserConversations(2);
-            const convs = []
-            const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
-			conversations.map((conv, index) => {
-				convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo});
-			});
-            return convs;
+			const userId = Number(req.user.sub);
+            const rooms = await this.roomService.getPublicRooms(userId);
+            const chans = [];
+            rooms.forEach(room => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask}));
+            return chans;
         } catch (err) {
-			console.log(err.message);
+            if (this.DEBUG == true) {
+                console.log(err.message);
+            }
         }
     }
 
-	@Post('create-conversation')
-	async createConversation(
-		@Request() req: ExpressRequest
-	) {
-		try {
-			const targetName = "Tomtom";
-			const conversation = await this.chatService.createConversation(Number(req.user.sub), targetName);
-			// console.log(conversation);
-			return conversation;
-		} catch(error) {
-			console.log(error.message);
-		}
-	}
 
-	@Get('get-privatemessages')
-	async privateConversation(
-		@Request() req: ExpressRequest
-	) {
-		try {
-			const conversations = await this.chatService.getPrivateConversation(2, 1);
-			const messages = [];
-			if (conversations != null) {
-				const authorNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.authorId)));
-				conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, creationTime: msg.createdAt, id: msg.id}));
-				return messages;
-			}
-			return "nope";
-		} catch (err) {
-			console.log(err.message);
-		}
-	}
+    @Get('get-channelmessages/:channelId')
+    async getChannelContext(
+        @Request() req: ExpressRequest,
+		@Param('channelId', CheckIntPipe) channelId: number,
+    ) {
+        try {
+            const userId = Number(req.user.sub);
+            const member = await this.roomService.isUserinRoom(userId, channelId);
+            if (member != null && member.membershipState !== 4) {
+                const messagesfromchannel = await this.messageService.getMessagesfromChannel(userId, channelId);
+                const messages : Message[] = [];
+                const userNames = await Promise.all(messagesfromchannel.map(conv => this.userService.getUserName(conv.authorId)));
+                messagesfromchannel.map((chan, index) => {
+					messages.push({authorName: userNames[index].pseudo, authorId: chan.authorId, content: chan.content, createdAt: chan.createdAt, id:chan.id});
+				});
+                return messages;
+            }
+            return null;
+        } catch (err) {
+            console.log(err.message);
+        }
+    }
+
+
+    @Get('get-channelmembers/:channelId')
+    async getChannelMembers(
+        @Request() req: ExpressRequest,
+		@Param('channelId', CheckIntPipe) channelId: number,
+    ) {
+        try {
+            const userId = Number(req.user.sub);
+            const member = await this.roomService.isUserinRoom(userId, channelId);
+            if (member != null && member.membershipState !== 4) {
+                const users : users[] = [];
+                const allusers = await this.roomService.getUsersfromRoom(channelId);
+                const membershipStates = await Promise.all(allusers.map(user => this.userService.getMembershipState(user.userId, channelId)));
+                allusers.map((user, index) => {
+					users.push({userId: user.userId, userName: user.user.pseudo, membershipState: membershipStates[index], avatar: user.user.avatar})
+				});
+				return users;
+            }
+            return null;
+        } catch (error) {
+            console.log(error.message);
+        }
+    }
+
+
+    @Post('join-channel')
+    async joinChannel(
+        @Body() joinChannelDto: JoinChannelDto,
+        @Request() req : ExpressRequest
+    ) {
+        try {
+            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.channelName, joinChannelDto.password));
+            // this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
+        } catch (err) {
+            if (this.DEBUG == true) {
+                console.log(err.message);
+            }
+        }
+    }
+
+    @Post('exit-channel')
+    async exitChannel(
+        @Body() quitDto: QuitDto,
+        @Request() req : ExpressRequest
+    ) {
+          console.log("Hello2");
+          this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), quitDto.channelId)); // TODO: quitDto.channelId
+          // this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
+    }
+
+
+    /**
+     * return id conversation et nom de la personne avec qui je discute
+     */
+    @Get('get-conversations')
+    async getPrivateConversations(
+        @Request() req: ExpressRequest
+    ) {
+        try {
+			const userId = Number(req.user.sub);
+            // const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
+            const conversations = await this.conversationService.getAllUserConversations(userId);
+            const convs = []
+            const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
+            conversations.map((conv, index) => {
+                convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo});
+            });
+            return convs;
+        } catch (err) {
+            console.log(err.message);
+        }
+    }
+
+    @Post('create-conversation')
+    async createConversation(
+        @Body() targetDto: TargetDto,
+        @Request() req: ExpressRequest
+    ) {
+        try {
+            const conversation = await this.chatService.createConversation(Number(req.user.sub), targetDto.targetName);
+            return conversation;
+        } catch(error) {
+            console.log(error.message);
+        }
+    }
+
+
+    @Get('get-privatemessages/:targetId')
+    async privateConversation(
+        @Request() req: ExpressRequest,
+		@Param('targetId', CheckIntPipe) targetId: number,
+    ) {
+        try {
+			const userId = Number(req.user.sub);
+            const conversations = await this.chatService.getPrivateConversation(userId, targetId);
+            const messages = [];
+            if (conversations != null) {
+                const authorNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.authorId)));
+                conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, creationTime: msg.createdAt, id: msg.id}));
+                return messages;
+            }
+            return "nope";
+        } catch (err) {
+            console.log(err.message);
+        }
+    }
+
 
 	@Post('invite-user')
 	async handleInvite(

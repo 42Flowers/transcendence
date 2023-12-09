@@ -1,12 +1,12 @@
-import { ChatContext } from "../../contexts/ChatContext";
+import filter from 'lodash/filter';
 import { useContext } from "react";
-import { ChatContextType} from "./Menu";
-
-import { quit } from "../../api";
 import { useMutation } from "react-query";
+import { quit } from "../../api";
+import { ChatContext } from "../../contexts/ChatContext";
+import { queryClient } from "../../query-client";
 
 const Title: React.FC = () => {
-    const { currentChannel, setCurrentChannel } = useContext(ChatContext) as ChatContextType;
+    const { currentChannel, setCurrentChannel } = useContext(ChatContext);
 
     const titleStyle: React.CSSProperties = {
         width: "70%",
@@ -30,6 +30,9 @@ const Title: React.FC = () => {
         mutationFn: quit,
         onSuccess(data) {
             setCurrentChannel(null);
+
+            /* Delete the channel from the list of channels */
+            queryClient.setQueryData(['channels-list'], channels => filter(channels, ({ channelId }) => channelId !== currentChannel));
         },
         onError(e: AxiosError) {
             alert("Cannot quit");

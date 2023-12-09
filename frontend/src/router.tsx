@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
 import { Auth } from './components/Auth/Auth';
-import Chat from './components/Chat/Chat';
 import FriendList from './components/FriendList/FriendList';
 import RegisterForm from './components/RegisterForm/RegisterForm';
 import GameWrapper from './components/Game/GameWrapper';
@@ -9,7 +8,7 @@ import PlayPage from './pages/PlayPage';
 import Profile from './components/Profile/Profile';
 import IntraRegisterForm from './components/IntraRegisterForm/IntraRegisterForm';
 import ProfilePublic from './components/Profile/ProfilePublic';
-import Chat2 from './components/Chat2/Chat2';
+import Chat from './components/Chat/Chat';
 
 export const router = createBrowserRouter([
     {
@@ -54,10 +53,6 @@ export const router = createBrowserRouter([
             {
                 path: '/chat',
                 element: <Chat />
-            },
-            {
-                path: '/chat2',
-                element: <Chat2 />
             },
             {
                 path: '/',

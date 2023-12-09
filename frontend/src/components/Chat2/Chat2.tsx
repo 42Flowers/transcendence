@@ -18,70 +18,156 @@ const Chat2: React.FC = () => {
         flexDirection: "row",
         height: "80vh",
         minHeight: 150,
-        border: "1px solid black",
-        fontSize: 30,
-        textAlign: "center"
+        // border: "1px solid black",
+        // border: "1px solid white",
+        // borderRadius: "20px",
+        // fontSize: 30,
+        textAlign: "center",
+        // fontFamily: "Short Stack",
     };
 
     const containerStyleSides: React.CSSProperties = {
         display: "flex",
         flexDirection: "column",
-        height: "80vh",
+        // height: "80vh",
+        height: "100%",
     };
        
     const containerWideStyle: React.CSSProperties = {
         display: "flex",
         flexDirection: "column",
+        // height: "80vh",
+        height: "100%",
         minWidth: isDm ? "80%" : "60%", 
     };
 
     const itemStyle: React.CSSProperties = {
         flex: 1,
-        border: "1px solid red",
+        // border: "1px solid red",
     };
 
     // Left
     const menuLeftStyle: React.CSSProperties = {
-        flex: "0 0 15%",
-        border: "1px solid red",
+        flex: "0 0 10%",
+        // border: "1px solid red",
     };
        
     const listLeftStyle: React.CSSProperties = {
-        flex: "0 0 65%",
-        border: "1px solid red",
+        flex: "0 0 75%",
+        // border: "1px solid red",
+        border: "2px solid white",
+        overflow: "hidden",
     };
        
     const createJoinStyle: React.CSSProperties = {
-        flex: "0 0 20%",
-        border: "1px solid red",
+        flex: "0 0 15%",
+        // border: "1px solid red",
+        // borderBottomLeftRadius: "20px",
     };
 
     // Center
     const titleStyle: React.CSSProperties = {
-        flex: "0 0 15%",
-        border: "1px solid red",
+        flex: "0 0 10%",
+        // border: "1px solid red",
     };
 
     const displayStyle: React.CSSProperties = {
-        flex: "0 0 65%",
-        border: "1px solid red",
+        flex: "0 0 75%",
+        // border: "1px solid red",
+        border: "2px solid white",
+        // flexDirection: "column-reverse",
+        overflow: "hidden",
+        overflowY: "scroll",
     };
        
     const sendStyle: React.CSSProperties = {
-        flex: "0 0 20%",
-        border: "1px solid red",
+        flex: "0 0 15%",
+        // border: "1px solid red",
     };
 
     // Right
     const menuRightStyle: React.CSSProperties = {
-        flex: "0 0 15%",
-        border: "1px solid red",
+        flex: "0 0 10%",
+        // border: "1px solid red",
     };
        
     const listRightStyle: React.CSSProperties = {
-        flex: "0 0 65%",
-        border: "1px solid red",
+        flex: "0 0 90%",
+        // border: "1px solid red",
+        border: "2px solid white",
+        borderBottomRightRadius: "20px",
+        overflow: "hidden",
     };
+
+    // const containerStyle: React.CSSProperties = {
+    //     display: "flex",
+    //     flexDirection: "row",
+    //     height: "80vh",
+    //     minHeight: 150,
+    //     border: "1px solid black",
+    //     fontSize: 30,
+    //     textAlign: "center"
+    // };
+
+    // const containerStyleSides: React.CSSProperties = {
+    //     display: "flex",
+    //     flexDirection: "column",
+    //     height: "80vh",
+    // };
+       
+    // const containerWideStyle: React.CSSProperties = {
+    //     display: "flex",
+    //     flexDirection: "column",
+    //     minWidth: isDm ? "80%" : "60%", 
+    // };
+
+    // const itemStyle: React.CSSProperties = {
+    //     flex: 1,
+    //     border: "1px solid red",
+    // };
+
+    // // Left
+    // const menuLeftStyle: React.CSSProperties = {
+    //     flex: "0 0 15%",
+    //     border: "1px solid red",
+    // };
+       
+    // const listLeftStyle: React.CSSProperties = {
+    //     flex: "0 0 65%",
+    //     border: "1px solid red",
+    // };
+       
+    // const createJoinStyle: React.CSSProperties = {
+    //     flex: "0 0 20%",
+    //     border: "1px solid red",
+    // };
+
+    // // Center
+    // const titleStyle: React.CSSProperties = {
+    //     flex: "0 0 15%",
+    //     border: "1px solid red",
+    // };
+
+    // const displayStyle: React.CSSProperties = {
+    //     flex: "0 0 65%",
+    //     border: "1px solid red",
+    // };
+       
+    // const sendStyle: React.CSSProperties = {
+    //     flex: "0 0 20%",
+    //     border: "1px solid red",
+    // };
+
+    // // Right
+    // const menuRightStyle: React.CSSProperties = {
+    //     flex: "0 0 15%",
+    //     border: "1px solid red",
+    // };
+       
+    // const listRightStyle: React.CSSProperties = {
+    //     flex: "0 0 65%",
+    //     border: "1px solid red",
+    // };
 
     return (
         <div style={containerStyle}>

@@ -1,5 +1,6 @@
 import { ChatContext } from "../../contexts/ChatContext";
 import { useContext } from "react";
+import './Chat.css';
 import { ChatContextType } from "./Menu";
 
 const DisplayMessages: React.FC = () => {
@@ -29,6 +30,36 @@ const DisplayMessages: React.FC = () => {
         },
         {   
             messageId: 3,
+            authorName: "Coluche", 
+            content: "Hello",
+        },
+        {   
+            messageId: 4,
+            authorName: "Macron", 
+            content: "Hello",
+        },
+        {   
+            messageId: 5,
+            authorName: "Poutine", 
+            content: "Hellooo",
+        },
+        {   
+            messageId: 6,
+            authorName: "Coluche", 
+            content: "Hello",
+        },
+        {   
+            messageId: 7,
+            authorName: "Macron", 
+            content: "Hello",
+        },
+        {   
+            messageId: 8,
+            authorName: "Poutine", 
+            content: "Hellooo",
+        },
+        {   
+            messageId: 9,
             authorName: "Coluche", 
             content: "Hello",
         },
@@ -62,14 +93,20 @@ const DisplayMessages: React.FC = () => {
 
     return (
         chanOrDm === 'channel' && currentChannel === 1 ?
-            <>
+            <div className="displayMessageClass">
                 {channel1.map(msg => (
-                    <div key={msg.messageId}>
+                    <div key={msg.messageId} className="userBubble">
                         <p>{msg.authorName}</p>
                         <p>{msg.content}</p>
                     </div>
                 ))}
-            </>
+                {channel1.map(msg => (
+                    <div key={msg.messageId} className="otherBubble">
+                        <p>{msg.authorName}</p>
+                        <p>{msg.content}</p>
+                    </div>
+                ))}
+            </div>
         :
         ''
     );

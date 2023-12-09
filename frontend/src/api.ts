@@ -72,7 +72,7 @@ function authorizedGet<P = any>(url: string, config: AxiosRequestConfig = {}) {
 }
 
 function wrapResponse<T>(resp: Promise<AxiosResponse<T>>): Promise<T> {
-    const artificialDelay = 2000;
+    const artificialDelay = 1;
 
     if (artificialDelay > 0) {
         return new Promise((resolve, reject) => setTimeout(() => {

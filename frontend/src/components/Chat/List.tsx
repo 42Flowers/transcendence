@@ -1,7 +1,7 @@
 import { ChatContext } from "../../contexts/ChatContext";
 import { useContext, useState, useEffect, useRef } from "react";
 import { ChatContextType } from "./Menu";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers, mute, unmute, ban, unban, kick, addAdmin, removeAdmin } from "../../api";
 import React from "react";
 import './Chat.css';
@@ -20,6 +20,7 @@ type DisplayProps = {
     avatar: string
     userPermissionMask: number
     myPermissionMask: number
+    currentChannel: number
 }
 
 type DropdownProps = {
@@ -57,7 +58,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
     );
    };
 
-const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask}) => {
+const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel}) => {
     const [availability, setAvailability] = useState<string>('');
     const [options, setOptions] = useState([]);
 
@@ -83,24 +84,78 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
         }
     }, [myPermissionMask, userPermissionMask]);
 
+    const muteMutation = useMutation({
+        mutationFn: mute,
+        onError(e: AxiosError) {
+            alert("Cannot unmute");
+        }
+    });
+
+    const unmuteMutation = useMutation({
+        mutationFn: unmute,
+        onError(e: AxiosError) {
+            alert("Cannot unmute");
+        }
+    });
+
+    const banMutation = useMutation({
+        mutationFn: ban,
+        onError(e: AxiosError) {
+            alert("Cannot ban");
+        }
+    });
+
+    const unbanMutation = useMutation({
+        mutationFn: unban,
+        onError(e: AxiosError) {
+            alert("Cannot unban");
+        }
+    });
+
+    const kickMutation = useMutation({
+        mutationFn: kick,
+        onError(e: AxiosError) {
+            alert("Cannot kick");
+        }
+    });
+
+    const addAdminMutation = useMutation({
+        mutationFn: addAdmin,
+        onError(e: AxiosError) {
+            alert("Cannot add admin");
+        }
+    });
+
+    const removeAdminMutation = useMutation({
+        mutationFn: removeAdmin,
+        onError(e: AxiosError) {
+            alert("Cannot remove admin");
+        }
+    });
+
     const functions = {
         'Mute': () => {
             setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
             // TODO: mute userId
+            muteMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Unmute': () => {
             setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
             // TODO: unmute userId
+            unmuteMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Ban': () => {
             setOptions(['Unban', 'Play'])
             // TODO: ban userId
+            banMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Unban': () => {
             setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
             // TODO: unban userId
+            unbanMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Kick': () => {
+            kickMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Add Admin': (myPermissionMask: number) => {
             if (myPermissionMask === 4) {
@@ -109,10 +164,12 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
                 setOptions(['Play']);
             }
             // TODO: add admin to userId
+            addAdminMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Remove Admin': () => {
             setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
             // TODO: Remove admin to userId
+            removeAdminMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Play': () => {
             // TODO: send invitation to play
@@ -159,7 +216,7 @@ const MembersList: React.FC = () => {
                             member.membershipState !== 4
                                 ?
                                     <div key={member.userId} className="listRightClass">
-                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask}/>
+                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel}/>
                                     </div>
                                 :
                                     null

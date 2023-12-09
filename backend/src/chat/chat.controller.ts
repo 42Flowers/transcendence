@@ -99,6 +99,18 @@ export class DeleteChannelDto {
     channelId: number
 }
 
+export class ActionsDto {
+    @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
+    channelId: number
+
+    @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
+    targetId: number
+}
+
 /**
  * !Faire les vérifications si la personne est bien dans le channel et si elle est BAN
  */
@@ -303,58 +315,84 @@ export class ChatController {
 
 	@Post('mute-user')
 	async handleMute(
+        @Body() actionsDto: ActionsDto,
 		@Request() req : ExpressRequest
 	) {
-		this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(2, 17, 7));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+		this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
 		// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
-
 	}
 
 	@Post('unmute-user')
 	async handleUnMute(
+        @Body() actionsDto: ActionsDto,
 		@Request() req : ExpressRequest
 	) {
-		this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(2, 9, 1))
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+		this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(userId, actionsDto.channelId, actionsDto.targetId))
 		// this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
-
 	}
 
 	@Post('ban-user')
 	async handleBan(
+        @Body() actionsDto: ActionsDto,
 		@Request() req : ExpressRequest
 	) {
-		this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(2, 9, 1));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+		this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
 	}
 
 	@Post('unban-user')
 	async handleUnBan(
+        @Body() actionsDto: ActionsDto,
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(2, 9, 1));
-			// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+		this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
+		// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 	}
 
 	@Post('kick-user')
 	async handleKick(
+        @Body() actionsDto: ActionsDto,
 		@Request() req: ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(2, 9, 4));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
 			// this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
 	}
 
 	@Post('add-admin')
 	async handleAddAdmin(
+        @Body() actionsDto: ActionsDto,
 		@Request() req: ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(2, 9, 1));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
 			// this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
 	}
 
 	@Post('rm-admin')
 	async handleRemoveAdmin(
+        @Body() actionsDto: ActionsDto,
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(2, 9, 1));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
 			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
 	}
 

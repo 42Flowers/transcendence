@@ -14,6 +14,9 @@ export class ConversationsService {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {userConversations: true }});
 			console.log("coucou", user);
 			const userconversation = user.userConversations.find((conv) => conv.receiverId == targetId);
+			if (userconversation == null)
+				return null;
+			console.log(userconversation);
 			const conversation = await this.prismaService.conversation.findUnique({where: {id: userconversation.conversationId}, select: {id: true, name: true}});
 			if (conversation != null) {
 				return conversation;

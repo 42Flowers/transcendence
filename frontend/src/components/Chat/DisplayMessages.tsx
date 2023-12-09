@@ -6,6 +6,16 @@ import { fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../
 import SocketContext from "../Socket/Context/Context";
 import { Socket } from "socket.io-client";
 import './Chat.css';
+import { queryClient } from "../../query-client";
+
+interface messageElem {
+    type: string, //conversation/channel
+    id: number, //channelId/targetId
+    authorId: number,
+    authorName: string 
+    message: string,
+    creationTime: Date,
+}
 
 const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
     for (let i = 0; i < blockedIdArray.length; ++i) {
@@ -22,18 +32,27 @@ const MessagesChannel: React.FC = () => {
     const channelMessages = useQuery(['channel-messages', currentChannel], () => fetchChannelMessages(currentChannel));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
 
-    // const updateChannelMessages = useCallback(() => {
+    const updateChannelMessages = useCallback((msg: messageElem) => {
+        console.log(msg)
+        // id undefined et besoin de l'id du message
+        if (msg.type !== "channel" || msg.id != currentChannel)
+            return;
+            queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: 12, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
+    }, []);
 
-    // }, []);
-
-    // useEffect(() => {
-    //     SocketState.socket?.on("message", updateChannelMessages);
+    useEffect(() => {
+        SocketState.socket?.on("message", updateChannelMessages);
         
-    //     return () => {
-    //         SocketState.socket?.off("message", updateChannelMessages);
-    //     }
-    // }, [SocketState.socket]);
+        return () => {
+            SocketState.socket?.off("message", updateChannelMessages);
+        }
+    }, [SocketState.socket]);
 
+    /*
+    // TODO
+    //
+    // Sort messages by creationDate before display
+    */
     return (
         <div className="displayMessageClass">
             {channelMessages.isFetched && blockedUsers.isFetched && channelMessages.data.map(msg => (
@@ -56,17 +75,25 @@ const MessagesDm: React.FC = () => {
     const dmMessages = useQuery(['dm-messages', currentDm], () => fetchDmMessages(currentDm));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
 
-    // const updateChannelMessages = useCallback(() => {
+    const updateDmMessages = useCallback((msg: messageElem) => {
+        if (msg.type === "channel" || msg.id != currentDm)
+            return;
+        queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.messageId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
+    }, []);
 
-    // }, []);
-
-    // useEffect(() => {
-    //     SocketState.socket?.on("message", updateChannelMessages);
+    useEffect(() => {
+        SocketState.socket?.on("message", updateDmMessages);
         
-    //     return () => {
-    //         SocketState.socket?.off("message", updateChannelMessages);
-    //     }
-    // }, [SocketState.socket]);
+        return () => {
+            SocketState.socket?.off("message", updateDmMessages);
+        }
+    }, [SocketState.socket]);
+
+    /*
+    // TODO
+    //
+    // Sort messages by creationDate before display
+    */
 
     return (
         <div className="displayMessageClass">

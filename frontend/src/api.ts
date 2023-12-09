@@ -113,6 +113,11 @@ export const fetchChannelMessages = (channelId: number) => wrapResponse(authoriz
 export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet(`/api/chat/get-privatemessages/${channelId}`));
 export const fetchBlockedUsers = () => wrapResponse(authorizedGet(`/api/chat/get-blocked-users`));
 
+export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel/`, payload));
+//export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
+export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation/`, payload));
+export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel/`, payload));
+
 // OLD CHAT
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 

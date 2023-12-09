@@ -16,7 +16,7 @@ const MessagesChannel: React.FC = () => {
     */
     return (
         <>
-            {channelMessages.isFetched && channelMessages.data.map(msg => (
+            {channelMessages.isFetched && currentChannel && channelMessages.data.map(msg => (
                 <div key={msg.id}>
                     <p>{msg.authorName}</p>
                     <p>{msg.content}</p>

@@ -23,6 +23,7 @@ const SendMessages: React.FC = () => {
         else if (chanOrDm === "dm")
             SocketState.socket?.emit("privatemessage", {targetId: currentDm, message: message});
         console.log("submitted message", message);
+        setMessage("");
     };
   
     return (
@@ -34,11 +35,9 @@ const SendMessages: React.FC = () => {
                     type="text"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="msg"
                     className="inputSendMessageClass"
                 />
-                <AiOutlineSend className="icon-send"/>
-                {/* <button type="submit" style={{ flex: "1 1 auto" }}>SEND</button> */}
+                <button type="submit" style={{ background: "none", border: "none" }}><AiOutlineSend className="icon-send"/></button>
             </form>
         </div>
     );

@@ -177,11 +177,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage('privatemessage')
 	handlePrivateMessage(
-		@MessageBody() data: {userId: number, targetId: number, message: string},
+		@MessageBody() data: {targetId: number, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
+		const userId = Number(client.user.sub);
+		if (userId == undefined)
+			return;
 		try {
-			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message));
+			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, data.targetId, data.message));
 		} catch (err) {
 			console.log(err.message);
 		}

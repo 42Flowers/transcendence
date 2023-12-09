@@ -68,12 +68,16 @@
 	border-radius: 20px;
     background: transparent;
 	margin: 4px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	align-items: center;
+	padding: 5px;
 }
 
 .listRightClass:hover {
 	background-color: rgba(254, 254, 212, 0.375);
 }
-
 
 /**************************************** CREATE JOIN ****************************************/
 

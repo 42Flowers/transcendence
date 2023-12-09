@@ -904,7 +904,7 @@ async function main() {
       data: {
         channelId: chan2.id,
         userId: user2.id,
-        permissionMask: 4,
+        permissionMask: 2,
         channelName: "chan2",
       }
     })
@@ -915,7 +915,7 @@ async function main() {
         userId: user3.id,
         
         membershipState: 4,
-        permissionMask: 4,
+        permissionMask: 2,
         channelName: "chan2",
       }
     })
@@ -925,7 +925,7 @@ async function main() {
       data: {
         channelId: chan3.id,
         userId: user1.id,
-        permissionMask: 4,
+        permissionMask: 1,
         channelName: "chan3",
       }
     })

@@ -2,7 +2,7 @@ import { ChatContext } from "../../contexts/ChatContext";
 import { useContext, useState, useEffect, useRef } from "react";
 import { ChatContextType } from "./Menu";
 import { useQuery } from "react-query";
-import { fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers } from "../../api";
+import { fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers, mute, unmute, ban, unban, kick, addAdmin, removeAdmin } from "../../api";
 import React from "react";
 import './Chat.css';
 import AvatarOthers from "../AvatarOthers/AvatarOthers";

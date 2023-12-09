@@ -118,6 +118,13 @@ export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/ch
 export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation/`, payload));
 export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel/`, payload));
 export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel/`, payload));
+export const mute = (payload: any) => wrapResponse(authorizedPost(`api/chat/mute-user`, payload));
+export const unmute = (payload: any) => wrapResponse(authorizedPost(`api/chat/unmute-user`, payload));
+export const ban = (payload: any) => wrapResponse(authorizedPost(`api/chat/ban-user`, payload));
+export const unban = (payload: any) => wrapResponse(authorizedPost(`api/chat/unban-user`, payload));
+export const kick = (payload: any) => wrapResponse(authorizedPost(`api/chat/kick-user`, payload));
+export const addAdmin = (payload: any) => wrapResponse(authorizedPost(`api/chat/add-admin`, payload));
+export const removeAdmin = (payload: any) => wrapResponse(authorizedPost(`api/chat/rm-admin`, payload));
 
 // OLD CHAT
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));

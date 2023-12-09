@@ -61,7 +61,7 @@ const Title: React.FC = () => {
     const handleDelete = (event) => {
         event.preventDefault();
         //quitMutation.mutate({ channelId: currentChannel });
-        deleteMutation.mutate(/* TODO: */);
+        deleteMutation.mutate({ channelId: currentChannel });
     };
 
     return (

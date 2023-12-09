@@ -92,6 +92,13 @@ export class TargetDto {
     targetName: string;
 }
 
+export class DeleteChannelDto {
+    @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
+    channelId: number
+}
+
 /**
  * !Faire les vérifications si la personne est bien dans le channel et si elle est BAN
  */

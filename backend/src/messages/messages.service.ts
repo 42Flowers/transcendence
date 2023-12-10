@@ -14,6 +14,7 @@ export class MessagesService {
 				where: {
 					channelId: channelId
 				}, select: {
+					authorId: true,
 					channelId: true,
 					id: true,
 					content: true,

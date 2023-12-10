@@ -121,7 +121,7 @@ export class RoomService {
 			else if (channelId !== undefined) {
 				const channel = await this.getRoom(channelId);
 				if (channel !== null) {
-					if (channel.accessMask !== 0) {
+					if (channel.accessMask !== 1) {
 							if (channel.accessMask == 2) {
 								throw (new MyError("This is an invite only channel"));
 							}

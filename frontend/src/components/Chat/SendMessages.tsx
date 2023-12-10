@@ -24,23 +24,35 @@ const SendMessages: React.FC = () => {
             SocketState.socket?.emit("privatemessage", {targetId: currentDm, message: message});
         console.log("submitted message", message);
     };
+
+    console.log("chan", currentChannel);
+    console.log("dm", currentDm);
   
     return (
         // <div style={{ display: "flex", flexDirection: "column", height: "100%", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center" }} className="sendMessageClass">
-            <form onSubmit={handleSubmitMessage} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", height: "100%", width: "100%"}}>
-                <input
-                    style={inputStyle}
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="msg"
-                    className="inputSendMessageClass"
-                />
-                <AiOutlineSend className="icon-send"/>
-                {/* <button type="submit" style={{ flex: "1 1 auto" }}>SEND</button> */}
-            </form>
-        </div>
+        <>
+            {console.log(currentChannel)}
+            {console.log(currentDm)}
+            { currentChannel !== null || currentDm !== null
+                ?
+                    <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center" }} className="sendMessageClass">
+                        <form onSubmit={handleSubmitMessage} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", height: "100%", width: "100%"}}>
+                            <input
+                                style={inputStyle}
+                                type="text"
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="msg"
+                                className="inputSendMessageClass"
+                            />
+                            <AiOutlineSend className="icon-send"/>
+                            {/* <button type="submit" style={{ flex: "1 1 auto" }}>SEND</button> */}
+                        </form>
+                    </div>
+                :
+                    null
+            }
+        </>
     );
 };
 

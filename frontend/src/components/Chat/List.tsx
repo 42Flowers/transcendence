@@ -18,10 +18,10 @@ type DisplayProps = {
     userId: number
     userName: string
     avatar: string
-    userPermissionMask: number
-    myPermissionMask: number
-    currentChannel: number
-    memberShipState: number
+    userPermissionMask?: number
+    myPermissionMask?: number
+    currentChannel?: number
+    memberShipState?: number
 }
 
 type DropdownProps = {
@@ -62,6 +62,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
 const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel, memberShipState}) => {
     const [availability, setAvailability] = useState<string>('');
     const [options, setOptions] = useState([]);
+    const { chanOrDm } = useContext(ChatContext) as ChatContextType;
 
     const handleOptionClick = (option) => {
         console.log(`Option ${option} clicked`);
@@ -192,7 +193,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
                     <AvatarOthers status={availability} avatar={default_avatar} userId={userId} />
             }
             <p>{userName}</p>
-            { myId !== userId
+            { myId !== userId && chanOrDm === 'channel'
                 ?
                     <Dropdown options={options} onOptionClick={handleOptionClick} functions={functions} myPermissionMask={myPermissionMask}/>
                 :
@@ -234,8 +235,8 @@ const MembersList: React.FC = () => {
                         {allMembers.isFetched && allMembers.data.map(member => (
                             member.membershipState === 4
                                 ?
-                                    <div key={member.userId}>
-                                        <p className="listRightClass">{member.userName}</p>
+                                    <div key={member.userId} className="listRightClass">
+                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
                                     </div>
                                 :
                                     null
@@ -247,7 +248,8 @@ const MembersList: React.FC = () => {
 
 const List: React.FC<Props> = ({ side }) => {
     const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, currentDm, setCurrentChannelName, setCurrentAccessMask } = useContext(ChatContext) as ChatContextType;
-    
+    const auth = useAuthContext();
+
     const channels = useQuery(['channels-list'], fetchAvailableChannels);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
 
@@ -273,8 +275,8 @@ const List: React.FC<Props> = ({ side }) => {
                     :
                         <div className="listClass">
                             {directMessages.isFetched && directMessages.data.map(dm => (
-                                <div key={dm.targetId} onClick={() => setCurrentDm(dm.targetId)}>
-                                    <p className="listLeftClass">{dm.targetName}</p>
+                                <div key={dm.targetId} className="listLeftClass" onClick={() => setCurrentDm(dm.targetId)}>
+                                    <DisplayUser myId={auth.user.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
                                 </div>
                             ))}
                         </div>

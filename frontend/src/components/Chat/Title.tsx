@@ -5,9 +5,11 @@ import { addPwd, changePwd, deleteM, deletePwd, quit } from "../../api";
 import { ChatContext } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 import './Chat.css';
+import AvatarOthers from '../AvatarOthers/AvatarOthers';
+import default_avatar from '../../assets/images/default_avatar.png';
 
 const Title: React.FC = () => {
-    const { chanOrDm, currentChannel, setCurrentChannel, currentChannelName, myPermissionMask, currentAccessMask } = useContext(ChatContext);
+    const { chanOrDm, currentChannel, currentDm, setCurrentChannel, currentChannelName, myPermissionMask, currentAccessMask } = useContext(ChatContext);
 
     const [addPassword, setAddPassword] = useState("");
     const [changePassword, setChangePassword] = useState("");
@@ -115,30 +117,31 @@ const Title: React.FC = () => {
                         { myPermissionMask === 4 
                             ?
                                 <div style={{ display: 'flex', justifyContent: 'center'}}>
-                                    <p>Password</p>
                                     { currentAccessMask === 1 
                                         ?
                                             <form onSubmit={handleAddPassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                                 <input
                                                     type="text"
+                                                    placeholder="add a password"
                                                     value={addPassword}
                                                     onChange={(e) => setAddPassword(e.target.value)}
                                                     style={{ flex: "1 1 auto" }}
                                                 />
-                                                <button type="submit" style={{ flex: "1 1 auto" }}>ADD</button>
+                                                <button type="submit" style={{ flex: "1 1 auto" }}>Add password</button>
                                             </form>
                                         :
                                             <>
                                                 <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                                     <input
                                                         type="text"
+                                                        placeholder="change password"
                                                         value={changePassword}
                                                         onChange={(e) => setChangePassword(e.target.value)}
                                                         style={{ flex: "1 1 auto" }}
                                                     />
-                                                    <button type="submit" style={{ flex: "1 1 auto" }}>CHANGE</button>
+                                                    <button type="submit" style={{ flex: "1 1 auto" }}>Change password</button>
                                                 </form>
-                                                <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword}>DELETE</button>
+                                                <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword}>Remove Password</button>
                                             </>
                                     }
                                 </div>
@@ -147,15 +150,13 @@ const Title: React.FC = () => {
                         }
                         { myPermissionMask === 4 
                             ?
-                                <button style={buttonStyle} className="buttonClass" onClick={handleDelete}>DELETE</button>
+                                <button style={buttonStyle} className="buttonClass" onClick={handleDelete}>Delete Channel</button>
                             :
-                                <button style={buttonStyle} className="buttonClass" onClick={handleQuit}>QUIT</button>
+                                <button style={buttonStyle} className="buttonClass" onClick={handleQuit}>Quit Channel</button>
                         }
                     </>
                 :
-                    <>
-                        <p>hello</p>
-                    </>
+                    null
             }
        </div>
     );

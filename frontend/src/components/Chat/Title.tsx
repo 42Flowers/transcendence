@@ -116,6 +116,7 @@ const Title: React.FC = () => {
                                                     type="text"
                                                     placeholder="add a password"
                                                     value={addPassword}
+													maxLength={20}
                                                     onChange={(e) => setAddPassword(e.target.value)}
                                                     style={{ flex: "1 1 auto" }}
                                                 />
@@ -128,6 +129,7 @@ const Title: React.FC = () => {
                                                         type="text"
                                                         placeholder="change password"
                                                         value={changePassword}
+														maxLength={20}
                                                         onChange={(e) => setChangePassword(e.target.value)}
                                                         style={{ flex: "1 1 auto" }}
                                                     />

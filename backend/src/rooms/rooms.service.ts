@@ -79,6 +79,7 @@ export class RoomService {
 			if (pwd != '' && pwd != null)
 				accessMask = 4;
 			const password = await bcrypt.hash(pwd, 10);
+			console.log(password);
 			const channel = await this.prismaService.channel.create({
 				data: {
 					name: name,

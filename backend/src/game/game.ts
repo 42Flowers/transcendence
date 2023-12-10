@@ -376,6 +376,9 @@ export class Game {
 
 
     public handleKey(socket: Socket, key: string, state: boolean) {
+        if (GameState.Running !== this.gameState)
+            return ;
+        
         if (socket.id === this.leftPlayerSocket.id) {
             if (key === "ArrowUp") {
                 this.keys.leftPadArrowUp = state;

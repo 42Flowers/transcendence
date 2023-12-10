@@ -12,7 +12,6 @@ import { SocketService } from "src/socket/socket.service";
 @Injectable()
 export class InvitationService {
     constructor(private readonly prismaService: PrismaService,
-        private readonly eventEmitter: EventEmitter2,
         private readonly socketService: SocketService,
         private readonly gameService: GameService) {}
 

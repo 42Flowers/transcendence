@@ -79,7 +79,6 @@ export class RoomService {
 			if (pwd != '' && pwd != null)
 				accessMask = 4;
 			const password = await bcrypt.hash(pwd, 10);
-			console.log(password);
 			const channel = await this.prismaService.channel.create({
 				data: {
 					name: name,
@@ -118,7 +117,6 @@ export class RoomService {
 				const channel = await this.getRoom(channelId);
 				if (channel !== null) {
 					if (channel.accessMask == 4) {
-						console.log(pwd, channel, 'PASSWORD CHECK');
 						if (!await bcrypt.compare(pwd, channel.password))
 							throw new MyError("This channel is password protected");
 					}

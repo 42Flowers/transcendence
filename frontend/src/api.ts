@@ -125,6 +125,9 @@ export const unban = (payload: any) => wrapResponse(authorizedPost(`api/chat/unb
 export const kick = (payload: any) => wrapResponse(authorizedPost(`api/chat/kick-user`, payload));
 export const addAdmin = (payload: any) => wrapResponse(authorizedPost(`api/chat/add-admin`, payload));
 export const removeAdmin = (payload: any) => wrapResponse(authorizedPost(`api/chat/rm-admin`, payload));
+export const addPwd = (payload: any) => wrapResponse(authorizedPost(`api/chat/add-pwd`, payload));
+export const changePwd = (payload: any) => wrapResponse(authorizedPost(`api/chat/change-pwd`, payload));
+export const deletePwd = (payload: any) => wrapResponse(authorizedPost(`api/chat/rm-pwd`, payload));
 
 // OLD CHAT
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));

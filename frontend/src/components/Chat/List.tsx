@@ -246,7 +246,7 @@ const MembersList: React.FC = () => {
   
 
 const List: React.FC<Props> = ({ side }) => {
-    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, currentDm, setCurrentChannelName } = useContext(ChatContext) as ChatContextType;
+    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, currentDm, setCurrentChannelName, setCurrentAccessMask } = useContext(ChatContext) as ChatContextType;
     
     const channels = useQuery(['channels-list'], fetchAvailableChannels);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
@@ -264,6 +264,7 @@ const List: React.FC<Props> = ({ side }) => {
                                 <div key={channel.channelId} onClick={() => {
                                     setCurrentChannel(channel.channelId)
                                     setCurrentChannelName(channel.channelName)
+                                    setCurrentAccessMask(channel.accessMask)
                                 }}>
                                     <p className="listLeftClass">{channel.channelName}</p>
                                 </div>

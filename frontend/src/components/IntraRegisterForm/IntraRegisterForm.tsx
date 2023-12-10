@@ -19,8 +19,8 @@ const intraRegisterFormValidator: FormValidator = {
 			throw new Error('Usernames must be at least 3 characters in length');
 		}
 
-		if (value.length > 32) {
-			throw new Error('Usernames must be less than 32 characters');
+		if (value.length > 10) {
+			throw new Error('Usernames must be less or equal to 10 characters');
 		}
 	},
 };
@@ -83,6 +83,7 @@ const IntraRegisterForm: React.FC = () => {
 						icon={<HiOutlineUserCircle />}
 						name="pseudo"
 						autoComplete="off"
+						maxLength={10}
 						type="text"
 						required
 					/>

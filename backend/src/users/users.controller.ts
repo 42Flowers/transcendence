@@ -7,7 +7,7 @@ import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decora
 
 export class PatchProfileDto {
     @IsOptional()
-    @Length(3, 32)
+    @Length(3, 10)
     pseudo: string;
 
     @IsOptional()

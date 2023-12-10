@@ -23,8 +23,8 @@ const registerFormValidator: FormValidator = {
 			throw new Error('Usernames must be at least 3 characters in length');
 		}
 
-		if (value.length > 32) {
-			throw new Error('Usernames must be less than 32 characters');
+		if (value.length > 10) {
+			throw new Error('Usernames must be less or equel to 10 characters');
 		}
 	},
 	password(value: string, data: object) {
@@ -127,6 +127,7 @@ const RegisterForm: React.FC = () => {
 						name="pseudo"
 						autoComplete="off"
 						type="text"
+                        maxLength={10}
 						required
 						/>
 					<Input
@@ -152,6 +153,7 @@ const RegisterForm: React.FC = () => {
 						// icon={<IoLockClosedOutline />}
 						name="password"
 						type="password"
+                        maxLength={20}
 						required
 						/>
 					<Input
@@ -159,6 +161,7 @@ const RegisterForm: React.FC = () => {
 						// icon={<IoPawOutline />}
 						name="password_confirm"
 						type="password"
+						maxLength={20}
 						required
 						/>
 					<Stack direction="row" justifyContent="flex-start">

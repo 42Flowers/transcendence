@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import Menu from "./Menu";
 import List from "./List";
 import CreateJoin from "./CreateJoin";
@@ -10,8 +10,16 @@ import { ChatContext } from "../../contexts/ChatContext";
 import { useContext } from "react";
 import { ChatContextType } from "./Menu";
 
+import SocketContext from "../Socket/Context/Context";
+
+interface infoElem {
+    type: string,
+    msg: string
+}
+
 const Chat: React.FC = () => {
     const { isDm } = useContext(ChatContext) as ChatContextType;
+    const { SocketState } = useContext(SocketContext);
 
     const containerStyle: React.CSSProperties = {
         display: "flex",
@@ -81,6 +89,18 @@ const Chat: React.FC = () => {
         borderBottomRightRadius: "20px",
         overflow: "hidden",
     };
+
+    const displayInfo = useCallback((msg: infoElem) => {
+        alert(msg.msg);
+    }, []);
+
+    useEffect(() => {
+        SocketState.socket?.on("info", displayInfo);
+
+        return () => {
+            SocketState.socket?.off("info", displayInfo);
+        }
+    }, [SocketState.socket]);
 
     return (
         <div style={containerStyle}>

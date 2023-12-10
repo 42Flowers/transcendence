@@ -54,7 +54,7 @@ interface KeyState {
 	rightPadSpacebar?: boolean;
 }
 
-enum GameState {
+export enum GameState {
     Waiting,
     Countdown,
     Running,
@@ -133,6 +133,17 @@ export class Game {
         this.leftPlayerScore = 0;
         this.rightPlayerScore = 0;
 
+        this.emitToPlayers('playerData', {
+            left: {
+                pseudo: this.leftPlayerSocket.user.pseudo,
+            },
+            right: {
+                pseudo: this.rightPlayerSocket.user.pseudo,
+            },
+        });
+
+        this.updateCountdown();
+
         this.keys = {
             leftPadArrowDown: false,
             leftPadArrowUp: false,
@@ -176,6 +187,10 @@ export class Game {
     getLeftPlayerScore() { return this.leftPlayerScore; }
     getRightPlayerScore() { return this.rightPlayerScore; }
 
+    updateCountdown() {
+        this.emitToPlayers('countdown', this.countdown.toString());
+    }
+
     tick() {
         /* Update game duration only when in countdown or playing state */
         if (this.gameState === GameState.Running) {
@@ -188,23 +203,15 @@ export class Game {
 
             if (this.countdown === 0) {
                 this.gameState = GameState.Running;
+                this.emitToPlayers('gameStart');
                 this.resetBoard();
                 this.sendGameUpdatePacket();
             } else {
                if (timeSinceLastCountdownTick >= 1000) {
-                    this.emitToPlayers('countdown');
+                   this.countdown -= 1;
+                   this.lastCountDownTick = now;
 
-                    this.emitToPlayers('playerData', {
-                        left: {
-                            pseudo: this.leftPlayerSocket.user.pseudo,
-                        },
-                        right: {
-                            pseudo: this.rightPlayerSocket.user.pseudo,
-                        },
-                    });
-
-                    this.countdown -= 1;
-                    this.lastCountDownTick = now;
+                   this.updateCountdown();
                 }
             }
         } else if (this.gameState === GameState.Running) {
@@ -378,7 +385,7 @@ export class Game {
     public handleKey(socket: Socket, key: string, state: boolean) {
         if (GameState.Running !== this.gameState)
             return ;
-        
+
         if (socket.id === this.leftPlayerSocket.id) {
             if (key === "ArrowUp") {
                 this.keys.leftPadArrowUp = state;

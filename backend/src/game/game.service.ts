@@ -8,8 +8,9 @@ import { GameKeyUpEvent } from 'src/events/game/keyUp.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SocketGateway } from 'src/socket/socket.gateway';
 import { SocketService } from 'src/socket/socket.service';
-import { Game, GameMode } from './game';
+import { Game, GameMode, GameState } from './game';
 import { User } from '@prisma/client';
+import { UserDeclineGameInvitation } from 'src/events/user.decline.invitation.event';
 
 const REFRESH_RATE = 16.66667; // in ms
 
@@ -96,16 +97,56 @@ export class GameService {
 		}
 	}
 
-	@OnEvent('game.ended')
-	handleGameEnded({ game }: GameEndedEvent) {
-		console.log('Game ended');
+	@OnEvent('user.decline.invitation')
+	handleUserDeclineInvitation({ socket }: UserDeclineGameInvitation) {
+		const { id } = socket.user;
 
+		if (!this.isUserInGame(id))
+			return ;
+
+		const game = this.findInvitedGame(id);
+
+		if (game && game.getGameState() === GameState.Waiting) {
+			this.deleteGame(game);
+		}
+	}
+
+	deleteGame(game: Game) {
+		let gameFound = false;
+
+		for (let i = 0; i < this.friendsGameList.length; ++i) {
+			if (this.friendsGameList[i] === game) {
+				console.log('Friend game found', i);
+				this.friendsGameList.splice(i, 1);
+				gameFound = true;
+				break ;
+			}
+		}
+
+		if (!gameFound) {
+			for (let i = 0; i < this.randomGameList.length; ++i) {
+				if (this.randomGameList[i] === game) {
+					console.log('Random game found', i);
+					this.randomGameList.splice(i, 1);
+					gameFound = true;
+					break ;
+				}
+			}
+		}
+
+		if (!gameFound)
+			return ;
+	
 		this.inGameUsers.delete(game.getLeftPlayerUser().id);
 		this.inGameUsers.delete(game.getRightPlayerUser().id);
 
 		this.eventEmitter.emit('game.leaved', game.getLeftPlayerUser().id);
 		this.eventEmitter.emit('game.leaved', game.getRightPlayerUser().id);
+	}
 
-		/** TODO remove the game from the list */
+	@OnEvent('game.ended')
+	handleGameEnded({ game }: GameEndedEvent) {
+		console.log('Game ended');
+		this.deleteGame(game);
 	}
 }

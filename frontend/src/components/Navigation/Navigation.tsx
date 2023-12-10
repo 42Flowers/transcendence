@@ -66,7 +66,7 @@ const Navigation: React.FC = () => {
     };
 
     const onDecline = () => {
-        SocketState.socket?.emit('cancelGameSearch');
+        SocketState.socket?.emit('declineGameInvitation');
         setPopup(false);
     };
 

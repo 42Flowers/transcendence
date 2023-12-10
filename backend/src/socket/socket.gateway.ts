@@ -51,6 +51,7 @@ declare module 'socket.io' {
 }
 
 import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, ValidationOptions, registerDecorator, ValidationArguments, IsAscii } from 'class-validator';
+import { UserDeclineGameInvitation } from "src/events/user.decline.invitation.event";
 
 export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions) {
 	return function (object: object, propertyName: string) {
@@ -336,6 +337,14 @@ export class SocketGateway implements
 	)
 	{
 		this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
+	}
+
+	@SubscribeMessage('declineGameInvitation')
+	onUserDeclineInvitation(
+		@ConnectedSocket() socket: Socket
+	) {
+
+		this.eventEmitter.emit('user.decline.invitation', new UserDeclineGameInvitation(socket));
 	}
 
 }

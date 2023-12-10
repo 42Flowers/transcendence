@@ -6,7 +6,7 @@ import Title from "./Title";
 import DisplayMessages from "./DisplayMessages";
 import SendMessages from "./SendMessages";
 
-import { ChatContext } from "../../contexts/ChatContext";
+import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { useContext } from "react";
 
 import SocketContext from "../Socket/Context/Context";

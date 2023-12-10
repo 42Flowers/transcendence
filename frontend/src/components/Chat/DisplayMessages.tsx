@@ -6,7 +6,7 @@ import { useSocketEvent } from "../Socket/Context/Context";
 import './Chat.css';
 import { queryClient } from "../../query-client";
 import { useAuthContext } from "../../contexts/AuthContext";
-import map from 'lodash/map';
+import map from "lodash/map";
 
 interface messageElem {
     type: string, //conversation/channel
@@ -43,7 +43,7 @@ const MessagesChannel: React.FC = () => {
          * A full request will be received with the message list anyway.
          */
         if (queryClient.getQueryData<ChannelMessage[]>([ 'channels-messages', msg.id ]) !== undefined) {
-            queryClient.setQueryData<ChannelMessage[]>(['channels-messages', msg.id], messages => [
+            queryClient.setQueryData<ChannelMessage[]>([ 'channels-messages', msg.id ], messages => [
                 ...(messages ?? []),
                 {
                     id: msg.msgId,

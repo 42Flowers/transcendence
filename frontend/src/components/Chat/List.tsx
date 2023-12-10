@@ -1,40 +1,250 @@
-import { ChatContext } from "../../contexts/ChatContext";
-import { useContext } from "react";
-import { ChatContextType } from "./Menu";
-import { useQuery } from "react-query";
-import { fetchAvailableChannels, fetchAvailableDMs, fetchChannelMembers } from "../../api";
-import React from "react";
+import { ChatContext, ChatContextType  } from "../../contexts/ChatContext";
+import filter from 'lodash/filter';
+import map from 'lodash/map';
+import React, { useContext, useEffect, useState } from "react";
+import { useMutation, useQuery } from "react-query";
+import { ChannelMembership, addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
+import default_avatar from '../../assets/images/default_avatar.png';
+import { useAuthContext } from "../../contexts/AuthContext";
+import { queryClient } from "../../query-client";
+import AvatarOthers from "../AvatarOthers/AvatarOthers";
 import './Chat.css';
 
 type Props = {
     side: string
 }
 
+type DisplayProps = {
+    myId: number
+    userId: number
+    userName: string
+    avatar: string | null
+    userPermissionMask?: number
+    myPermissionMask?: number
+    currentChannel?: number
+    memberShipState?: number
+}
+
+type DropdownProps = {
+    options: string[],
+    onOptionClick: (option: string) => void,
+    functions: { [key: string]: (permissionMask?: number) => void },
+    myPermissionMask: number
+}
+
+type FunctionType = (myPermissionMask?: number) => void;
+
+const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, myPermissionMask }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const toggleOpen = () => setIsOpen(!isOpen);
+   
+    return (
+      <div>
+        <button onClick={toggleOpen}>{isOpen ? 'HIDE' : 'ACTION'}</button>
+        {isOpen && (
+          <div>
+            {options.map((option, index) => (
+                <button key={index} onClick={() => {
+                    onOptionClick(option);
+                    if (option === 'Add Admin') {
+                        functions[option](myPermissionMask);
+                    } else {
+                        functions[option]();
+                    }
+                }}>
+                    {option}
+                </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+   };
+
+const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel, memberShipState}) => {
+    const [availability, setAvailability] = useState<string>('');
+    const [options, setOptions] = useState<string[]>([]);
+    const { chanOrDm } = useContext(ChatContext) as ChatContextType;
+
+    const handleOptionClick = (option: string) => {
+        console.log(`Option ${option} clicked`);
+    };
+
+    const usersQuery = useQuery(['available-users'], fetchAvailableUsers, {
+        onSuccess: (data) => {
+            data.map(([ id, pseudo, availability ]) => {
+                if (userId === id) {
+                    setAvailability(availability);
+                }
+            });
+        }
+    });
+
+    useEffect(() => {
+        if (myPermissionMask > userPermissionMask) {
+            if (memberShipState === 1) {
+                setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            } else if (memberShipState === 2) {
+                setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            } else if (memberShipState === 4) {
+                setOptions(['Unban', 'Play']);
+            }
+        } else {
+            setOptions(['Play']);
+        }
+    }, [myPermissionMask, userPermissionMask, memberShipState]);
+
+    const muteMutation = useMutation({
+        mutationFn: mute,
+        onError() {
+            alert("Cannot unmute");
+        }
+    });
+
+    const unmuteMutation = useMutation({
+        mutationFn: unmute,
+        onError() {
+            alert("Cannot unmute");
+        }
+    });
+
+    const banMutation = useMutation({
+        mutationFn: ban,
+        onSuccess(_data, { channelId, targetId }) {
+            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
+                map(memberships, ({ membershipState, userId, ...membership }) => ({
+                    userId,
+                    membershipState: (userId === targetId) ? 4 : membershipState,
+                    ...membership,
+                })));
+        },
+        onError() {
+            alert("Cannot ban");
+        }
+    });
+
+    const unbanMutation = useMutation({
+        mutationFn: unban,
+        onSuccess(_data, { channelId, targetId }) {
+            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
+            map(memberships, ({ membershipState, userId, ...membership }) => ({
+                userId,
+                membershipState: (userId === targetId) ? 1 : membershipState,
+                ...membership,
+            })));
+        },
+        onError() {
+            alert("Cannot unban");
+        }
+    });
+
+    const kickMutation = useMutation({
+        mutationFn: kick,
+        onSuccess(_data, { channelId, targetId }) {
+            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
+                filter(memberships, ({ userId }) => userId !== targetId));
+        },
+        onError() {
+            alert("Cannot kick");
+        }
+    });
+
+    const addAdminMutation = useMutation({
+        mutationFn: addAdmin,
+        onError() {
+            alert("Cannot add admin");
+        }
+    });
+
+    const removeAdminMutation = useMutation({
+        mutationFn: removeAdmin,
+        onError() {
+            alert("Cannot remove admin");
+        }
+    });
+
+    const functions: Record<string, FunctionType> = {
+        'Mute': () => {
+            setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            muteMutation.mutate({ channelId: currentChannel, targetId: userId });
+        },
+        'Unmute': () => {
+            setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            unmuteMutation.mutate({ channelId: currentChannel, targetId: userId });
+        },
+        'Ban': () => {
+            setOptions(['Unban', 'Play'])
+            banMutation.mutate({ channelId: currentChannel, targetId: userId });
+        },
+        'Unban': () => {
+            setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            unbanMutation.mutate({ channelId: currentChannel, targetId: userId });
+        },
+        'Kick': () => {
+            kickMutation.mutate({ channelId: currentChannel!, targetId: userId });
+        },
+        'Add Admin': (myPermissionMask: number) => {
+            if (myPermissionMask === 4) {
+                setOptions(['Mute', 'Kick', 'Ban', 'Remove Admin', 'Play']);
+            } else {
+                setOptions(['Play']);
+            }
+            addAdminMutation.mutate({ channelId: currentChannel, targetId: userId });
+        },
+        'Remove Admin': () => {
+            setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
+            removeAdminMutation.mutate({ channelId: currentChannel, targetId: userId });
+        },
+        'Play': () => {
+            // TODO: send invitation to play
+        },
+    };
+    
+    return (
+        <>
+            <AvatarOthers
+                status={availability}
+                avatar={avatar ? `http://localhost:3000/static/${avatar}` : default_avatar}
+                userId={userId} />
+            <p>{userName}</p>
+            {
+                (myId !== userId && chanOrDm === 'channel') &&
+                    <Dropdown options={options} onOptionClick={handleOptionClick} functions={functions} myPermissionMask={myPermissionMask} />
+            }
+        </>
+    );
+}
+
 const MembersList: React.FC = () => {
-    const { currentChannel, setCurrentChannel, usersOrBanned } = useContext(ChatContext) as ChatContextType;
-    const allMembers = useQuery(['channel-members', currentChannel, setCurrentChannel], () => fetchChannelMembers(currentChannel));
+    const { currentChannel, setCurrentChannel, usersOrBanned, myPermissionMask, setMyPermissionMask } = useContext(ChatContext);
+    const allMembers = useQuery(['channel-members', currentChannel], () => fetchChannelMembers(currentChannel));
+    const auth = useAuthContext();
+
+    useEffect(() => {
+        allMembers.isFetched && map(allMembers.data, member => {
+            if (member.userId === auth.user.id)
+                setMyPermissionMask(member.permissionMask);
+        });
+     }, [allMembers.data, auth.user.id]);
 
     return (
         usersOrBanned === 'users' 
                 ?
                     <div className="listClass">
-                        {allMembers.isFetched && allMembers.data.map(member => (
-                            member.membershipState !== 4
-                                ?
-                                    <div key={member.userId}>
-                                        <p className="listRightClass">{member.userName}</p>
-                                    </div>
-                                :
-                                    null
+                        {allMembers.isFetched && map(allMembers.data, member => (
+                            member.membershipState !== 4 &&
+                                <div key={member.userId} className="listRightClass">
+                                    <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
+                                </div>
                         ))}
                     </div>
-                :
+                : // if banned users
                     <div className="listClass">
-                        {allMembers.isFetched && allMembers.data.map(member => (
+                        {allMembers.isFetched && map(allMembers.data, member => (
                             member.membershipState === 4
                                 ?
-                                    <div key={member.userId}>
-                                        <p className="listRightClass">{member.userName}</p>
+                                    <div key={member.userId} className="listRightClass">
+                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
                                     </div>
                                 :
                                     null
@@ -43,10 +253,10 @@ const MembersList: React.FC = () => {
     );
 };
   
-
 const List: React.FC<Props> = ({ side }) => {
-    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, currentDm } = useContext(ChatContext) as ChatContextType;
-    
+    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, currentDm, setCurrentChannelName, setCurrentAccessMask } = useContext(ChatContext) as ChatContextType;
+    const auth = useAuthContext();
+
     const channels = useQuery(['channels-list'], fetchAvailableChannels);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
 
@@ -59,17 +269,21 @@ const List: React.FC<Props> = ({ side }) => {
                 chanOrDm === 'channel' 
                     ?
                         <div className="listClass">
-                            {channels.isFetched && channels.data.map(channel => (
-                                <div key={channel.channelId} onClick={() => setCurrentChannel(channel.channelId)}>
+                            {channels.isFetched && map(channels.data, channel => (
+                                <div key={channel.channelId} onClick={() => {
+                                    setCurrentChannel(channel.channelId)
+                                    setCurrentChannelName(channel.channelName)
+                                    setCurrentAccessMask(channel.accessMask)
+                                }}>
                                     <p className="listLeftClass">{channel.channelName}</p>
                                 </div>
                             ))}
                         </div>
                     :
                         <div className="listClass">
-                            {directMessages.isFetched && directMessages.data.map(dm => (
-                                <div key={dm.targetId} onClick={() => setCurrentDm(dm.targetId)}>
-                                    <p className="listLeftClass">{dm.targetName}</p>
+                            {directMessages.isFetched && map(directMessages.data, dm => (
+                                <div key={dm.targetId} className="listLeftClass" onClick={() => setCurrentDm(dm.targetId)}>
+                                    <DisplayUser myId={auth.user.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
                                 </div>
                             ))}
                         </div>

@@ -60,6 +60,15 @@ export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions)
 	};
 }
 
+/* ==== GAME DTO ==== */
+export class GameInvitationDTO {
+	@IsNumber()
+	@IsNotEmpty()
+	@Min(1)
+	targetId: number
+};
+
+/* ==== CHAT DTO ==== */
 export class PrivateMessageDTO {
 	@IsNumber()
 	@IsNotEmpty()
@@ -261,25 +270,17 @@ export class SocketGateway implements
 
 	// GAME EVENTS
 
-	@SubscribeMessage("joinRandomNormal")
-	onJoinRandomNormal(
-		@ConnectedSocket() socket: Socket)
-	{
-		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 0));
-	}
-	
-	@SubscribeMessage("joinRandomSpecial")
-	onRandomSpecial(
-		@ConnectedSocket() socket: Socket)
-	{
-		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 1));
-	}
-
 	@SubscribeMessage('cancelGameSearch')
 	onCancelSearch(
 		@ConnectedSocket() socket: Socket)
 	{
-		this.eventEmitter.emit('game.cancelSearch', new GameCancelSearchEvent(socket));
+		if (!socket)
+			return;
+		try {
+				this.eventEmitter.emit('game.cancelSearch', new GameCancelSearchEvent(socket));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage("keyUp")
@@ -287,7 +288,13 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() key: string)
 	{
-		this.eventEmitter.emit('game.keyUp', new GameKeyUpEvent(socket, key));
+		if (!socket || key == null || key == undefined || (key !== " " && key !== "ArrowUp" && key !== "ArrowDown"))
+			return;
+		try {
+			this.eventEmitter.emit('game.keyUp', new GameKeyUpEvent(socket, key));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage("keyDown")
@@ -295,25 +302,69 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() key: string)
 	{
-		this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
+		if (!socket || key == null || key == undefined || (key !== " " && key !== "ArrowUp" && key !== "ArrowDown"))
+			return;
+		try {
+			this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
+		} catch (err) {
+			console.log(err.message);
+		}
+	}
+
+	@SubscribeMessage("joinRandomNormal")
+	onJoinRandomNormal(
+		@ConnectedSocket() socket: Socket)
+	{
+		if (!socket)
+			return;
+		try {
+			this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 0));
+		} catch (err) {
+			console.log(err.message);
+		}
+	}
+	
+	@SubscribeMessage("joinRandomSpecial")
+	onRandomSpecial(
+		@ConnectedSocket() socket: Socket)
+	{
+		if (!socket)
+			return;
+		try {
+			this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 1));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage("inviteNormal")
 	onInviteNormal(
+		@MessageBody() data: GameInvitationDTO,
 		@ConnectedSocket() socket: Socket,
-		@MessageBody() targetId: number,
 	)
 	{
-		this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, targetId));
+		if (!socket)
+			return;
+		try {
+			this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, data.targetId));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 	
 	@SubscribeMessage("inviteSpecial")
 	onInviteSpecial(
+		@MessageBody() data: GameInvitationDTO,
 		@ConnectedSocket() socket: Socket,
-		@MessageBody() targetId: number,
 	)
 	{
-		this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, targetId));
+		if (!socket)
+			return;
+		try {
+			this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, data.targetId));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage("joinInviteGame")
@@ -321,7 +372,13 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket
 	)
 	{
-		this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
+		if (!socket)
+			return;
+		try {
+			this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 }

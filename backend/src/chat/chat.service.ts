@@ -66,7 +66,7 @@ export class ChatService {
 		try {
 			const channels = await this.roomService.getPublicRooms(event.userId);
 			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-			console.log(channels, conversations);
+			// console.log(channels, conversations);
 			if (channels != null)
 				channels.map(chan => event.client.join(chan.name));
 			if (conversations != null)
@@ -83,7 +83,7 @@ export class ChatService {
 		try {
 			const channels = await this.roomService.getPublicRooms(event.userId);
 			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-			console.log(channels, conversations);
+			// console.log(channels, conversations);
 			if (channels != null)
 				channels.map(chan => event.client.leave(chan.name));
 			if (conversations != null)
@@ -245,7 +245,6 @@ export class ChatService {
 			if (user != null) {
 				const room = await this.roomService.roomExists(event.channelId);
 				if (room != null ){
-					console.log("marche");
 					const member = user.channelMemberships.find(channel => channel.channelId === room.id);
 					if (member !== undefined && member.membershipState !== 4) {
 						this.roomService.removeUserfromRoom(user.id, room.id);

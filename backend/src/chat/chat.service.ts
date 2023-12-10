@@ -137,8 +137,9 @@ export class ChatService {
 	) {
 		try {
 			if (event.message.length > 100)
-				throw new MyError("This message is too long");
+			throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
+			console.log(event.message, event.message.length);
 			if (user) {
 				if (event.targetId != user.id) {
 					const dest = await this.usersService.getUserById(event.targetId);
@@ -433,7 +434,7 @@ export class ChatService {
 				const room = await this.roomService.roomExists(event.channelId);
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member && member.permissionMask <= 2 && member.membershipState !== 4) {
+					if (member && member.permissionMask >= 2 && member.membershipState !== 4) {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
 							const result = await this.roomService.addAdmin(event.targetId, event.channelId);

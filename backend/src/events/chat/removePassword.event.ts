@@ -1,4 +1,4 @@
 
 export class ChatRemovePasswordEvent {
-	constructor(public userId: number, public channelName: string, public channelId: number) {}
+	constructor(public userId: number, public channelId: number) {}
 }

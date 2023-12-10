@@ -185,7 +185,7 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-					{ 
+						{ 
 							avatar ?
 								<AvatarOthers status={availability} avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
 							:

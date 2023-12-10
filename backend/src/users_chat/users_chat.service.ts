@@ -22,6 +22,15 @@ export class UsersService {
 		}
 	}
 
+	async getWhoBlockedMe(userId: number) {
+		try {
+			const blocked = await this.prismaService.blocked.findMany({where: {blockedId: userId}, select: {userId: true}});
+			return blocked;
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
 	async getUserByName(targetName: string) {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {pseudo: targetName}, select: {id: true, pseudo: true}});
@@ -33,9 +42,16 @@ export class UsersService {
 
 	async getUserName(userId: number) : Promise<any> {
 		try {
-			const name = this.prismaService.user.findUnique({
-				where: {id: userId}, 
-				select : {pseudo: true}});
+			if (userId == null) {
+				return null;
+			}
+			const name = await this.prismaService.user.findUnique({
+				where: {
+					id: userId
+				}, 
+				select: {
+					pseudo: true
+				}});
 			return name;
 		} catch (err) {
 			throw err

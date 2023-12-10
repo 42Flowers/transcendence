@@ -22,6 +22,15 @@ export class RoomService {
 		private readonly eventEmitter: EventEmitter2
 		) {}
 
+	async getAccessMask(channelId: number) {
+		try {
+			const mask = await this.prismaService.channel.findUnique({where: {id: channelId}, select: {accessMask: true}});
+			return mask;
+		} catch (error) {
+			console.log(error.message);
+		}
+	}
+
 	async getUsersFromRoomWithoutBlocked(userId: number, channelId: number) {
 		try {
 			const users = await this.prismaService.channelMembership.findMany({

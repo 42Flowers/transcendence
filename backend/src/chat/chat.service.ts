@@ -278,14 +278,17 @@ export class ChatService {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask)) {
 							const result = await this.roomService.muteUser(event.targetId, event.channelId);
-							if (result.status === false)
+							if (result.status === false) {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								return;
+							}
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "You have been muted on " + room.name));
+							return;
 						}
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
-	
 			}
 		} catch (err) {
 			console.log(err.message);
@@ -307,12 +310,16 @@ export class ChatService {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && targetmember.membershipState == 2) {
 							const result = await this.roomService.unMuteUser(event.targetId, event.channelId);
-							if (result.status === false)
+							if (result.status === false) {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								return;
+							}
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "You have been unmuted on " + room.name));
+							return;
 						}
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
 		} catch (err) {
@@ -335,12 +342,16 @@ export class ChatService {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask)) {
 							const result = await this.roomService.banUser(event.targetId, event.channelId);
-							if (result.status === false)
+							if (result.status === false) {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								return;
+							}
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been banned from " + room.name));
+							return;
 						}
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
 		} catch (err) {
@@ -363,12 +374,16 @@ export class ChatService {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && targetmember.membershipState === 4) {
 							const result = await this.roomService.unBanUser(event.targetId, event.channelId);
-							if (result.status === false)
+							if (result.status === false) {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								return;
+							}
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been unbanned from " + room.name));
+							return;
 						}
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
 		} catch (err) {
@@ -391,12 +406,16 @@ export class ChatService {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && targetmember.membershipState !== 4) {
 							const result = await this.roomService.kickUser(event.targetId, event.channelId);
-							if (result.status === false)
+							if (result.status === false) {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								return;
+							}
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been kicked from " + room.name));
+							return;
 						}
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
 		} catch (err) {
@@ -419,14 +438,18 @@ export class ChatService {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
 							const result = await this.roomService.addAdmin(event.targetId, event.channelId);
-							if (result.status === false)
+							if (result.status === false) {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								return;
+							}
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are now admin on " + room.name));
+							return;
 						}
 					} else {
-						console.log("pas owner");
+						throw new MyError("This user is not a member OR doesn't have necessary permissions")
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -449,14 +472,18 @@ export class ChatService {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
 							const result = await this.roomService.rmAdmin(event.targetId, event.channelId);
-							if (result.status === false)
+							if (result.status === false) {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								return;
+							}
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are no longer admin on " + room.name));
+							return;
 						}
 					} else {
-						console.log("pas owner");
+						throw new MyError("This user is not a member OR doesn't have necessary permissions")
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -482,7 +509,7 @@ export class ChatService {
 						console.log("pas owner");
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -508,7 +535,7 @@ export class ChatService {
 						console.log("pas owner");
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -534,7 +561,7 @@ export class ChatService {
 						console.log("pas owner");
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -561,8 +588,8 @@ export class ChatService {
 					}
 				}
 			}
-		} catch (error) {
-			console.log(error.message);
+		} catch (err) {
+			console.log(err.message);
 		}
 	}
 

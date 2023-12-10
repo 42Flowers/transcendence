@@ -8,6 +8,7 @@ import { Socket } from "socket.io-client";
 import './Chat.css';
 import { queryClient } from "../../query-client";
 import { useAuthContext } from "../../contexts/AuthContext";
+import map from "lodash/map";
 
 interface messageElem {
     type: string, //conversation/channel
@@ -34,21 +35,21 @@ const MessagesChannel: React.FC = () => {
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
-    const updateChannelMessages = useCallback((msg: messageElem) => {
-        console.log(msg)
-        // id undefined et besoin de l'id du message
-        if (msg.type !== "channel" || msg.id != currentChannel)
-            return;
-            queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: 12, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
-    }, []);
+    // const updateChannelMessages = useCallback((msg: messageElem) => {
+    //     console.log(msg)
+    //     // id undefined et besoin de l'id du message
+    //     if (msg.type !== "channel" || msg.id != currentChannel)
+    //         return;
+    //         queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: 12, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
+    // }, []);
 
-    useEffect(() => {
-        SocketState.socket?.on("message", updateChannelMessages);
+    // useEffect(() => {
+    //     SocketState.socket?.on("message", updateChannelMessages);
         
-        return () => {
-            SocketState.socket?.off("message", updateChannelMessages);
-        }
-    }, [SocketState.socket]);
+    //     return () => {
+    //         SocketState.socket?.off("message", updateChannelMessages);
+    //     }
+    // }, [SocketState.socket]);
 
     /*
     // TODO
@@ -57,7 +58,7 @@ const MessagesChannel: React.FC = () => {
     */
     return (
         <div className="displayMessageClass">
-            {channelMessages.isFetched && blockedUsers.isFetched && channelMessages.data.map(msg => (
+            {channelMessages.isFetched && blockedUsers.isFetched && map(channelMessages.data, msg => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ? 
                         null
@@ -85,19 +86,19 @@ const MessagesDm: React.FC = () => {
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
-    const updateDmMessages = useCallback((msg: messageElem) => {
-        if (msg.type === "channel" || msg.id != currentDm)
-            return;
-        queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.messageId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
-    }, []);
+    // const updateDmMessages = useCallback((msg: messageElem) => {
+    //     if (msg.type === "channel" || msg.id != currentDm)
+    //         return;
+    //     queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.messageId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
+    // }, []);
 
-    useEffect(() => {
-        SocketState.socket?.on("message", updateDmMessages);
+    // useEffect(() => {
+    //     SocketState.socket?.on("message", updateDmMessages);
         
-        return () => {
-            SocketState.socket?.off("message", updateDmMessages);
-        }
-    }, [SocketState.socket]);
+    //     return () => {
+    //         SocketState.socket?.off("message", updateDmMessages);
+    //     }
+    // }, [SocketState.socket]);
 
     /*
     // TODO
@@ -107,7 +108,7 @@ const MessagesDm: React.FC = () => {
 
     return (
         <div className="displayMessageClass">
-            {dmMessages.isFetched && blockedUsers.isFetched && dmMessages.data.map(msg => (
+            {dmMessages.isFetched && blockedUsers.isFetched && map(dmMessages.data, msg => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ? 
                         null

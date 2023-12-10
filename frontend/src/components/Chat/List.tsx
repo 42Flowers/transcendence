@@ -112,7 +112,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
             } else if (memberShipState === 2) {
                 setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
             } else if (memberShipState === 4) {
-                setOptions(['Mute', 'Kick', 'Unban', 'Add Admin', 'Play']);
+                setOptions(['Unban', 'Play']);
             }
         } else {
             setOptions(['Play']);
@@ -135,16 +135,13 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     const banMutation = useMutation({
         mutationFn: ban,
-        onSuccess(data) {
-            
-            /*
-            // TODO
-            // ALEXIS HELP PLEASE WE ARE DYING OUT THERE sniffffffff......
-            //
-            //
-            // snifff...
-            */
-            // queryClient.setQueryData(['channel-members'], members => filter(channels, ({ channelId }) => channelId !== currentChannel));
+        onSuccess(_data, { channelId, targetId }) {
+            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
+                map(memberships, ({ membershipState, userId, ...membership }) => ({
+                    userId,
+                    membershipState: (userId === targetId) ? 4 : membershipState,
+                    ...membership,
+                })));
         },
         onError() {
             alert("Cannot ban");
@@ -153,6 +150,14 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     const unbanMutation = useMutation({
         mutationFn: unban,
+        onSuccess(_data, { channelId, targetId }) {
+            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
+            map(memberships, ({ membershipState, userId, ...membership }) => ({
+                userId,
+                membershipState: (userId === targetId) ? 1 : membershipState,
+                ...membership,
+            })));
+        },
         onError() {
             alert("Cannot unban");
         }
@@ -252,13 +257,10 @@ const MembersList: React.FC = () => {
                 ?
                     <div className="listClass">
                         {allMembers.isFetched && map(allMembers.data, (member: Member) => (
-                            member.membershipState !== 4
-                                ?
-                                    <div key={member.userId} className="listRightClass">
-                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
-                                    </div>
-                                :
-                                    null
+                            member.membershipState !== 4 &&
+                                <div key={member.userId} className="listRightClass">
+                                    <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
+                                </div>
                         ))}
                     </div>
                 : // if banned users
@@ -276,7 +278,6 @@ const MembersList: React.FC = () => {
     );
 };
   
-
 const List: React.FC<Props> = ({ side }) => {
     const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask } = useContext(ChatContext) as ChatContextType;
     const auth = useAuthContext();

@@ -153,6 +153,7 @@ export class ChatController {
 			if (userId == undefined)
 				return;
             const rooms = await this.roomService.getPublicRooms(userId);
+			console.log(rooms);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
 			console.log("t", access, "t");
             const chans = [];

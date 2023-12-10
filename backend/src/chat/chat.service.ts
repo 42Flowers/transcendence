@@ -99,6 +99,10 @@ export class ChatService {
 	) {
 		const target = await this.usersService.getUserByName(targetName);
 		const user = await this.usersService.getUserById(userId);
+		if (userId == target.id) {
+			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'conversation', "You cannot start a conversation with yourself"));
+			return null;
+		}
 		if (target != null && user != null) {
 			const blocked = await this.usersService.isUserBlocked(user.id, target.id);
 			const isblocked = await this.usersService.blockedByUser(user.id, target.id);
@@ -137,7 +141,7 @@ export class ChatService {
 	) {
 		try {
 			if (event.message.length > 100)
-			throw new MyError("This message is too long");
+				throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
 			console.log(event.message, event.message.length);
 			if (user) {
@@ -204,7 +208,7 @@ export class ChatService {
 						const newMsg = await this.messagesService.newChannelMessage(user.id, event.channelId, event.message);
 						const channelName = await this.roomService.getRoom(event.channelId);
 						const channelUsers = await this.roomService.getUsersFromRoomWithoutBlocked(user.id, event.channelId);
-						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, newMsg.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, channelUsers));
+						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, newMsg.id, channelUsers));
 						return;
 					}
 				}
@@ -282,7 +286,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "You have been muted on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, "channel", "You have been muted on " + room.name));
 							return;
 						}
 					}
@@ -314,7 +318,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "You have been unmuted on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, "channel", "You have been unmuted on " + room.name));
 							return;
 						}
 					}
@@ -346,7 +350,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been banned from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been banned from " + room.name));
 							return;
 						}
 					}
@@ -378,7 +382,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been unbanned from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been unbanned from " + room.name));
 							return;
 						}
 					}
@@ -410,7 +414,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been kicked from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been kicked from " + room.name));
 							return;
 						}
 					}
@@ -442,7 +446,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are now admin on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You are now admin on " + room.name));
 							return;
 						}
 					} else {
@@ -476,7 +480,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are no longer admin on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You are no longer admin on " + room.name));
 							return;
 						}
 					} else {

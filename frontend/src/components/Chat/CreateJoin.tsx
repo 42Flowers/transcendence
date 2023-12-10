@@ -33,12 +33,15 @@ const CreateJoin: React.FC = () => {
         event.preventDefault();
         joinChannelMutation.mutate({ channelName, password });
         console.log("name", name, "password", password);
+		setChannelName('');
+		setPassword('');
     };
 
     const handleSubmitAdd = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         addDmMutation.mutate({ targetName: userName });
         console.log(userName);
+		setUserName('');
     };
 
     return (

@@ -1,6 +1,5 @@
-import { ChatContext } from "../../contexts/ChatContext";
-import { useContext, useState, useEffect, useRef } from "react";
-import { ChatContextType } from "./Menu";
+import { ChatContext, ChatContextType  } from "../../contexts/ChatContext";
+import { useContext, useState, useEffect } from "react";
 import { useMutation, useQuery } from "react-query";
 import { fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers, mute, unmute, ban, unban, kick, addAdmin, removeAdmin } from "../../api";
 import React from "react";
@@ -30,6 +29,8 @@ type DropdownProps = {
     functions: { [key: string]: () => void },
     myPermissionMask: number
 }
+
+type FunctionType = (myPermissionMask?: number) => void;
 
 const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, myPermissionMask }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +62,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
 
 const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel, memberShipState}) => {
     const [availability, setAvailability] = useState<string>('');
-    const [options, setOptions] = useState([]);
+    const [options, setOptions] = useState<string[]>([]);
     const { chanOrDm } = useContext(ChatContext) as ChatContextType;
 
     const handleOptionClick = (option) => {
@@ -94,72 +95,68 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     const muteMutation = useMutation({
         mutationFn: mute,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot unmute");
         }
     });
 
     const unmuteMutation = useMutation({
         mutationFn: unmute,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot unmute");
         }
     });
 
     const banMutation = useMutation({
         mutationFn: ban,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot ban");
         }
     });
 
     const unbanMutation = useMutation({
         mutationFn: unban,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot unban");
         }
     });
 
     const kickMutation = useMutation({
         mutationFn: kick,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot kick");
         }
     });
 
     const addAdminMutation = useMutation({
         mutationFn: addAdmin,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot add admin");
         }
     });
 
     const removeAdminMutation = useMutation({
         mutationFn: removeAdmin,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot remove admin");
         }
     });
 
-    const functions = {
+    const functions: Record<string, FunctionType> = {
         'Mute': () => {
             setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
-            // TODO: mute userId
             muteMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Unmute': () => {
             setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
-            // TODO: unmute userId
             unmuteMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Ban': () => {
             setOptions(['Unban', 'Play'])
-            // TODO: ban userId
             banMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Unban': () => {
             setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
-            // TODO: unban userId
             unbanMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Kick': () => {
@@ -171,12 +168,10 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
             } else {
                 setOptions(['Play']);
             }
-            // TODO: add admin to userId
             addAdminMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Remove Admin': () => {
             setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
-            // TODO: Remove admin to userId
             removeAdminMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Play': () => {

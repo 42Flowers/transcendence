@@ -8,6 +8,8 @@ import './Chat.css';
 import AvatarOthers from "../AvatarOthers/AvatarOthers";
 import default_avatar from '../../assets/images/default_avatar.png';
 import { useAuthContext } from "../../contexts/AuthContext";
+import { queryClient } from "../../query-client";
+import { AxiosError } from "axios";
 
 type Props = {
     side: string
@@ -108,6 +110,17 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     const banMutation = useMutation({
         mutationFn: ban,
+        onSuccess(data) {
+            
+            /*
+            // TODO
+            // ALEXIS HELP PLEASE WE ARE DYING OUT THERE sniffffffff......
+            //
+            //
+            // snifff...
+            */
+            // queryClient.setQueryData(['channel-members'], members => filter(channels, ({ channelId }) => channelId !== currentChannel));
+        },
         onError(e: AxiosError) {
             alert("Cannot ban");
         }

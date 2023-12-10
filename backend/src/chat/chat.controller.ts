@@ -262,7 +262,7 @@ export class ChatController {
             const convs = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
             conversations.map((conv, index) => {
-                convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo});
+                convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo, avatar: userNames[index].avatar});
             });
             return convs;
         } catch (err) {

@@ -34,7 +34,6 @@ export class RoomService {
 					userId: true
 				}
 			})
-			console.log(users);
 			return users;
 		} catch(error) {
 			console.log(error);
@@ -208,7 +207,6 @@ export class RoomService {
 					}},
 				},
 				});
-				console.log(users);
 			return users;
 		} catch (err) { throw new Error(err.message) }
 	}
@@ -254,7 +252,8 @@ export class RoomService {
 		try {
 			const membership = await this.prismaService.channelMembership.update({
 				where: { userId_channelId: {userId: targetId, channelId: channelId}},
-				data: {membershipState : 1, permissionMask: 1}
+				data: {membershipState : 1, permissionMask: 1},
+				select: {userId: true}
 			});
 			if (membership != null) {
 				return {status: true};
@@ -371,7 +370,7 @@ export class RoomService {
 	async getPublicRooms(userId: number) : Promise<any> {
 		try {
 			const channels = await this.prismaService.channelMembership.findMany({
-				where: {userId: userId}
+				where: {userId: userId},
 			});
 			return channels;
 		} catch (err) {

@@ -137,8 +137,9 @@ export class ChatService {
 	) {
 		try {
 			if (event.message.length > 100)
-				throw new MyError("This message is too long");
+			throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
+			console.log(event.message, event.message.length);
 			if (user) {
 				if (event.targetId != user.id) {
 					const dest = await this.usersService.getUserById(event.targetId);

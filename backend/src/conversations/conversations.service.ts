@@ -77,7 +77,7 @@ export class ConversationsService {
 
 	async getConversationName(userId: number, destId: number) : Promise<any> {
 		try {
-			const user = await this.prismaService.user.findUnique({where : {id: userId}, include : {userConversations: true}});
+			const user = await this.prismaService.user.findUnique({where : {id: userId}, select : {userConversations: true}});
 			let conversationId;
 			user.userConversations.map((conv) => {
 				if (conv.receiverId === destId) {

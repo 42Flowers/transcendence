@@ -76,11 +76,7 @@ export class UsersService {
 			if (id != undefined) {
 				const user = await this.prismaService.user.findUnique({
 					where: {id : id},
-					select : {
-						id: true,
-						pseudo: true,
-						channelMemberships: true,
-					}
+					select: {id: true, pseudo: true, channelMemberships: true, userConversations:true},
 				},);
 				return user;
 			}
@@ -114,7 +110,10 @@ export class UsersService {
 					userId_blockedId : {
 					userId: targetId,
 					blockedId: userId
-				}},
+				}}, select: {
+					userId: true,
+					blockedId: true,
+				}
 			});
 			return blocked;
 		} catch (err) {

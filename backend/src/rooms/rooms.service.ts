@@ -7,6 +7,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { MyError } from 'src/errors/errors';
+import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
 
 @Injectable()
 export class RoomService {
@@ -58,6 +59,8 @@ export class RoomService {
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
+			if (name.length > 10)
+				throw new MyError("A channel name can only be 10 characters long");
 			let accessMask = 1;
 			if (pwd != '' && pwd != null)
 				accessMask = 4;
@@ -72,6 +75,9 @@ export class RoomService {
 			});
 			return channel.id;
 		} catch (err) {
+			if (err instanceof MyError) {
+				console.log(err.message);
+			}
 			throw new MyError("Could not create this channel, please try another combination");
 		}
 	}
@@ -252,7 +258,8 @@ export class RoomService {
 		try {
 			const membership = await this.prismaService.channelMembership.update({
 				where: { userId_channelId: {userId: targetId, channelId: channelId}},
-				data: {membershipState : 1, permissionMask: 1}
+				data: {membershipState : 1, permissionMask: 1},
+				select: {userId: true}
 			});
 			if (membership != null) {
 				return {status: true};
@@ -328,13 +335,22 @@ export class RoomService {
 
 	async addPwd(channelId: number, pwd: string) : Promise<any> {
 		try {
+			if (pwd.length > 20) {
+				throw new MyError("A channel password has to be under 20 characters");
+			}
 			const chan = await this.prismaService.channel.update({where: {id: channelId}, data: {password: pwd, accessMask: 4}});
 			if (chan != null) {
 				return {status: true};
 			} else {
 				return {status: false, msg: "Couldn't add password"};
 			}
-		} catch (err) {throw err}
+		} catch (err) {
+			if (err instanceof MyError) {
+				console.log(err.message);
+				return {status: false, msg: err.message};
+			}
+			throw err
+		}
 	}
 
 	async rmPwd(channelId: number) : Promise<any> {
@@ -369,7 +385,7 @@ export class RoomService {
 	async getPublicRooms(userId: number) : Promise<any> {
 		try {
 			const channels = await this.prismaService.channelMembership.findMany({
-				where: {userId: userId}
+				where: {userId: userId},
 			});
 			return channels;
 		} catch (err) {

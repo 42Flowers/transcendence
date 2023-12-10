@@ -34,7 +34,6 @@ const Title: React.FC = () => {
         mutationFn: quit,
         onSuccess(data) {
             setCurrentChannel(null);
-
             /* Delete the channel from the list of channels */
             queryClient.setQueryData(['channels-list'], channels => filter(channels, ({ channelId }) => channelId !== currentChannel));
         },
@@ -83,25 +82,21 @@ const Title: React.FC = () => {
 
     const handleDelete = (event) => {
         event.preventDefault();
-        //quitMutation.mutate({ channelId: currentChannel });
         deleteMutation.mutate({ channelId: currentChannel });
     };
 
     const handleAddPassword = (event) => {
         event.preventDefault();
-        //addDmMutation.mutate({ targetName: userName });
         addPasswordMutation.mutate({ channelId: currentChannel, pwd: addPassword });
     };
 
     const handleChangePassword = (event) => {
         event.preventDefault();
-        //addDmMutation.mutate({ targetName: userName });
         changePasswordMutation.mutate({ channelId: currentChannel, pwd: changePassword });
     };
 
     const handleDeletePassword = (event) => {
         event.preventDefault();
-        //addDmMutation.mutate({ targetName: userName });
         deletePasswordMutation.mutate({ channelId: currentChannel });
     };
 

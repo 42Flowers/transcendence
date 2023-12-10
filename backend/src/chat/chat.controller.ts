@@ -41,14 +41,16 @@ interface users {
 	permissionMask: number
 }
 
-import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength } from 'class-validator';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 
 export class JoinChannelDto {
     @IsString()
+	@MaxLength(10)
     channelName: string;
 
     @IsString()
+	@MaxLength(20)
     password: string;
 }
 

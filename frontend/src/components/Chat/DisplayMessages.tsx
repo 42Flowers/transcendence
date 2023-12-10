@@ -16,6 +16,7 @@ interface messageElem {
     authorName: string 
     message: string,
     creationTime: Date,
+    msgId: number,
 }
 
 const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
@@ -35,11 +36,9 @@ const MessagesChannel: React.FC = () => {
     const { user } = useAuthContext();
 
     const updateChannelMessages = useCallback((msg: messageElem) => {
-        console.log(msg)
-        // id undefined et besoin de l'id du message
         if (msg.type !== "channel" || msg.id != currentChannel)
             return;
-            queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: 12, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
+        queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.msgId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
     }, []);
 
     useEffect(() => {
@@ -88,7 +87,7 @@ const MessagesDm: React.FC = () => {
     const updateDmMessages = useCallback((msg: messageElem) => {
         if (msg.type === "channel" || msg.id != currentDm)
             return;
-        queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.messageId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
+        queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.msgId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
     }, []);
 
     useEffect(() => {

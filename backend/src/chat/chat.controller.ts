@@ -111,6 +111,23 @@ export class ActionsDto {
     targetId: number
 }
 
+export class ManagePwdDto {
+    @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
+    channelId: number
+
+    @IsString()
+    pwd: string
+}
+
+export class RemovePwdDto {
+    @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
+    channelId: number
+}
+
 /**
  * !Faire les vérifications si la personne est bien dans le channel et si elle est BAN
  */
@@ -416,23 +433,35 @@ export class ChatController {
 
 	@Post('change-pwd')
 	async handleChangePassword(
+        @Body() managePwdDto: ManagePwdDto,
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(2, 9, "coucou"));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+		this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(userId, managePwdDto.channelId, managePwdDto.pwd));
 	}
 
 	@Post('add-pwd')
 	async handleAddPwd(
+        @Body() managePwdDto: ManagePwdDto,
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, 9, "pwd"));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+		this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(userId, managePwdDto.channelId, managePwdDto.pwd));
 	}
 
 	@Post('rm-pwd')
 	async handleRemovePwd(
+        @Body() removePwdDto: RemovePwdDto,
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, 9));
+        const userId = Number(req.user.sub);
+        if (userId == undefined)
+            return;
+		this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(userId, removePwdDto.channelId));
 	}
 
 	@Get('get-friends')

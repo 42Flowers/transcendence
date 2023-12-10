@@ -1,5 +1,5 @@
 import filter from 'lodash/filter';
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useMutation } from "react-query";
 import { addPwd, changePwd, deleteM, deletePwd, quit } from "../../api";
 import { ChatContext } from "../../contexts/ChatContext";
@@ -91,19 +91,19 @@ const Title: React.FC = () => {
     const handleAddPassword = (event) => {
         event.preventDefault();
         //addDmMutation.mutate({ targetName: userName });
-        addPasswordMutation.mutate();
+        addPasswordMutation.mutate({ channelId: currentChannel, pwd: addPassword });
     };
 
     const handleChangePassword = (event) => {
         event.preventDefault();
         //addDmMutation.mutate({ targetName: userName });
-        changePasswordMutation.mutate();
+        changePasswordMutation.mutate({ channelId: currentChannel, pwd: changePassword });
     };
 
     const handleDeletePassword = (event) => {
         event.preventDefault();
         //addDmMutation.mutate({ targetName: userName });
-        deletePasswordMutation.mutate();
+        deletePasswordMutation.mutate({ channelId: currentChannel });
     };
 
     return (

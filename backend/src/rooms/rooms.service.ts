@@ -62,7 +62,7 @@ export class RoomService {
 			if (name.length > 10)
 				throw new MyError("A channel name can only be 10 characters long");
 			let accessMask = 1;
-			if (pwd != '')
+			if (pwd != '' && pwd != null)
 				accessMask = 4;
 			const password = await bcrypt.hash(pwd, 10);
 			const channel = await this.prismaService.channel.create({

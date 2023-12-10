@@ -418,25 +418,21 @@ export class ChatController {
 	async handleChangePassword(
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(2, "channel", 9, "coucou"));
-			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
+			this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(2, 9, "coucou"));
 	}
 
 	@Post('add-pwd')
 	async handleAddPwd(
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
-			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
+			this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, 9, "pwd"));
 	}
 
 	@Post('rm-pwd')
 	async handleRemovePwd(
 		@Request() req : ExpressRequest
 	) {
-			this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, "channel", 9));
-			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(2, "channel", 9, "pwd"));
-			// this.eventEmitter.emit('chat.addpwd', new ChatAddPasswordEvent(Number(req.user.sub), "super", 5, "pwd"));
+			this.eventEmitter.emit('chat.rmpwd', new ChatRemovePasswordEvent(2, 9));
 	}
 
 	@Get('get-friends')

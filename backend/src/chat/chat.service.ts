@@ -572,7 +572,7 @@ export class ChatService {
 						console.log("pas owner");
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -598,7 +598,7 @@ export class ChatService {
 						console.log("pas owner");
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -624,7 +624,7 @@ export class ChatService {
 						console.log("pas owner");
 					}
 				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
+					throw new MyError("This channel does not exist");
 				}
 			}
 		} catch (err) {

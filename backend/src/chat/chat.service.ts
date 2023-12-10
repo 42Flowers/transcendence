@@ -19,7 +19,7 @@ import { ChatUserUnBlockEvent } from 'src/events/chat/userUnBlock.event';
 import { ChatAddPasswordEvent } from 'src/events/chat/addPassword.event';
 import {EventEmitter2, OnEvent} from '@nestjs/event-emitter';
 import { MessagesService } from '../messages/messages.service'
-import { UsersService } from '../users_chat/DBusers.service';
+import { UsersService } from '../users_chat/users_chat.service';
 import { SocketService } from 'src/socket/socket.service';
 import { RoomService } from '../rooms/rooms.service';
 import { Injectable } from '@nestjs/common';

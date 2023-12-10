@@ -108,7 +108,7 @@ const Title: React.FC = () => {
                         <p style={titleStyle}>{currentChannelName}</p>
                         { myPermissionMask === 4 
                             ?
-                                <div style={{ display: 'flex', justifyContent: 'center'}}>
+                                <div style={{ display: 'flex', justifyContent: 'center'}} className='channelPasswordHandle'>
                                     { currentAccessMask === 1 
                                         ?
                                             <form onSubmit={handleAddPassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -118,22 +118,25 @@ const Title: React.FC = () => {
                                                     value={addPassword}
                                                     onChange={(e) => setAddPassword(e.target.value)}
                                                     style={{ flex: "1 1 auto" }}
+                                                    className='channelPasswordInput'
                                                 />
-                                                <button type="submit" style={{ flex: "1 1 auto" }}>Add password</button>
+                                                <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButton' >Add password</button>
                                             </form>
                                         :
                                             <>
                                                 <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                                     <input
                                                         type="text"
-                                                        placeholder="change password"
+                                                        placeholder="new password"
                                                         value={changePassword}
                                                         onChange={(e) => setChangePassword(e.target.value)}
                                                         style={{ flex: "1 1 auto" }}
+                                                        className='channelPasswordInputBis'
                                                     />
-                                                    <button type="submit" style={{ flex: "1 1 auto" }}>Change password</button>
+                                                    <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButtonBis' >Change password</button>
                                                 </form>
-                                                <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword}>Remove Password</button>
+                                                <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword} className='channelPasswordButtonBisEnd' >Remove Password</button>
+                                                {/* <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword} className='channelPasswordButton' >Remove Password</button> */}
                                             </>
                                     }
                                 </div>

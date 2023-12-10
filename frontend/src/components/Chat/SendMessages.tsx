@@ -51,7 +51,9 @@ const SendMessages: React.FC = () => {
                         </form>
                     </div>
                 :
-                    null
+                    <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center" }} className="sendMessageClass"/>
+                        // null
+
             }
         </>
     );

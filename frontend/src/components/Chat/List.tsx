@@ -40,9 +40,9 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
    
     return (
       <div>
-        <button onClick={toggleOpen}>{isOpen ? 'HIDE' : 'ACTION'}</button>
+        <button onClick={toggleOpen} className="channelActionAndHideButtons">{isOpen ? 'HIDE' : 'ACTION'}</button>
         {isOpen && (
-          <div>
+          <div className="channelBackgroundButtons">
             {options.map((option, index) => (
                 <button key={index} onClick={() => {
                     onOptionClick(option);
@@ -51,7 +51,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
                     } else {
                         functions[option]();
                     }
-                }}>
+                }} className="channelButtons">
                     {option}
                 </button>
             ))}
@@ -197,15 +197,21 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     
     return (
         <>
-            <AvatarOthers
-                status={availability}
-                avatar={avatar ? `http://localhost:3000/static/${avatar}` : default_avatar}
-                userId={userId} />
+            <div className="avatarCursorPointer">
+                <AvatarOthers
+                    status={availability}
+                    avatar={avatar ? `http://localhost:3000/static/${avatar}` : default_avatar}
+                    userId={userId} />
+            </div>
             <p>{userName}</p>
-            {
-                (myId !== userId && chanOrDm === 'channel') &&
-                    <Dropdown options={options} onOptionClick={handleOptionClick} functions={functions} myPermissionMask={myPermissionMask} />
-            }
+            <div className="channelButtonsplace">
+                {
+                    (myId !== userId && chanOrDm === 'channel') &&
+                     <div className="channelButtonForUsers">
+                        <Dropdown options={options} onOptionClick={handleOptionClick} functions={functions} myPermissionMask={myPermissionMask}/>
+                    </div>
+                }
+            </div>
         </>
     );
 }

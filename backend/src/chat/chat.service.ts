@@ -2,7 +2,6 @@
 import { ChatRemoveAdminFromChannelEvent } from 'src/events/chat/removeAdminFromChannel.event';
 import { ChatAddAdminToChannelEvent } from 'src/events/chat/addAdminToChannel.event';
 import { ChatUnBanFromChannelEvent } from 'src/events/chat/unBanFromChannel.event';
-import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event';
 import { ChatKickFromChannelEvent } from 'src/events/chat/kickFromChannel.event';
 import { ChatUnMuteOnChannelEvent } from 'src/events/chat/unMuteOnChannel.event';
 import { ChatPrivateMessageEvent } from 'src/events/chat/privateMessage.event';
@@ -14,22 +13,18 @@ import { ConversationsService } from '../conversations/conversations.service';
 import { ChatMuteOnChannelEvent } from 'src/events/chat/muteOnChannel.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
-import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
 import { ChatJoinChannelEvent } from 'src/events/chat/joinChannel.event';
 import { ChatExitChannelEvent } from 'src/events/chat/exitChannel.event';
 import { ChatUserUnBlockEvent } from 'src/events/chat/userUnBlock.event';
 import { ChatAddPasswordEvent } from 'src/events/chat/addPassword.event';
-import { ChatUserBlockEvent } from 'src/events/chat/userBlock.event';
-import { ChatAddInviteEvent } from 'src/events/chat/addInvite.event';
 import {EventEmitter2, OnEvent} from '@nestjs/event-emitter';
 import { MessagesService } from '../messages/messages.service'
-import { UsersService } from '../users_chat/DBusers.service';
+import { UsersService } from '../users_chat/users_chat.service';
 import { SocketService } from 'src/socket/socket.service';
 import { RoomService } from '../rooms/rooms.service';
 import { Injectable } from '@nestjs/common';
 import { ChatSendToChannelEvent } from 'src/events/chat/sendToChannel.event';
 import { ChatSendMessageEvent } from 'src/events/chat/sendMessage.event';
-import { ChatSendRoomToClientEvent } from 'src/events/chat/sendRoomToClient.event';
 import { ChatSocketJoinChannelsEvent } from 'src/events/chat/socketJoinChannels.event';
 import { ChatSocketLeaveChannelsEvent } from 'src/events/chat/socketLeaveChannels.event';
 import { MyError } from 'src/errors/errors';
@@ -64,44 +59,6 @@ export class ChatService {
 		private readonly eventEmitter: EventEmitter2,
 		) {}
 
-	// @OnEvent('chat.unblockuser')
-	// async chatUserUnBlock(
-	// 	event: ChatUserUnBlockEvent
-	// ) {
-	// 	const user = await this.usersService.getUserById(event.userId);
-	// 	const target = await this.usersService.getUserById(event.targetId);
-	// 	if (await this.usersService.isUserBlocked(user.id, target.id) === false) {
-	// 		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + " was not blocked"));
-	// 		return;
-	// 	}
-	// 	const result = await this.usersService.unBlockUser(user.id, target.id);
-	// 	if (result !== null) {
-	// 		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + " has been successfully unblocked"));
-	// 		return;
-	// 	}
-	// 	this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "Couldn't unblock " + target.name + ", please retry later"));
-	// 	return;
-	// }
-
-	// @OnEvent('chat.blockuser')
-	// async chatUserBlock(
-	// 	event: ChatUserBlockEvent
-	// ) {
-	// 	const user = await this.usersService.getUserById(event.userId);
-	// 	const target = await this.usersService.getUserById(event.targetId);
-	// 	if (await this.usersService.isUserBlocked(user.id, target.id) === true) {
-	// 		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "You have already blocked " + target.name));
-	// 		return;
-	// 	}
-	// 	const result = await this.usersService.blockUser(user.id, target.id);
-	// 	if (result !== null) {
-	// 		this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', target.name + "has been blocked"));
-	// 		return;
-	// 	}
-	// 	this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', "Couldn't block " + target.name + ", please retry later"));
-	// 	return;
-	// }
-
 	@OnEvent('chat.socketjoinchannels')
 	async socketJoinChannels(
 		event: ChatSocketJoinChannelsEvent
@@ -109,7 +66,7 @@ export class ChatService {
 		try {
 			const channels = await this.roomService.getPublicRooms(event.userId);
 			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-			console.log(channels, conversations);
+			// console.log(channels, conversations);
 			if (channels != null)
 				channels.map(chan => event.client.join(chan.name));
 			if (conversations != null)
@@ -126,7 +83,7 @@ export class ChatService {
 		try {
 			const channels = await this.roomService.getPublicRooms(event.userId);
 			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-			console.log(channels, conversations);
+			// console.log(channels, conversations);
 			if (channels != null)
 				channels.map(chan => event.client.leave(chan.name));
 			if (conversations != null)
@@ -180,8 +137,9 @@ export class ChatService {
 	) {
 		try {
 			if (event.message.length > 100)
-				throw new MyError("This message is too long");
+			throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
+			console.log(event.message, event.message.length);
 			if (user) {
 				if (event.targetId != user.id) {
 					const dest = await this.usersService.getUserById(event.targetId);
@@ -288,7 +246,6 @@ export class ChatService {
 			if (user != null) {
 				const room = await this.roomService.roomExists(event.channelId);
 				if (room != null ){
-					console.log("marche");
 					const member = user.channelMemberships.find(channel => channel.channelId === room.id);
 					if (member !== undefined && member.membershipState !== 4) {
 						this.roomService.removeUserfromRoom(user.id, room.id);
@@ -299,39 +256,6 @@ export class ChatService {
 					}
 				} else {
 					throw new MyError("This channel does not exist");
-				}
-			}
-		} catch (err) {
-			console.log(err.message);
-		}
-	}
-
-	@OnEvent('chat.invitechannel')
-	async inviteInChannel(
-		event: ChatInviteInChannelEvent
-	) {
-		try {
-			const user = await this.usersService.getUserById(event.userId);
-			const target = await this.usersService.getUserById(event.targetId);
-			if (user != null && target != null && event.channelId != null) {
-				const room = await this.roomService.getRoom(event.channelId);
-				if (room != undefined) {
-					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member && (member.permissionMask >= 2) && (member.membershipState !== 4)) {
-						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
-						if (targetmember != undefined) {
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'invite', event.targetId + ' is already in ' + event.channelName));
-							return;
-						} else {
-							const membership = await this.roomService.joinByInvite(target.id, event.channelId, event.channelName);
-							if (membership === null) {
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', "Server error, please retry later"));
-								return;
-							}
-						}
-					}
-				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
 				}
 			}
 		} catch (err) {
@@ -608,60 +532,6 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 						} else {
 						console.log("pas owner");
-					}
-				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
-				}
-			}
-		} catch (err) {
-			console.log(err.message);
-		}
-	}
-
-	@OnEvent('chat.addinvite')
-	async addInviteOnly(
-		event: ChatAddInviteEvent
-	) {
-		try {
-			const user = await this.usersService.getUserById(event.userId);
-			if (user != null) {
-				const room = await this.roomService.roomExists(event.channelId);
-				if (room != null) {
-					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member != undefined && member.permissionMask == 4) {
-						const result = await this.roomService.addInvite(event.channelId);
-						if (result.status === false) {
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-						} 
-					} else {
-						console.log("pas owner ou pas dans le channel");
-					}
-				} else {
-					throw new MyError(event.channelName + ": This channel does not exist");
-				}
-			}
-		} catch (err) {
-			console.log(err.message);
-		}
-	}
-
-	@OnEvent('chat.rminvite')
-	async removeInvite(
-		event: ChatRemoveInviteEvent
-	) {
-		try {
-			const user = await this.usersService.getUserById(event.userId);
-			if (user != null) {
-				const room = await this.roomService.roomExists(event.channelId);
-				if (room != null) {
-					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member != undefined && member.permissionMask == 4 && room.accessMask == 2) {
-						const result = await this.roomService.rmInvite(event.channelId);
-						if (result.status === false) {
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-						} 
-					} else {
-						console.log("pas owner ou pas dans le channel");
 					}
 				} else {
 					throw new MyError(event.channelName + ": This channel does not exist");

@@ -2,7 +2,7 @@
 import { Controller, Post, Body, Get, UseGuards, Request, Param } from '@nestjs/common';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { MessagesService } from 'src/messages/messages.service';
-import { UsersService } from 'src/users_chat/DBusers.service';
+import { UsersService } from 'src/users_chat/users_chat.service';
 import { RoomService } from '../rooms/rooms.service';
 import { Request as ExpressRequest } from 'express';
 import { ChatService } from './chat.service';
@@ -18,10 +18,7 @@ import { ChatAddAdminToChannelEvent } from 'src/events/chat/addAdminToChannel.ev
 import { ChatRemoveAdminFromChannelEvent } from 'src/events/chat/removeAdminFromChannel.event';
 import { ChatExitChannelEvent } from 'src/events/chat/exitChannel.event';
 import { ChatJoinChannelEvent } from 'src/events/chat/joinChannel.event';
-import { ChatAddInviteEvent } from 'src/events/chat/addInvite.event';
 import { ChatAddPasswordEvent } from 'src/events/chat/addPassword.event';
-import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event';
-import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
 import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
 import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -44,14 +41,16 @@ interface users {
 	permissionMask: number
 }
 
-import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength } from 'class-validator';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 
 export class JoinChannelDto {
     @IsString()
+	@MaxLength(10)
     channelName: string;
 
     @IsString()
+	@MaxLength(20)
     password: string;
 }
 
@@ -270,16 +269,6 @@ export class ChatController {
         }
     }
 
-
-	@Post('invite-user')
-	async handleInvite(
-		@Request() req : ExpressRequest
-	) {
-		this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(2, "channel", 9, 1));
-		// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
-
-	}
-
 	@Post('mute-user')
 	async handleMute(
 		@Request() req : ExpressRequest
@@ -341,26 +330,6 @@ export class ChatController {
 		if (userId == undefined)
 			return;
 		this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(userId, "channel", 9, 1));
-	}
-
-	@Post('add-invite')
-	async handleAddInvite(
-		@Request() req : ExpressRequest
-	) {
-		const userId = Number(req.user.sub);
-		if (userId == undefined)
-			return;
-		this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(userId, "channel", 9));
-	}
-
-	@Post('rm-invite')
-	async handleRemoveInvite(
-		@Request() req : ExpressRequest
-	) {
-		const userId = Number(req.user.sub);
-		if (userId == undefined)
-			return;
-		this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(userId, "channel", 9));
 	}
 
 	@Post('change-pwd')

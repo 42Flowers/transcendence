@@ -39,6 +39,59 @@ declare module 'socket.io' {
 	}
 }
 
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, ValidationOptions, registerDecorator, ValidationArguments, IsAscii } from 'class-validator';
+
+export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions) {
+	return function (object: object, propertyName: string) {
+		registerDecorator({
+		name: 'isNoSpecialCharactersChat',
+		target: object.constructor,
+		propertyName: propertyName,
+		options: validationOptions,
+		validator: {
+			validate(value: any, args: ValidationArguments) {
+				return typeof value === 'string' && /^[a-zA-Z0-9]+$/.test(value);
+			},
+			defaultMessage(args: ValidationArguments) {
+				return 'Only a to z, A to Z, 0 to 9 are allowed';
+			}
+		}
+		});
+	};
+}
+
+export class PrivateMessageDTO {
+	@IsNumber()
+	@IsNotEmpty()
+	@Min(1)
+	targetId: number
+
+	@IsString()
+	@IsNotEmpty()
+	@MaxLength(100)
+	@IsAscii()
+	message: string
+};
+
+export class ChannelMessageDTO {
+	@IsNumber()
+	@IsNotEmpty()
+	@Min(1)
+	channelId: number
+
+	@IsString()
+	@IsNotEmpty()
+	@MaxLength(10)
+	@IsNoSpecialCharactersChat()
+	channelName: string
+
+	@IsString()
+	@IsNotEmpty()
+	@MaxLength(100)
+	@IsAscii()
+	message: string
+};
+
 @Injectable()
 @WebSocketGateway({
 	cors: {
@@ -169,14 +222,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage('privatemessage')
 	handlePrivateMessage(
-		@MessageBody() data: {targetId: number, message: string},
+		@MessageBody() dto: PrivateMessageDTO,
 		@ConnectedSocket() client : Socket 
 	) {
 		const userId = Number(client.user.sub);
 		if (userId == undefined)
 			return;
 		try {
-			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, data.targetId, data.message));
+			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, dto.targetId, dto.message));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -184,14 +237,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage('channelmessage')
 	handleChannelMessage(
-		@MessageBody('') data: {channelId: number, channelName: string, message: string},
+		@MessageBody() dto : ChannelMessageDTO,
 		@ConnectedSocket() client : Socket 
 	) {
 		const userId = Number(client.user.sub);
 		if (userId == undefined)
 			return;
 		try {
-			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, data.channelId, data.message));
+			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, dto.channelId, dto.message));
 		} catch (err) {
 			console.log(err.message);
 		}

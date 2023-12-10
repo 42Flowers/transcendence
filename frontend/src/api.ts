@@ -126,6 +126,16 @@ export type KickPayload = {
     targetId: number;
 };
 
+export type BanUserPayload = {
+    channelId: number;
+    targetId: number;
+}
+
+export type UnBanUserPayload = {
+    channelId: number;
+    targetId: number;
+}
+
 export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel/`, payload));
 //export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
 export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation/`, payload));
@@ -133,8 +143,8 @@ export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit
 export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel/`, payload));
 export const mute = (payload: any) => wrapResponse(authorizedPost(`api/chat/mute-user`, payload));
 export const unmute = (payload: any) => wrapResponse(authorizedPost(`api/chat/unmute-user`, payload));
-export const ban = (payload: any) => wrapResponse(authorizedPost(`api/chat/ban-user`, payload));
-export const unban = (payload: any) => wrapResponse(authorizedPost(`api/chat/unban-user`, payload));
+export const ban = (payload: BanUserPayload) => wrapResponse(authorizedPost(`api/chat/ban-user`, payload));
+export const unban = (payload: UnBanUserPayload) => wrapResponse(authorizedPost(`api/chat/unban-user`, payload));
 export const kick = (payload: KickPayload) => wrapResponse(authorizedPost(`api/chat/kick-user`, payload));
 export const addAdmin = (payload: any) => wrapResponse(authorizedPost(`api/chat/add-admin`, payload));
 export const removeAdmin = (payload: any) => wrapResponse(authorizedPost(`api/chat/rm-admin`, payload));

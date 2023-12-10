@@ -18,39 +18,12 @@ import { ChatAddAdminToChannelEvent } from 'src/events/chat/addAdminToChannel.ev
 import { ChatRemoveAdminFromChannelEvent } from 'src/events/chat/removeAdminFromChannel.event';
 import { ChatExitChannelEvent } from 'src/events/chat/exitChannel.event';
 import { ChatJoinChannelEvent } from 'src/events/chat/joinChannel.event';
-import { ChatAddInviteEvent } from 'src/events/chat/addInvite.event';
 import { ChatAddPasswordEvent } from 'src/events/chat/addPassword.event';
-import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event';
-import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
 import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
 import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
-
-interface convElem {
-    isChannel: boolean,
-    channelId?: number,
-    channelName?: string,
-    targetId?: number
-    targetName?: string,
-    userPermissionMask?: number,
-    messages: convMessage[],
-}
-
-
-interface convMessage {
-    authorName: string,
-    authorId: number,
-    creationTime: Date,
-    content: string,
-}
-
-
-interface channelElem {
-    messages: Message[],
-    users: users[],
-}
 
 
 interface Message {
@@ -70,6 +43,7 @@ interface users {
 }
 
 import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
+import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 
 export class JoinChannelDto {
     @IsString()
@@ -147,7 +121,6 @@ export class ChatController {
         private readonly prismaService: PrismaService
         ) {}
 
-        DEBUG = true;
 
 	@Get('get-blocked-users')
 	async getBlockedUsers(
@@ -155,6 +128,8 @@ export class ChatController {
 	) {
 		try {
 			const userId = Number(req.user.sub);
+			if (userId == undefined)
+				return;
 			const blockedUsers = await this.prismaService.blocked.findMany({
 				where: {
 					userId: userId,
@@ -175,6 +150,8 @@ export class ChatController {
     ) {
         try {
 			const userId = Number(req.user.sub);
+			if (userId == undefined)
+				return;
             const rooms = await this.roomService.getPublicRooms(userId);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
 			console.log("t", access, "t");
@@ -183,9 +160,7 @@ export class ChatController {
 			console.log("t", chans, "t");
 			return chans;
         } catch (err) {
-            if (this.DEBUG == true) {
                 console.log(err.message);
-            }
         }
     }
 
@@ -196,13 +171,15 @@ export class ChatController {
 		@Param('channelId', CheckIntPipe) channelId: number,
     ) {
         try {
-            const userId = Number(req.user.sub);
+			const userId = Number(req.user.sub);
+			if (userId == undefined)
+				return;
             const member = await this.roomService.isUserinRoom(userId, channelId);
             if (member != null && member.membershipState !== 4) {
                 const messagesfromchannel = await this.messageService.getMessagesfromChannel(userId, channelId);
                 const messages : Message[] = [];
                 const userNames = await Promise.all(messagesfromchannel.map(conv => this.userService.getUserName(conv.authorId)));
-                messagesfromchannel.map((chan, index) => {
+				messagesfromchannel.map((chan, index) => {
 					messages.push({authorName: userNames[index].pseudo, authorId: chan.authorId, content: chan.content, createdAt: chan.createdAt, id:chan.id});
 				});
                 return messages;
@@ -247,12 +224,12 @@ export class ChatController {
         @Request() req : ExpressRequest
     ) {
         try {
-            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), joinChannelDto.channelName, joinChannelDto.password));
-            // this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(Number(req.user.sub), "channel", undefined, ""));
+			const userId = Number(req.user.sub);
+			if (userId == undefined)
+				return;
+            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(userId, joinChannelDto.channelName, joinChannelDto.password));
         } catch (err) {
-            if (this.DEBUG == true) {
-                console.log(err.message);
-            }
+			console.log(err.message);
         }
     }
 
@@ -262,7 +239,10 @@ export class ChatController {
         @Request() req : ExpressRequest
     ) {
           console.log("Hello2");
-          this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), quitDto.channelId)); // TODO: quitDto.channelId
+		  const userId = Number(req.user.sub);
+		  if (userId == undefined)
+			  return;
+          this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(userId, quitDto.channelId)); // TODO: quitDto.channelId
           // this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
     }
 
@@ -276,7 +256,8 @@ export class ChatController {
     ) {
         try {
 			const userId = Number(req.user.sub);
-            // const conversations = await this.conversationService.getAllUserConversations(Number(req.user.sub));
+			if (userId == undefined)
+				return;
             const conversations = await this.conversationService.getAllUserConversations(userId);
             const convs = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
@@ -295,7 +276,10 @@ export class ChatController {
         @Request() req: ExpressRequest
     ) {
         try {
-            const conversation = await this.chatService.createConversation(Number(req.user.sub), targetDto.targetName);
+			const userId = Number(req.user.sub);
+			if (userId == undefined)
+				return;
+            const conversation = await this.chatService.createConversation(userId, targetDto.targetName);
             return conversation;
         } catch(error) {
             console.log(error.message);
@@ -322,16 +306,6 @@ export class ChatController {
             console.log(err.message);
         }
     }
-
-
-	@Post('invite-user')
-	async handleInvite(
-		@Request() req : ExpressRequest
-	) {
-		this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(2, "channel", 9, 1));
-		// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
-
-	}
 
 	@Post('mute-user')
 	async handleMute(
@@ -400,36 +374,20 @@ export class ChatController {
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;
-			this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-			// this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
+        this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
+        // this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
 	}
 
 	@Post('rm-admin')
 	async handleRemoveAdmin(
         @Body() actionsDto: ActionsDto,
-		@Request() req : ExpressRequest
+		    @Request() req : ExpressRequest
 	) {
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;
 			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
 			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
-	}
-
-	@Post('add-invite')
-	async handleAddInvite(
-		@Request() req : ExpressRequest
-	) {
-			this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(2, "channel", 9));
-			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
-	}
-
-	@Post('rm-invite')
-	async handleRemoveInvite(
-		@Request() req : ExpressRequest
-	) {
-			this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(2, "channel", 9));
-			// this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(Number(req.user.sub), "super", 5));
 	}
 
 	@Post('change-pwd')
@@ -440,7 +398,7 @@ export class ChatController {
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;
-		this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(userId, managePwdDto.channelId, managePwdDto.pwd));
+		    this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(userId, managePwdDto.channelId, managePwdDto.pwd));
 	}
 
 	@Post('add-pwd')
@@ -470,7 +428,10 @@ export class ChatController {
 		@Request() req: ExpressRequest
 	) {
 		try {
-			const friends = await this.userService.getFriends(Number(req.user.sub));
+			const userId = Number(req.user.sub);
+			if (userId == undefined)
+				return;
+			const friends = await this.userService.getFriends(userId);
 			return friends;
 		} catch (err) {
 			console.log(err.message);

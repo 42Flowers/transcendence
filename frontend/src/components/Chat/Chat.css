@@ -124,9 +124,11 @@
 
 .displayMessageClass{
     /* border: 2px solid white; */
+	display: flex;
+	flex-direction: column;
 }
 
-.userBubble {
+.otherBubble {
 	align-self: flex-start;
     color: white;
     text-shadow: 0 0 4px var(--color-light-pink);
@@ -135,7 +137,7 @@
     padding: 5px;
 }
 
-.userNameBubble {
+.otherNameBubble {
 	text-align: left;
     margin-left: 2%;
 }
@@ -153,7 +155,7 @@
 	padding-right: 4px;
 }
 
-.otherBubble {
+.userBubble {
 	float: right;
 	clear: both;
 	color: white;
@@ -163,12 +165,12 @@
 	padding: 5px;
 }
 
-.otherNameBubble {
+.userNameBubble {
 text-align: right;
 margin-right: 2%;
 }
 
-.otherConvBubble {
+.userConvBubble {
 float: right;
 clear: both;
 }

@@ -33,21 +33,11 @@ import { ChatSocketJoinChannelsEvent } from "src/events/chat/socketJoinChannels.
 import { ChatSocketLeaveChannelsEvent } from "src/events/chat/socketLeaveChannels.event";
 import { v4 as uuidv4 } from 'uuid';
 
-
 declare module 'socket.io' {
 	interface Socket {
 		user?: UserPayload;
 	}
 }
-
-interface message {
-    type: string, //conversation/channel
-    id: number, //channelId/targetId
-    authorId: number,
-    authorName: string 
-    message: string,
-    creationTime: Date,
-} 
 
 @Injectable()
 @WebSocketGateway({
@@ -119,12 +109,6 @@ export class SocketGateway implements
 		this.socketService.emitToUserSockets(userId, 'channel', {type: type, channel: channel});
 	}
 
-	/**
-	 * 
-	 * TODO Faire que ces deux fonctions renvoient le même format au front
-	 * genre 'message' {type: "private/public", id: "channelId/targetId", message: string, createdAt: time, channelName?: string}
-	 */
-
 	@OnEvent('chat.sendmessage')
 	sendMessage(event: ChatSendMessageEvent) 
 	{
@@ -138,7 +122,7 @@ export class SocketGateway implements
 		else {
 			dest = event.destination;
 		}
-		this.server.to(dest).emit('message', {type: event.type, id: event.id, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
+		this.server.to(dest).emit('message', {type: event.type, id: event.id, msgId: event.msgId, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
 		if (event.type == "channel") {
 			event.channelUsers.forEach(user => {
 				this.socketService.leaveChannel(user.userId, dest);
@@ -155,10 +139,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage('blockuser')
 	handleBlockUser(
-		@MessageBody() data: {userId: number, targetId: number}
+		@MessageBody() data: {targetId: number},
+		@ConnectedSocket() client: Socket 
 	) {
 		try {
-			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(data.userId, data.targetId));
+			const userId = Number(client.user.sub);
+			if (userId == undefined)
+				return;
+			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(userId, data.targetId));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -166,10 +154,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage('unblockuser')
 	handleUnBlockUser(
-		@MessageBody() data: {userId: number, targetId: number}
+		@MessageBody() data: {targetId: number},
+		@ConnectedSocket() client: Socket
 	) {
 		try {
-			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(data.userId, data.targetId));
+			const userId = Number(client.user.sub);
+			if (userId == undefined)
+				return;
+			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(userId, data.targetId));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -177,11 +169,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage('privatemessage')
 	handlePrivateMessage(
-		@MessageBody() data: {userId: number, targetId: number, message: string},
+		@MessageBody() data: {targetId: number, message: string},
 		@ConnectedSocket() client : Socket 
 	) {
+		const userId = Number(client.user.sub);
+		if (userId == undefined)
+			return;
 		try {
-			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message));
+			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, data.targetId, data.message));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -197,7 +192,6 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, data.channelId, data.message));
-
 		} catch (err) {
 			console.log(err.message);
 		}

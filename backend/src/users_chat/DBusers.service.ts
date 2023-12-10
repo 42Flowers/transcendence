@@ -24,10 +24,10 @@ export class UsersService {
 
 	async getWhoBlockedMe(userId: number) {
 		try {
-			const blocked = await this.prismaService.blocked.findMany({where: {blockedId: userId}, select: {userId: true}});
-			return blocked;
-		} catch(error) {
-			console.log(error.message);
+			const mask = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId},}, select: {permissionMask:true}});
+			return mask.permissionMask;
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -40,32 +40,6 @@ export class UsersService {
 		}
 	}
 
-	async areFriends(userId: number, friendId: number) : Promise<any> {
-		try {
-			const friends = await this.prismaService.friendship.findUnique({
-			where: {
-				userId_friendId: {
-					userId: userId,
-					friendId: friendId
-				}
-			}
-		});
-		if (friends == null) {
-			return await this.prismaService.friendship.findUnique({
-				where: {
-					userId_friendId : {
-						userId: friendId,
-						friendId: userId
-				}}
-			})
-		}
-		else
-			return friends;
-		} catch (err) {
-			throw (new Error(err.message));
-		}
-	}
-
 	async getUserName(userId: number) : Promise<any> {
 		try {
 			const name = this.prismaService.user.findUnique({
@@ -74,21 +48,6 @@ export class UsersService {
 			return name;
 		} catch (err) {
 			throw err
-		}
-	}
-
-	async removeFriend(userId: number, friendId: number) : Promise<any> {
-		try {
-			const friendship =  await this.prismaService.friendship.delete({
-			where: {
-				userId_friendId :{
-				userId: userId,
-				friendId: friendId
-				}}
-			});
-			return friendship;
-		} catch (err) {
-			throw (new Error(err.message));
 		}
 	}
 
@@ -121,47 +80,6 @@ export class UsersService {
 		}
 	}
 
-	async clearUsers() : Promise<any> {
-		try {
-			await this.prismaService.channelMembership.deleteMany({});
-			await this.prismaService.friendship.deleteMany({});
-			this.socketService.deleteAllSockets();
-			return this.prismaService.user.deleteMany({});
-		} catch (err) {
-			throw (new Error(err.message));
-		}
-	}
-
-	async alreadyRegisterdById(id: number) : Promise<any> {
-		try {
-			const user = await this.prismaService.user.findUnique({
-				where: {
-					id: id
-				}
-			});
-			return user;
-		}
-		catch (err) {
-			throw (new Error(err.message));
-		}
-	}
-
-	async updateName(pseudo: string, id: number) : Promise<any> {
-		try {
-			const user = await this.prismaService.user.update({
-				where: {
-					id : id
-				},
-				data : {
-					pseudo: pseudo
-				}
-			});
-			return user;
-		} catch (err) {
-			throw (new Error(err.message));
-		}
-	}
-
 	async getUserById(id: number) : Promise<any> {
 		try {
 			if (id != undefined) {
@@ -183,7 +101,10 @@ export class UsersService {
 					userId_blockedId: {
 					userId: userId,
 					blockedId: targetId
-				}}
+				}}, select: {
+					userId: true,
+					blockedId: true
+				}
 			});
 			return blocked;
 		} catch (err) {
@@ -198,7 +119,7 @@ export class UsersService {
 					userId_blockedId : {
 					userId: targetId,
 					blockedId: userId
-				}}
+				}},
 			});
 			return blocked;
 		} catch (err) {

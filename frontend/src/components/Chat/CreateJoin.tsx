@@ -60,6 +60,7 @@ const CreateJoin: React.FC = () => {
                         style={{ flex: "1 1 auto" }}
                         placeholder="name"
                         className="inputClass"
+                        maxLength={10}
                     />
                     <input
                         type="password"
@@ -68,6 +69,7 @@ const CreateJoin: React.FC = () => {
                         style={{ flex: "1 1 auto" }}
                         placeholder="password"
                         className="inputClass"
+                        maxLength={20}
                     />
                     <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">JOIN</button>
                 </form>
@@ -80,6 +82,7 @@ const CreateJoin: React.FC = () => {
                         style={{ flex: "1 1 auto" }}
                         placeholder="name"
                         className="inputClass"
+                        maxLength={10}
                     />
                     <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">ADD</button>
                 </form>

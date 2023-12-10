@@ -50,8 +50,6 @@ export class SocketService {
 		}
 
 		this.connectedUsers[userId].push(socket);
-
-		//TODO join la socket à tous les channels dont le user fait partie
 	}
 
 	removeSocket(socket: Socket) {

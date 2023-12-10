@@ -24,6 +24,7 @@ import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
+import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
 
 
 interface Message {
@@ -42,8 +43,6 @@ interface users {
     permissionMask: number
 }
 
-import { IsString, IsNumber, IsNotEmpty, Min } from 'class-validator';
-import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 
 export class JoinChannelDto {
     @IsString()

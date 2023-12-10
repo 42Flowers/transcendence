@@ -27,7 +27,14 @@ export class CheckIntPipe implements PipeTransform {
             throw new BadRequestException('Validation failed: userId must be at least 1');
         }
 
-        const user = await this.prismaService.user.findUnique({ where: { id: intValue } });
+        const user = await this.prismaService.user.findUnique({ 
+            where: { 
+                id: intValue 
+            },
+            select: {
+                id: true,
+            } 
+        }); //TODO selectionner ce dont tu ad besoin ? 
         if (!user) {
             throw new NotFoundException('User not found');
         }

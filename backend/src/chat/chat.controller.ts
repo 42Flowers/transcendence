@@ -2,7 +2,7 @@
 import { Controller, Post, Body, Get, UseGuards, Request, Param } from '@nestjs/common';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { MessagesService } from 'src/messages/messages.service';
-import { UsersService } from 'src/users_chat/DBusers.service';
+import { UsersService } from 'src/users_chat/users_chat.service';
 import { RoomService } from '../rooms/rooms.service';
 import { Request as ExpressRequest } from 'express';
 import { ChatService } from './chat.service';
@@ -43,12 +43,16 @@ interface users {
     permissionMask: number
 }
 
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength } from 'class-validator';
+import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 
 export class JoinChannelDto {
     @IsString()
+	@MaxLength(10)
     channelName: string;
 
     @IsString()
+	@MaxLength(20)
     password: string;
 }
 

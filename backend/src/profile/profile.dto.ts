@@ -14,7 +14,7 @@ export class ChangePseudoDto {
     @IsString()
     @IsNoSpecialCharacters()
     @MinLength(3)
-    @MaxLength(32)
+    @MaxLength(10)
     pseudo: string
 }
 

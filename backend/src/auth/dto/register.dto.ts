@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, Length, ValidationOptions, registerDecorator, ValidationArguments } from "class-validator";
+import { IsEmail, IsNotEmpty, Length, ValidationOptions, registerDecorator, ValidationArguments, MaxLength } from "class-validator";
 
 function Match(property: string, validationOptions?: ValidationOptions) {
     return (object: any, propertyName: string) => {
@@ -21,7 +21,7 @@ function Match(property: string, validationOptions?: ValidationOptions) {
 
 export class UserRegisterDto {
     @ApiProperty()
-    @Length(3, 32)
+    @Length(3, 10)
     pseudo: string;
 
     @ApiProperty()
@@ -30,6 +30,7 @@ export class UserRegisterDto {
 
     @ApiProperty()
     @IsNotEmpty()
+	@MaxLength(20)
     password: string;
 
     @ApiProperty()

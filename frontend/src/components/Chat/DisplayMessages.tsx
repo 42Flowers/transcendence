@@ -34,21 +34,21 @@ const MessagesChannel: React.FC = () => {
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
-    const updateChannelMessages = useCallback((msg: messageElem) => {
-        console.log(msg)
-        // id undefined et besoin de l'id du message
-        if (msg.type !== "channel" || msg.id != currentChannel)
-            return;
-            queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: 12, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
-    }, []);
+    // const updateChannelMessages = useCallback((msg: messageElem) => {
+    //     console.log(msg)
+    //     // id undefined et besoin de l'id du message
+    //     if (msg.type !== "channel" || msg.id != currentChannel)
+    //         return;
+    //         queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: 12, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
+    // }, []);
 
-    useEffect(() => {
-        SocketState.socket?.on("message", updateChannelMessages);
+    // useEffect(() => {
+    //     SocketState.socket?.on("message", updateChannelMessages);
         
-        return () => {
-            SocketState.socket?.off("message", updateChannelMessages);
-        }
-    }, [SocketState.socket]);
+    //     return () => {
+    //         SocketState.socket?.off("message", updateChannelMessages);
+    //     }
+    // }, [SocketState.socket]);
 
     /*
     // TODO
@@ -85,19 +85,19 @@ const MessagesDm: React.FC = () => {
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
-    const updateDmMessages = useCallback((msg: messageElem) => {
-        if (msg.type === "channel" || msg.id != currentDm)
-            return;
-        queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.messageId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
-    }, []);
+    // const updateDmMessages = useCallback((msg: messageElem) => {
+    //     if (msg.type === "channel" || msg.id != currentDm)
+    //         return;
+    //     queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.messageId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
+    // }, []);
 
-    useEffect(() => {
-        SocketState.socket?.on("message", updateDmMessages);
+    // useEffect(() => {
+    //     SocketState.socket?.on("message", updateDmMessages);
         
-        return () => {
-            SocketState.socket?.off("message", updateDmMessages);
-        }
-    }, [SocketState.socket]);
+    //     return () => {
+    //         SocketState.socket?.off("message", updateDmMessages);
+    //     }
+    // }, [SocketState.socket]);
 
     /*
     // TODO

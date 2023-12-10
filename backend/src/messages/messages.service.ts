@@ -10,11 +10,18 @@ export class MessagesService {
 
 	async getMessagesfromChannel(userId: number, channelId: number): Promise<any> {
 		try {
-			return await this.prismaService.message.findMany({
+			const messages = await this.prismaService.message.findMany({
 				where: {
 					channelId: channelId
+				}, select: {
+					authorId: true,
+					channelId: true,
+					id: true,
+					content: true,
+					createdAt: true,
 				}
 			});
+			return messages;
 		} catch (err) {
 			throw new Error(err.message);
 		}
@@ -42,7 +49,7 @@ export class MessagesService {
 		try {
 			const channel = await this.prismaService.channel.findUnique({
 				where: 
-				{id : channelId}});
+				{id : channelId}, select: {id: true}});
 			if (channel != null){
 				return await this.prismaService.message.create({data: {
 					authorId: userId,

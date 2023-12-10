@@ -74,7 +74,7 @@ function authorizedGet<P = any>(url: string, config: AxiosRequestConfig = {}) {
 }
 
 function wrapResponse<T>(resp: Promise<AxiosResponse<T>>): Promise<T> {
-    const artificialDelay = 0;
+    const artificialDelay = 1;
 
     if (artificialDelay > 0) {
         return new Promise((resolve, reject) => setTimeout(() => {
@@ -97,6 +97,7 @@ export type PatchUserProfile = Partial<Exclude<UserProfile, 'id' | 'avatar'>>;
 export const patchUserProfile = (profile: UserID, data: PatchUserProfile) =>
     wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
 
+/* ==== PROFILE ==== */
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
 export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
 export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
@@ -104,10 +105,56 @@ export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats')
 export const fetchAddAchievementToUser = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-achievement-to-user', payload));
 export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-avatar', payload));
 
+/* ==== CHAT ==== */
+export type ChannelMembership = {
+    userId: number;
+    userName: string;
+    membershipState: number;
+    permissionMask: number;
+    avatar: string | null;
+};
+
+export const fetchAvailableChannels = () => wrapResponse(authorizedGet(`/api/chat/get-channels`));
+export const fetchAvailableDMs = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
+export const fetchChannelMembers = (channelId: number) => wrapResponse(authorizedGet<ChannelMembership[]>(`/api/chat/get-channelmembers/${channelId}`));
+export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet(`/api/chat/get-channelmessages/${channelId}`));
+export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet(`/api/chat/get-privatemessages/${channelId}`));
+export const fetchBlockedUsers = () => wrapResponse(authorizedGet(`/api/chat/get-blocked-users`));
+
+export type KickPayload = {
+    channelId: number;
+    targetId: number;
+};
+
+export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel/`, payload));
+//export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
+export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation/`, payload));
+export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel/`, payload));
+export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel/`, payload));
+export const mute = (payload: any) => wrapResponse(authorizedPost(`api/chat/mute-user`, payload));
+export const unmute = (payload: any) => wrapResponse(authorizedPost(`api/chat/unmute-user`, payload));
+export const ban = (payload: any) => wrapResponse(authorizedPost(`api/chat/ban-user`, payload));
+export const unban = (payload: any) => wrapResponse(authorizedPost(`api/chat/unban-user`, payload));
+export const kick = (payload: KickPayload) => wrapResponse(authorizedPost(`api/chat/kick-user`, payload));
+export const addAdmin = (payload: any) => wrapResponse(authorizedPost(`api/chat/add-admin`, payload));
+export const removeAdmin = (payload: any) => wrapResponse(authorizedPost(`api/chat/rm-admin`, payload));
+export const addPwd = (payload: any) => wrapResponse(authorizedPost(`api/chat/add-pwd`, payload));
+export const changePwd = (payload: any) => wrapResponse(authorizedPost(`api/chat/change-pwd`, payload));
+export const deletePwd = (payload: any) => wrapResponse(authorizedPost(`api/chat/rm-pwd`, payload));
+
+// OLD CHAT
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 
-export const fetchAvailableUsers = () => wrapResponse(authorizedGet('/api/gateway/status'));
+/* ==== STATUS ==== */
+type UserStatus = [
+    number, /* ID */
+    string, /* Username */
+    string, /* Status */
+];
 
+export const fetchAvailableUsers = () => wrapResponse(authorizedGet<UserStatus[]>('/api/gateway/status'));
+
+/* ==== FRIENDS ==== */
 export const fetchIsFriended = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isFriended: boolean; }>(`/api/profile/${userId}/isFriendwith/${friendId}`));
 export const addUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`api/profile/${userId}/add/${friendId}`, ''));
 export const fetchIsBlocked = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isBlocked: boolean; }>(`/api/profile/${userId}/isBlockWith/${friendId}`));

@@ -114,61 +114,7 @@ const Profile: React.FC = () => {
         return 'Error';
     }
 
-    const gamesWonFunc = ( userId: number, games: Game[] ): number => {
-        let gamesWon = 0;
-        games.map(game => {
-            if (game.game.winnerId === userId) {
-                gamesWon++;
-            }
-        });
-        return gamesWon;
-    };
 
-    const gamesPerfectFunc = ( userId: number, games: Game[] ): string => {
-        let gamePerfect = 0;
-        let gameLooser = 0;
-        games.map(game => {
-            if (game.game.winnerId === userId && ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10))) {
-                gamePerfect++;
-            } else if (game.game.looserId === userId && ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10))) {
-                gameLooser++;
-            }
-        })
-        if (gamePerfect > 0) {
-            return 'Perfect';
-        } else if (gameLooser > 0) {
-            return 'Looser';
-        }
-        return '';
-    };
-
-    const showPopup = ( popup: string ) => {
-        setCurrentPopup(prevPopup => ({
-            ...prevPopup,
-            [popup]: true
-        }));
-        setPopupQueue(prevQueue => [...prevQueue, popup]);
-    }
-
-    const gamesWonInARowFunc = (userId: number, games: Game[]): number => {
-        games.sort((a, b) => new Date(a.game.createdAt).getTime() - new Date(b.game.createdAt).getTime());
-
-        let maxConsecutiveWins = 0;
-        let currentConsecutiveWins = 0;
-
-        games.forEach((game) => {
-            if (userId === game.game.winnerId) {
-                currentConsecutiveWins++;
-                maxConsecutiveWins = Math.max(maxConsecutiveWins, currentConsecutiveWins);
-            } else {
-                currentConsecutiveWins = 0;
-            }
-        });
-
-        return maxConsecutiveWins;
-    };
-     
-  
     const handleUploadAvatar = (e) => {
         e.preventDefault();
 

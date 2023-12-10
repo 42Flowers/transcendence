@@ -30,6 +30,10 @@ import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
 import { PrismaService } from "src/prisma/prisma.service";
 import { Game, GameMode } from "src/game/game";
+import { ChatSendRoomToClientEvent } from "src/events/chat/sendRoomToClient.event";
+import { ChatSocketJoinChannelsEvent } from "src/events/chat/socketJoinChannels.event";
+import { ChatSocketLeaveChannelsEvent } from "src/events/chat/socketLeaveChannels.event";
+import { v4 as uuidv4 } from 'uuid';
 
 declare module 'socket.io' {
 	interface Socket {
@@ -46,14 +50,58 @@ declare module 'socket.io' {
 	}
 }
 
-interface message {
-    type: string, //conversation/channel
-    id: number, //channelId/targetId
-    authorId: number,
-    authorName: string 
-    message: string,
-    creationTime: Date,
-} 
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, ValidationOptions, registerDecorator, ValidationArguments, IsAscii } from 'class-validator';
+
+export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions) {
+	return function (object: object, propertyName: string) {
+		registerDecorator({
+		name: 'isNoSpecialCharactersChat',
+		target: object.constructor,
+		propertyName: propertyName,
+		options: validationOptions,
+		validator: {
+			validate(value: any, args: ValidationArguments) {
+				return typeof value === 'string' && /^[a-zA-Z0-9]+$/.test(value);
+			},
+			defaultMessage(args: ValidationArguments) {
+				return 'Only a to z, A to Z, 0 to 9 are allowed';
+			}
+		}
+		});
+	};
+}
+
+export class PrivateMessageDTO {
+	@IsNumber()
+	@IsNotEmpty()
+	@Min(1)
+	targetId: number
+
+	@IsString()
+	@IsNotEmpty()
+	@MaxLength(100)
+	@IsAscii()
+	message: string
+};
+
+export class ChannelMessageDTO {
+	@IsNumber()
+	@IsNotEmpty()
+	@Min(1)
+	channelId: number
+
+	@IsString()
+	@IsNotEmpty()
+	@MaxLength(10)
+	@IsNoSpecialCharactersChat()
+	channelName: string
+
+	@IsString()
+	@IsNotEmpty()
+	@MaxLength(100)
+	@IsAscii()
+	message: string
+};
 
 @Injectable()
 @WebSocketGateway({
@@ -96,17 +144,22 @@ export class SocketGateway implements
 		socket.user = { ...userPayload, ...payload };
 	}
 
-	async handleConnection(client: Socket) {
+	async handleConnection(client: Socket) {	
 		console.log(`Client connected: ${client.id}`);
-
 		client.join('server');
 		this.socketService.addSocket(client);
+		this.eventEmitter.emit('chat.socketjoinchannels', new ChatSocketJoinChannelsEvent(Number(client.user.sub), client))
 	}
 
 	async handleDisconnect(client: Socket) {
+		if (!client.user) {
+			return ;
+		}
 		client.leave('server');
+		this.eventEmitter.emit('chat.socketleavechannels', new ChatSocketLeaveChannelsEvent(Number(client.user.sub), client));
 		this.socketService.removeSocket(client);
 		console.log(`Client disconnected: ${client.id}`);		
+		// this.socketService.removeSocket(token.id, client);
 	}
 
 	@OnEvent('chat.sendtoclient')
@@ -117,99 +170,99 @@ export class SocketGateway implements
 		});
 	}
 
-	/**
-	 * 
-	 * TODO Faire que ces deux fonctions renvoient le même format au front
-	 * genre 'message' {type: "private/public", id: "channelId/targetId", message: string, createdAt: time, channelName?: string}
-	 */
+	@OnEvent('chat.sendroomtoclient')
+	sendRoomToClient({userId, type, channel}: ChatSendRoomToClientEvent
+	) {
+		this.socketService.emitToUserSockets(userId, 'channel', {type: type, channel: channel});
+	}
 
 	@OnEvent('chat.sendmessage')
 	sendMessage(event: ChatSendMessageEvent) 
 	{
-		this.server.to(event.destination).emit('message', {type: event.type, id: event.id, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
+		let dest;
+		if (event.type == "channel") {
+			dest = uuidv4();
+			event.channelUsers.forEach(user => {
+				this.socketService.joinChannel(user.userId, dest);
+			})
+		}
+		else {
+			dest = event.destination;
+		}
+		this.server.to(dest).emit('message', {type: event.type, id: event.id, msgId: event.msgId, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
+		if (event.type == "channel") {
+			event.channelUsers.forEach(user => {
+				this.socketService.leaveChannel(user.userId, dest);
+			})
+		}
 	}
 
 	@OnEvent('chat.sendtochannel')
 	sendToChannel(event: ChatSendToChannelEvent) {
-		console.log(event);
 		this.server.to(event.channelName).emit('info', {type: event.type, message: event.message});
 	}
+
 	// CHAT EVENTS
-	
+
 	@SubscribeMessage('blockuser')
 	handleBlockUser(
-		@MessageBody() data: {userId: number, targetId: number}
+		@MessageBody() data: {targetId: number},
+		@ConnectedSocket() client: Socket 
 	) {
 		try {
-			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(data.userId, data.targetId));
-		} catch (error) {
-			console.log(error.message);
+			const userId = Number(client.user.sub);
+			if (userId == undefined)
+				return;
+			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(userId, data.targetId));
+		} catch (err) {
+			console.log(err.message);
 		}
 	}
 
 	@SubscribeMessage('unblockuser')
 	handleUnBlockUser(
-		@MessageBody() data: {userId: number, targetId: number}
+		@MessageBody() data: {targetId: number},
+		@ConnectedSocket() client: Socket
 	) {
 		try {
-			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(data.userId, data.targetId));
-		} catch (error) {
-			console.log(error.message);
+			const userId = Number(client.user.sub);
+			if (userId == undefined)
+				return;
+			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(userId, data.targetId));
+		} catch (err) {
+			console.log(err.message);
 		}
 	}
 
 	@SubscribeMessage('privatemessage')
 	handlePrivateMessage(
-		@MessageBody() data: {userId: number, targetId: number, message: string},
+		@MessageBody() dto: PrivateMessageDTO,
 		@ConnectedSocket() client : Socket 
 	) {
+		const userId = Number(client.user.sub);
+		if (userId == undefined)
+			return;
 		try {
-			console.log(data);
-			console.log('ici', this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(data.userId, data.targetId, data.message)));
-		} catch (error) {
-			console.log(error.message);
+			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, dto.targetId, dto.message));
+		} catch (err) {
+			console.log(err.message);
 		}
 	}
 
 	@SubscribeMessage('channelmessage')
 	handleChannelMessage(
-		@MessageBody('') data: {userId: number, channelId: number, channelName: string, message: string},
+		@MessageBody() dto : ChannelMessageDTO,
 		@ConnectedSocket() client : Socket 
 	) {
-		console.log("arrive", client.id);
+		const userId = Number(client.user.sub);
+		if (userId == undefined)
+			return;
 		try {
-			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(data.userId, data.channelId, data.channelName, data.message));
-		} catch(error) {
-			console.log(error.message);
+			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, dto.channelId, dto.message));
+		} catch (err) {
+			console.log(err.message);
 		}
 	}
-
-	@SubscribeMessage('channelmanage')
-	handleMuteOnChannel(
-		@MessageBody('') data: {userId: number, type: string, channelName: string, channelId: number, options: any},
-		@ConnectedSocket() client: Socket	
-	) {
-		
-	}
-
-	// @SubscribeMessage('room')
-	// // @UseGuards(AuthGuard)
-	// chatRoom(
-	// 	@MessageBody('') data : {userId: number, type: string, roomname: string, roomId: number, option: any},
-	// 	@ConnectedSocket()  client:Socket
-	// ) {
-	// 	this.chatService.chatRoom(data);
-	// }
-
-
-	// @SubscribeMessage('friend')
-	// // @UseGuards(AuthGuard)
-	// chatFriend(
-	// 	@MessageBody('') data: {type: string, target: string, options: string},
-	// 	@ConnectedSocket() client: Socket
-	// ) {
-	// 	this.chatService.chatFriend(client, data);
-	// }
 
 	@SubscribeMessage('handshake')
 	// @UseGuards(AuthGuard)

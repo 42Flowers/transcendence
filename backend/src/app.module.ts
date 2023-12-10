@@ -13,6 +13,8 @@ import { SocketModule } from './socket/socket.module';
 import { TestModule } from './users/users.module';
 import { AchievementsModule } from './achievements/achievements.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import * as path from 'node:path';
 
 @Module({
   imports: [
@@ -21,6 +23,10 @@ import { ScheduleModule } from '@nestjs/schedule';
       isGlobal: true,
     }),
     ScheduleModule.forRoot(),
+    ServeStaticModule.forRoot({
+        rootPath: path.join(process.cwd(), 'uploads'),
+        serveRoot: '/static/',
+    }),
     GlobalJwtModule,
     AuthModule,
     GameModule,

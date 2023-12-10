@@ -11,22 +11,14 @@ export class ConversationsService {
 
 	async conversationExists(userId: number, targetId: number) : Promise<any> {
 		try {
-			const user = await this.prismaService.user.findUnique({where: {id: userId}, include : {userConversations: true}});
-			console.log(user);
-			const conversation = user.userConversations.find((conv) => conv.receiverId == targetId);
-			if (conversation) {
-				console.log(conversation.conversationId);
-				console.log(conversation.receiverId);
-				return conversation.conversationId;
+			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {userConversations: true }});
+			const userconversation = user.userConversations.find((conv) => conv.receiverId == targetId);
+			if (userconversation == null)
+				return null;
+			const conversation = await this.prismaService.conversation.findUnique({where: {id: userconversation.conversationId}, select: {id: true, name: true}});
+			if (conversation != null) {
+				return conversation;
 			}
-			// user.userConversations.map((conv) => {
-			// 	if (conv.receiverId === targetId)
-			// 	{
-			// 		console.log(conv.conversationId);
-			// 		console.log(conv);
-			// 		return {id : conv.conversationId};
-			// 	}
-			// });
 			return null;
 		} catch (err) {
 			throw new Error(err.message);
@@ -85,7 +77,7 @@ export class ConversationsService {
 
 	async getConversationName(userId: number, destId: number) : Promise<any> {
 		try {
-			const user = await this.prismaService.user.findUnique({where : {id: userId}, include : {userConversations: true}});
+			const user = await this.prismaService.user.findUnique({where : {id: userId}, select : {userConversations: true}});
 			let conversationId;
 			user.userConversations.map((conv) => {
 				if (conv.receiverId === destId) {
@@ -93,23 +85,8 @@ export class ConversationsService {
 				}
 			})
 			if (conversationId !== undefined) {
-				return await this.prismaService.conversation.findUnique({where: {id: conversationId}});
+				return await this.prismaService.conversation.findUnique({where: {id: conversationId}, select: {name: true}});
 			}
-			return null;
-		} catch (err) {
-			throw new Error(err.message);
-		}
-	}
-
-	async getConversationId(userId: number, destId: number) : Promise<any> {
-		try {
-			const user = await this.prismaService.user.findUnique({where : {id : userId}, include : {userConversations:true}});
-			let conversationId = undefined;
-			user.userConversations.map((conv) => {
-				if (conv.receiverId === destId) {
-					return conv.conversationId;
-				}
-			});
 			return null;
 		} catch (err) {
 			throw new Error(err.message);
@@ -124,10 +101,8 @@ export class ConversationsService {
 				},
 				include : {userConversations:true}
 			});
-			console.log(conversations.userConversations);
 			return conversations.userConversations;
 		} catch (err) {
-			console.log("par ici");
 			throw err;
 		}
 	}

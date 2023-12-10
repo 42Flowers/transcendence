@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
 import { Auth } from './components/Auth/Auth';
-import Chat from './components/Chat/Chat';
 import FriendList from './components/FriendList/FriendList';
 import RegisterForm from './components/RegisterForm/RegisterForm';
 import GameWrapper from './components/Game/GameWrapper';
@@ -9,6 +8,7 @@ import PlayPage from './pages/PlayPage';
 import Profile from './components/Profile/Profile';
 import IntraRegisterForm from './components/IntraRegisterForm/IntraRegisterForm';
 import ProfilePublic from './components/Profile/ProfilePublic';
+import Chat from './components/Chat/Chat';
 
 export const router = createBrowserRouter([
     {

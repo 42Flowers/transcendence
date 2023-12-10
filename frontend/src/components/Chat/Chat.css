@@ -1,0 +1,206 @@
+
+/**************************************** MENU ****************************************/
+
+.menuLeftClass {
+    background: linear-gradient(to left, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+	height: 100%;
+	border: 2px solid white;
+	border-top-left-radius: 20px;
+}
+
+.menuRightClass {
+    background: linear-gradient(to left, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+	height: 100%;
+	border: 2px solid white;
+	border-top-right-radius: 20px;
+}
+
+.buttonClass {
+    font-family: "Short Stack";
+	color: white;
+	text-shadow: 0 0 4px var(--color-purple);
+}
+
+.buttonClass:last-child {
+	text-shadow: 0 0 4px var(--color-yellow);
+}
+
+.buttonClass:hover {
+	cursor: pointer;
+	text-shadow: 0 0 4px var(--color-blue);
+}
+
+/**************************************** TITLE ****************************************/
+
+.titleClass {
+	color: white;
+    background: linear-gradient(to right, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+	border: 2px solid white;
+	/* border-top-right-radius: 20px; */
+}
+
+/**************************************** List ****************************************/
+
+.listClass {
+	height: 100%;
+	/* overflow: hidden; */
+    overflow-y: scroll;
+}
+
+.listLeftClass {
+	color: white;
+	text-shadow: 0 0 4px var(--color-yellow);
+	border: 2px solid white;
+	border-radius: 20px;
+    background: transparent;
+	margin: 4px;
+}
+
+.listLeftClass:hover {
+	cursor: pointer;
+	background-color: rgba(254, 254, 212, 0.375);
+}
+
+.listRightClass {
+	color: white;
+	text-shadow: 0 0 4px var(--color-yellow);
+	border: 2px solid white;
+	border-radius: 20px;
+    background: transparent;
+	margin: 4px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	align-items: center;
+	padding: 5px;
+}
+
+.listRightClass:hover {
+	background-color: rgba(254, 254, 212, 0.375);
+}
+
+/**************************************** CREATE JOIN ****************************************/
+
+.CreateJoin {
+    background: linear-gradient(to left, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+	font-family: "Short Stack";
+	text-align: center;
+    border: 1px solid white;
+    border-bottom: 2px solid white;
+    border-left: 2px solid white;
+	border-bottom-left-radius: 20px;
+}
+
+.inputClass {
+    font-family: "Short Stack";
+	color: white;
+	background: transparent;
+	border: none;
+	border-right: 1px solid white;
+	border-top: 1px solid white;
+	border-bottom: 1px solid white;
+	text-shadow: 0 0 4px var(--color-purple);
+}
+
+.submitClass {
+    font-family: "Short Stack";
+	color: white;
+	background: transparent;
+	border: none;
+	border-right: 1px solid white;
+	border-top: 1px solid white;
+	border-bottom-left-radius: 20px;
+	font-size: 1.3em;
+	text-shadow: 0 0 4px var(--color-yellow);
+}
+
+.submitClass:hover {
+	cursor: pointer;
+	text-shadow: 0 0 4px var(--color-blue);
+}
+
+
+/**************************************** DISPLAY MESSAGE ****************************************/
+
+.displayMessageClass{
+    /* border: 2px solid white; */
+	display: flex;
+	flex-direction: column;
+}
+
+.otherBubble {
+	align-self: flex-start;
+    color: white;
+    text-shadow: 0 0 4px var(--color-light-pink);
+    margin: 1%;
+    margin-right: 25%;
+    padding: 5px;
+}
+
+.otherNameBubble {
+	text-align: left;
+    margin-left: 2%;
+}
+
+.userConvBubble, .otherConvBubble {
+	border: 2px solid white;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+    background: transparent;
+	overflow-wrap: break-word;
+  	hyphens: auto;
+	width:fit-content;
+	padding: 2px;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+.userBubble {
+	float: right;
+	clear: both;
+	color: white;
+	text-shadow: 0 0 4px var(--color-blue);
+	margin: 1%;
+	margin-left: 25%;
+	padding: 5px;
+}
+
+.userNameBubble {
+text-align: right;
+margin-right: 2%;
+}
+
+.userConvBubble {
+float: right;
+clear: both;
+}
+
+/**************************************** SEND MESSAGE ****************************************/
+
+.sendMessageClass {
+    background: linear-gradient(to right, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+    border: 2px solid white;
+}
+
+.inputSendMessageClass {
+    font-family: "Short Stack";
+	border: 2px solid white;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+    background: transparent;
+    color: white;
+	text-shadow: 0 0 4px var(--color-yellow);
+    padding: 5px;
+
+}
+
+.icon-send {
+	color: white;
+    font-size: 2em;
+}
+
+.icon-send:hover{
+	cursor: pointer;
+    font-size: 2.3em;
+}
+

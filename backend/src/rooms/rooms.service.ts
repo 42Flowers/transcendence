@@ -117,7 +117,6 @@ export class RoomService {
 					}
 				}
 				else {
-					this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: "No room registered under this id/name combination"});
 					throw new MyError("No channels under this id/name combination");
 				}
 				try {
@@ -143,7 +142,7 @@ export class RoomService {
 						throw error;
 					}
 					else {
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', 'You are already in this channel'));
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', "You are already in this channel"));
 						throw new MyError("User already in channel");
 					}
 				}
@@ -153,7 +152,7 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.message});
+				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', err.message))
 				console.log(err.message);
 				return;
 			}
@@ -175,7 +174,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
 				console.log(err.message);
 				return;
 			}
@@ -191,7 +189,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
 				console.log(err.message);
 				return;
 			}
@@ -235,9 +232,9 @@ export class RoomService {
 	}
 
 
-	async kickUser(userId: number, channelId: number) : Promise<any> {
+	async kickUser(targetId: number, channelId: number) : Promise<any> {
 		try {
-			const membership = await  this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: userId, channelId: channelId}}});
+			const membership = await  this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: targetId, channelId: channelId}}});
 			if (membership != null) {
 				return {status: true};
 			}
@@ -402,7 +399,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
 				console.log(err.message);
 				return;
 		}

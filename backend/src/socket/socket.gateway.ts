@@ -185,7 +185,7 @@ export class SocketGateway implements
 
 	@OnEvent('chat.sendtochannel')
 	sendToChannel(event: ChatSendToChannelEvent) {
-		this.server.to(event.channelName).emit('info', {type: event.type, message: event.message});
+		this.server.to(event.channelName).emit('info', {type: event.type, msg: event.message});
 	}
 
 	// CHAT EVENTS

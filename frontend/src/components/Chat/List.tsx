@@ -87,7 +87,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
             } else if (memberShipState === 2) {
                 setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
             } else if (memberShipState === 4) {
-                setOptions(['Mute', 'Kick', 'Unban', 'Add Admin', 'Play']);
+                setOptions(['Unban', 'Play']);
             }
         } else {
             setOptions(['Play']);

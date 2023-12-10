@@ -1,12 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MessagesService } from 'src/messages/messages.service';
 import { SocketService } from 'src/socket/socket.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { Socket } from 'socket.io';
 import { MyError } from 'src/errors/errors';
 
 @Injectable()
@@ -78,29 +77,6 @@ export class RoomService {
 		}
 	}
 
-	async joinByInvite(userId: number, channelId: number, channelName: string) {
-		try {
-			return await this.prismaService.channelMembership.create({
-				data: {
-					channel: {
-						connect: {
-							id: channelId,
-						}
-					},
-					channelName: channelName,
-					user : {
-						connect: {
-							id: userId,
-						}
-					},
-					permissionMask: 1
-				}
-			});
-		} catch (err) {
-			throw new Error(err.message);
-		}
-	}
-
 	async joinRoom(userId: number, channelId : number, roomname: string, pwd: string): Promise<any> {
 		try {
 			if (channelId === undefined) {
@@ -121,10 +97,7 @@ export class RoomService {
 			else if (channelId !== undefined) {
 				const channel = await this.getRoom(channelId);
 				if (channel !== null) {
-					if (channel.accessMask !== 0) {
-							if (channel.accessMask == 2) {
-								throw (new MyError("This is an invite only channel"));
-							}
+					if (channel.accessMask == 4) {
 							if (!await bcrypt.compare(pwd, channel.password))
 								throw new MyError("This channel is password protected");
 					}
@@ -195,91 +168,6 @@ export class RoomService {
 		}
 	}
 
-
-	async isRoomAdmin(userId: number, channelId: number) : Promise<any> {
-		try {
-			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select: {permissionMask: true }});
-			if (membership.permissionMask === 2) {
-				return true; 
-			} return false;
-		} catch (err) {
-			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
-				throw Error(err.message);
-			}
-			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
-				console.log(err.message);
-				return;
-			}
-		}
-	}
-
-	async isRoomOwner(userId: number, channelId: number) : Promise<any> {
-		try {
-			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select :{permissionMask: true},});
-			if (membership.permissionMask === 4)
-				return true;
-			return false;
-		} catch(err) {
-			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
-				throw Error(err.message);
-			}
-			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
-				console.log(err.message);
-				return;
-			}
-		}
-	}
-
-	async changePassword(userId: number, channelId: number, option : {invite: boolean, key: boolean, value: string}) : Promise<any> {
-		try {
-			if (channelId != null) {
-				const channel = await this.getRoom(channelId);
-				if (channel.accessMask === 2)
-					return 'cannot put a pasword on an invite only channel';
-				return this.prismaService.channel.update({
-					where: {id : channelId },
-					data : {password : option.value}
-				});
-			}
-			else {
-				throw new MyError("Undefined channelId");
-			}
-		} catch (err) {
-			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
-				throw new Error(err.message);
-			}
-			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
-				console.log(err.message);
-				return;
-			}
-		}
-	}
-
-	async changeInviteOnly(userId: number, channelId: number, option: {invite: boolean, key: boolean, value: string}) : Promise<any> {
-		try {
-			if (option.invite === true) {
-				return await this.prismaService.channel.update({
-					where: {id: channelId},
-					data: {accessMask: 2}
-				});
-			}
-			else
-				return await this.prismaService.channel.update({where: {id: channelId}, data: {accessMask: 1}});
-		} catch(err) {
-			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
-				throw Error(err.message);
-			}
-			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
-				console.log(err.message);
-				return;
-			}
-		}
-	}
-
 	async removeUserfromRoom(userId: number, channelId: number): Promise<any> {
 		try {
 			const membership = await this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: userId, channelId: channelId}}});
@@ -307,12 +195,6 @@ export class RoomService {
 		}
 	}
 
-
-	/**
-	 * 
-	 * @param channelId 
-	 * @returns list of channelMemberships and not users ?? And with the select ? 
-	 */
 	async getUsersfromRoom(channelId: number) : Promise<any> {
 		try {
 			const users = await this.prismaService.channelMembership.findMany({
@@ -329,14 +211,6 @@ export class RoomService {
 				console.log(users);
 			return users;
 		} catch (err) { throw new Error(err.message) }
-	}
-	
-	async getRooms() : Promise<any> {
-		try {
-			return this.prismaService.channel.findMany({});
-		} catch (err) {
-			throw new Error(err.message);
-		}
 	}
 
 	async getRoom(channelId: number) : Promise<any> {
@@ -428,24 +302,6 @@ export class RoomService {
 		} catch(err) {throw new Error(err.message)}
 	}
 
-	async isMute(userId:number, channelId: number) : Promise<any> {
-		try {
-			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select: {membershipState: true}});
-			if (membership === null || membership.membershipState !== 2) 
-				return false;
-			return true; 
-		} catch (err) {throw new Error(err.message)}
-	}
-
-	async isBan(userId: number, channelId: number) : Promise<any> {
-		try {
-			const membership = await this.prismaService.channelMembership.findUnique({where : {userId_channelId: {userId: userId, channelId: channelId}}, select: {membershipState: true}});
-			if (membership === null ||membership.membershipState !== 4)
-				return false;
-			return true;
-		} catch (err) {throw new Error(err.message)}
-	}
-
 	async addAdmin(userId: number, channelId: number): Promise<any> {
 		try {
 			const membership =  await this.prismaService.channelMembership.update({
@@ -492,34 +348,6 @@ export class RoomService {
 			else {
 				return {status: false, msg: "Couldn't remove password"};
 			}
-		} catch (err) {throw err}
-	}
-
-	async addInvite(channelId: number) : Promise<any> {
-		try {
-			const chan = await this.prismaService.channel.update({where: {id: channelId}, data: {accessMask: 2}});
-			if (chan != null) {
-				return {status: true};
-			} else {
-				return {status: false, msg: "Couldn't add Invite"};
-			}
-		} catch (err) {throw err}
-	}
-
-	async rmInvite(channelId: number) : Promise<any> {
-		try {
-			const chan = await this.prismaService.channel.update({where: {id: channelId}, data: {accessMask: 1}});
-			if (chan != null)  {
-				return {status: true};
-			} else {
-				return {status: false, msg: "Couldn't remove InviteOnly"};
-			}
-		} catch (err) {throw err}
-	}
-
-	async clearRooms() : Promise<any> {
-		try {
-			return this.prismaService.channel.deleteMany({});
 		} catch (err) {throw err}
 	}
 

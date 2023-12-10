@@ -106,6 +106,22 @@ export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/ap
 export const fetchChangePseudo = (payload: any) => wrapResponse(authorizedPost('/api/profile/change-pseudo', payload));
 
 /* ==== CHAT ==== */
+export type ChannelMessage = {
+    id: number;
+    authorName: string;
+    authorId: number;
+    content: string;
+    createdAt: string;
+};
+
+export type PrivateMessage = {
+    id: number;
+    authorName: string;
+    authorId: number;
+    content: string;
+    createdAt: string;
+};
+
 export type ChannelMembership = {
     userId: number;
     userName: string;
@@ -116,9 +132,9 @@ export type ChannelMembership = {
 
 export const fetchAvailableChannels = () => wrapResponse(authorizedGet(`/api/chat/get-channels`));
 export const fetchAvailableDMs = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
+export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet<ChannelMessage[]>(`/api/chat/get-channelmessages/${channelId}`));
+export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet<PrivateMessage[]>(`/api/chat/get-privatemessages/${channelId}`));
 export const fetchChannelMembers = (channelId: number) => wrapResponse(authorizedGet<ChannelMembership[]>(`/api/chat/get-channelmembers/${channelId}`));
-export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet(`/api/chat/get-channelmessages/${channelId}`));
-export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet(`/api/chat/get-privatemessages/${channelId}`));
 export const fetchBlockedUsers = () => wrapResponse(authorizedGet(`/api/chat/get-blocked-users`));
 
 export type KickPayload = {

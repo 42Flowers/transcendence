@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import React, { createContext, useContext } from 'react';
 import { Socket } from 'socket.io-client';
 
 export interface ISocketContextState {
@@ -48,6 +48,25 @@ const SocketContext = createContext<ISocketContextProps>({
 	SocketState: defaultSocketContextState,
 	SocketDispatch: () => {}
 });
+
+/**
+ * Listens to an event and calls cb upon receiving
+ * @param ev The event to listen to
+ * @param cb The callback function called when an event arrives, data contains the event payload sent from the backend.
+ */
+export function useSocketEvent<T = any>(ev: string, cb: (data: T) => void) {
+	const { SocketState: { socket } } = useContext(SocketContext);
+
+	React.useEffect(() => {
+		if (socket) {
+			socket.on(ev, cb);
+
+			return () => {
+				socket.off(ev, cb);
+			}
+		}
+	}, [ socket ]);
+}
 
 export const SocketContextConsumer = SocketContext.Consumer;
 export const SocketContextProvider = SocketContext.Provider;

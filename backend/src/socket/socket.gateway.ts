@@ -184,7 +184,7 @@ export class SocketGateway implements
 		else {
 			dest = event.destination;
 		}
-		this.server.to(dest).emit('message', {type: event.type, id: event.id, msgId: event.msgId, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
+		this.server.to(dest).emit('message', {type: event.type, authorId: event.authorId, authorName: event.authorName, createdAt: event.createdAt, id: event.id, message: event.message, msgId: event.msgId});
 		if (event.type == "channel") {
 			event.channelUsers.forEach(user => {
 				this.socketService.leaveChannel(user.userId, dest);

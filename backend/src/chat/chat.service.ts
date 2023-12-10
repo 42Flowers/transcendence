@@ -208,7 +208,7 @@ export class ChatService {
 						const newMsg = await this.messagesService.newChannelMessage(user.id, event.channelId, event.message);
 						const channelName = await this.roomService.getRoom(event.channelId);
 						const channelUsers = await this.roomService.getUsersFromRoomWithoutBlocked(user.id, event.channelId);
-						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, newMsg.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, channelUsers));
+						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, newMsg.id, channelUsers));
 						return;
 					}
 				}

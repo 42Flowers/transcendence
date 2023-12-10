@@ -1,10 +1,8 @@
 import { ChatContext } from "../../contexts/ChatContext";
-import { useCallback, useContext, useEffect } from "react";
-import { ChatContextType } from "./Menu";
+import { useCallback, useContext } from "react";
 import { useQuery } from "react-query";
-import { fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../api";
-import SocketContext from "../Socket/Context/Context";
-import { Socket } from "socket.io-client";
+import { ChannelMessage, PrivateMessage, fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../api";
+import { useSocketEvent } from "../Socket/Context/Context";
 import './Chat.css';
 import { queryClient } from "../../query-client";
 import { useAuthContext } from "../../contexts/AuthContext";
@@ -17,6 +15,7 @@ interface messageElem {
     authorName: string 
     message: string,
     creationTime: Date,
+    msgId: number,
 }
 
 const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
@@ -29,27 +28,35 @@ const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
 }
 
 const MessagesChannel: React.FC = () => {
-    const { currentChannel } = useContext(ChatContext) as ChatContextType;
-    const { SocketState } = useContext(SocketContext);
+    const { currentChannel } = useContext(ChatContext);
     const channelMessages = useQuery(['channel-messages', currentChannel], () => fetchChannelMessages(currentChannel));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
-    // const updateChannelMessages = useCallback((msg: messageElem) => {
-    //     console.log(msg)
-    //     // id undefined et besoin de l'id du message
-    //     if (msg.type !== "channel" || msg.id != currentChannel)
-    //         return;
-    //         queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: 12, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
-    // }, []);
+    const updateChannelMessages = useCallback((msg: messageElem) => {
+        if (msg.type !== "channel")
+            return ;
 
-    // useEffect(() => {
-    //     SocketState.socket?.on("message", updateChannelMessages);
-        
-    //     return () => {
-    //         SocketState.socket?.off("message", updateChannelMessages);
-    //     }
-    // }, [SocketState.socket]);
+        /**
+         * If the channel is in the cache, update it.
+         * If the channel isn't in the cache, ignore the message.
+         * A full request will be received with the message list anyway.
+         */
+        if (queryClient.getQueryData<ChannelMessage[]>([ 'channels-messages', msg.id ]) !== undefined) {
+            queryClient.setQueryData<ChannelMessage[]>([ 'channels-messages', msg.id ], messages => [
+                ...(messages ?? []),
+                {
+                    id: msg.msgId,
+                    authorId: msg.authorId,
+                    authorName: msg.authorName,
+                    content: msg.message,
+                    createdAt: msg.creationTime.toISOString()
+                },
+            ]);
+        }
+    }, []);
+
+    useSocketEvent('message', updateChannelMessages);
 
     /*
     // TODO
@@ -80,25 +87,29 @@ const MessagesChannel: React.FC = () => {
 };
 
 const MessagesDm: React.FC = () => {
-    const { currentDm } = useContext(ChatContext) as ChatContextType;
-    const { SocketState } = useContext(SocketContext);
+    const { currentDm } = useContext(ChatContext);
     const dmMessages = useQuery(['dm-messages', currentDm], () => fetchDmMessages(currentDm));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
-    // const updateDmMessages = useCallback((msg: messageElem) => {
-    //     if (msg.type === "channel" || msg.id != currentDm)
-    //         return;
-    //     queryClient.setQueryData(['channels-messages'], (messages) => [...messages, {id: msg.messageId, authorId: msg.authorId, authorName: msg.authorName, content: msg.message, createdAt: msg.creationTime}]);
-    // }, []);
+    const updateDmMessages = useCallback((msg: messageElem) => {
+        if (msg.type === "channel" || msg.id != currentDm)
+            return;
 
-    // useEffect(() => {
-    //     SocketState.socket?.on("message", updateDmMessages);
-        
-    //     return () => {
-    //         SocketState.socket?.off("message", updateDmMessages);
-    //     }
-    // }, [SocketState.socket]);
+        if (queryClient.getQueryData<PrivateMessage[]>(['dm-messages', currentDm]) !== undefined) {
+            queryClient.setQueryData<PrivateMessage[]>(['dm-messages', currentDm], messages => [
+                ...(messages ?? []),
+                {
+                    id: msg.msgId,
+                    authorId: msg.authorId,
+                    authorName: msg.authorName,
+                    content: msg.message,
+                    createdAt: msg.creationTime.toISOString(),
+                }]);
+        }
+    }, []);
+
+    useSocketEvent('message', updateDmMessages);
 
     /*
     // TODO
@@ -130,7 +141,7 @@ const MessagesDm: React.FC = () => {
 };
 
 const DisplayMessages: React.FC = () => {
-    const { chanOrDm, currentChannel, currentDm } = useContext(ChatContext) as ChatContextType;
+    const { chanOrDm, currentChannel, currentDm } = useContext(ChatContext);
 
     return (
         chanOrDm === 'channel' ?

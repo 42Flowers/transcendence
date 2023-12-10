@@ -176,10 +176,11 @@ export class ChatController {
         try {
 			const userId = Number(req.user.sub);
             const rooms = await this.roomService.getPublicRooms(userId);
-			const access = await Promise.all(rooms.forEach(room => this.roomService.getAccessMask(room.channelId)));
+			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
+			console.log("t", access, "t");
             const chans = [];
-            rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index]}));
-			console.log(chans);
+            rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask}));
+			console.log("t", chans, "t");
 			return chans;
         } catch (err) {
             if (this.DEBUG == true) {

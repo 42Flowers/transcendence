@@ -25,7 +25,7 @@ export class RoomService {
 	async getAccessMask(channelId: number) {
 		try {
 			const mask = await this.prismaService.channel.findUnique({where: {id: channelId}, select: {accessMask: true}});
-			return mask.accessMask;
+			return mask;
 		} catch (error) {
 			console.log(error.message);
 		}

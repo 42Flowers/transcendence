@@ -356,13 +356,12 @@ export class RoomService {
 	async rmPwd(channelId: number) : Promise<any> {
 		try {
 			const chan = await this.prismaService.channel.update({where: {id: channelId}, data: {password : '', accessMask: 1}});
-			return chan != null ? {status: true} : {status: false, msg: "Couldn't remove password"} 
-			// if (chan != null ) {
-			// 	return {status: true};
-			// }
-			// else {
-			// 	return {status: false, msg: "Couldn't remove password"};
-			// }
+			if (chan != null ) {
+				return {status: true};
+			}
+			else {
+				return {status: false, msg: "Couldn't remove password"};
+			}
 		} catch (err) {throw err}
 	}
 

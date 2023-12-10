@@ -434,7 +434,7 @@ export class ChatService {
 				const room = await this.roomService.roomExists(event.channelId);
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member && member.permissionMask <= 2 && member.membershipState !== 4) {
+					if (member && member.permissionMask >= 2 && member.membershipState !== 4) {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
 							const result = await this.roomService.addAdmin(event.targetId, event.channelId);

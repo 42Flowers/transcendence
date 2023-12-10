@@ -8,6 +8,7 @@ import { Socket } from "socket.io-client";
 import './Chat.css';
 import { queryClient } from "../../query-client";
 import { useAuthContext } from "../../contexts/AuthContext";
+import map from "lodash/map";
 
 interface messageElem {
     type: string, //conversation/channel
@@ -57,7 +58,7 @@ const MessagesChannel: React.FC = () => {
     */
     return (
         <div className="displayMessageClass">
-            {channelMessages.isFetched && blockedUsers.isFetched && channelMessages.data.map(msg => (
+            {channelMessages.isFetched && blockedUsers.isFetched && map(channelMessages.data, msg => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ? 
                         null
@@ -107,7 +108,7 @@ const MessagesDm: React.FC = () => {
 
     return (
         <div className="displayMessageClass">
-            {dmMessages.isFetched && blockedUsers.isFetched && dmMessages.data.map(msg => (
+            {dmMessages.isFetched && blockedUsers.isFetched && map(dmMessages.data, msg => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ? 
                         null

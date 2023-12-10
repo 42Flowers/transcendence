@@ -6,7 +6,7 @@ const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
 	const [SocketState, SocketDispatch] = useReducer(SocketReducer, defaultSocketContextState);
 	const [loading, setLoading] = useState(true);
 
-	const socket = useSocket('ws://localhost:8080', {
+	const socket = useSocket(import.meta.env.WEBSOCKET_URL, {
 		reconnectionAttempts: 5,
 		reconnectionDelay: 5000,
 		autoConnect: false

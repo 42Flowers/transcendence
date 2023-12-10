@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { Socket } from 'socket.io';
 import { MyError } from 'src/errors/errors';
+import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
 
 @Injectable()
 export class RoomService {
@@ -156,7 +157,7 @@ export class RoomService {
 						throw error;
 					}
 					else {
-						this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: 'You are already in this channel'});
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', 'You are already in this channel'));
 						throw new MyError("User already in channel");
 					}
 				}

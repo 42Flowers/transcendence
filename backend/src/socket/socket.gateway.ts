@@ -41,10 +41,10 @@ declare module 'socket.io' {
 
 import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, ValidationOptions, registerDecorator, ValidationArguments, IsAscii } from 'class-validator';
 
-export function IsNoSpecialCharacters(validationOptions?: ValidationOptions) {
+export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions) {
 	return function (object: object, propertyName: string) {
 		registerDecorator({
-		name: 'isNoSpecialCharacters',
+		name: 'isNoSpecialCharactersChat',
 		target: object.constructor,
 		propertyName: propertyName,
 		options: validationOptions,
@@ -82,7 +82,7 @@ export class ChannelMessageDTO {
 	@IsString()
 	@IsNotEmpty()
 	@MaxLength(10)
-	@IsNoSpecialCharacters()
+	@IsNoSpecialCharactersChat()
 	channelName: string
 
 	@IsString()

@@ -36,6 +36,7 @@ const SendMessages: React.FC = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     className="inputSendMessageClass"
+                    maxLength={100}
                 />
                 <button type="submit" style={{ background: "none", border: "none" }}><AiOutlineSend className="icon-send"/></button>
             </form>

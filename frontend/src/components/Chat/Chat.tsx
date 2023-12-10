@@ -8,10 +8,9 @@ import SendMessages from "./SendMessages";
 
 import { ChatContext } from "../../contexts/ChatContext";
 import { useContext } from "react";
-import { ChatContextType } from "./Menu";
 
 const Chat: React.FC = () => {
-    const { isDm } = useContext(ChatContext) as ChatContextType;
+    const { isDm } = useContext(ChatContext);
 
     const containerStyle: React.CSSProperties = {
         display: "flex",

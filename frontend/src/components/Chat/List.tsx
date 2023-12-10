@@ -1,17 +1,11 @@
-<<<<<<< HEAD
 import { ChatContext, ChatContextType  } from "../../contexts/ChatContext";
-import { useContext, useState, useEffect } from "react";
-=======
-import { AxiosError } from "axios";
 import filter from 'lodash/filter';
 import map from 'lodash/map';
 import React, { useContext, useEffect, useState } from "react";
->>>>>>> 7086ac062e77f2932ee2ea03ebf85960fec6ce6e
 import { useMutation, useQuery } from "react-query";
 import { ChannelMembership, addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
 import default_avatar from '../../assets/images/default_avatar.png';
 import { useAuthContext } from "../../contexts/AuthContext";
-import { ChatContext } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 import AvatarOthers from "../AvatarOthers/AvatarOthers";
 import './Chat.css';
@@ -68,15 +62,9 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
    };
 
 const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel, memberShipState}) => {
-<<<<<<< HEAD
     const [availability, setAvailability] = useState<string>('');
     const [options, setOptions] = useState<string[]>([]);
     const { chanOrDm } = useContext(ChatContext) as ChatContextType;
-=======
-    const [ availability, setAvailability ] = useState<string>('');
-    const [ options, setOptions ] = useState<string[]>([]);
-    const { chanOrDm } = useContext(ChatContext);
->>>>>>> 7086ac062e77f2932ee2ea03ebf85960fec6ce6e
 
     const handleOptionClick = (option: string) => {
         console.log(`Option ${option} clicked`);
@@ -122,9 +110,6 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     const banMutation = useMutation({
         mutationFn: ban,
-<<<<<<< HEAD
-        onError() {
-=======
         onSuccess(data) {
             
             /*
@@ -136,8 +121,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
             */
             // queryClient.setQueryData(['channel-members'], members => filter(channels, ({ channelId }) => channelId !== currentChannel));
         },
-        onError(e: AxiosError) {
->>>>>>> 7086ac062e77f2932ee2ea03ebf85960fec6ce6e
+        onError() {
             alert("Cannot ban");
         }
     });
@@ -151,15 +135,11 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     const kickMutation = useMutation({
         mutationFn: kick,
-<<<<<<< HEAD
-        onError() {
-=======
         onSuccess(_data, { channelId, targetId }) {
             queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
                 filter(memberships, ({ userId }) => userId !== targetId));
         },
-        onError(e: AxiosError) {
->>>>>>> 7086ac062e77f2932ee2ea03ebf85960fec6ce6e
+        onError() {
             alert("Cannot kick");
         }
     });

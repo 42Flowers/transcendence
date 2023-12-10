@@ -34,7 +34,6 @@ export class RoomService {
 					userId: true
 				}
 			})
-			console.log(users);
 			return users;
 		} catch(error) {
 			console.log(error);
@@ -60,7 +59,7 @@ export class RoomService {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
 			let accessMask = 1;
-			if (pwd != '')
+			if (pwd != '' && pwd != null)
 				accessMask = 4;
 			const password = await bcrypt.hash(pwd, 10);
 			const channel = await this.prismaService.channel.create({
@@ -208,7 +207,6 @@ export class RoomService {
 					}},
 				},
 				});
-				console.log(users);
 			return users;
 		} catch (err) { throw new Error(err.message) }
 	}

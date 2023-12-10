@@ -66,7 +66,7 @@ export class ChatService {
 		try {
 			const channels = await this.roomService.getPublicRooms(event.userId);
 			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-			console.log(channels, conversations);
+			// console.log(channels, conversations);
 			if (channels != null)
 				channels.map(chan => event.client.join(chan.name));
 			if (conversations != null)
@@ -83,7 +83,7 @@ export class ChatService {
 		try {
 			const channels = await this.roomService.getPublicRooms(event.userId);
 			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-			console.log(channels, conversations);
+			// console.log(channels, conversations);
 			if (channels != null)
 				channels.map(chan => event.client.leave(chan.name));
 			if (conversations != null)

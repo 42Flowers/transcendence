@@ -99,6 +99,10 @@ export class ChatService {
 	) {
 		const target = await this.usersService.getUserByName(targetName);
 		const user = await this.usersService.getUserById(userId);
+		if (userId == target.id) {
+			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'conversation', "You cannot start a conversation with yourself"));
+			return null;
+		}
 		if (target != null && user != null) {
 			const blocked = await this.usersService.isUserBlocked(user.id, target.id);
 			const isblocked = await this.usersService.blockedByUser(user.id, target.id);
@@ -137,7 +141,7 @@ export class ChatService {
 	) {
 		try {
 			if (event.message.length > 100)
-			throw new MyError("This message is too long");
+				throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
 			console.log(event.message, event.message.length);
 			if (user) {

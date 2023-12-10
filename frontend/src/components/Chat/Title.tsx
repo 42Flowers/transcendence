@@ -5,11 +5,9 @@ import { addPwd, changePwd, deleteM, deletePwd, quit } from "../../api";
 import { ChatContext } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 import './Chat.css';
-import AvatarOthers from '../AvatarOthers/AvatarOthers';
-import default_avatar from '../../assets/images/default_avatar.png';
 
 const Title: React.FC = () => {
-    const { chanOrDm, currentChannel, currentDm, setCurrentChannel, currentChannelName, myPermissionMask, currentAccessMask } = useContext(ChatContext);
+    const { chanOrDm, currentChannel, setCurrentChannel, currentChannelName, myPermissionMask, currentAccessMask } = useContext(ChatContext);
 
     const [addPassword, setAddPassword] = useState("");
     const [changePassword, setChangePassword] = useState("");
@@ -18,7 +16,6 @@ const Title: React.FC = () => {
         width: "70%",
         height: "100%",
         backgroundColor: "transparent",
-        // border: "1px solid red",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -110,7 +107,7 @@ const Title: React.FC = () => {
 
     return (
         <div style={{ display: "flex", flexDirection: "row", height: "100%" }} className="titleClass">
-            { chanOrDm === 'channel' 
+            { chanOrDm === 'channel' && currentChannel !== null
                 ?
                     <>
                         <p style={titleStyle}>{currentChannelName}</p>

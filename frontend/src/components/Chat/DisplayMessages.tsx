@@ -119,7 +119,7 @@ const MessagesDm: React.FC = () => {
 
     return (
         <div className="displayMessageClass">
-            {dmMessages.isFetched && blockedUsers.isFetched && dmMessages.data.map(msg => (
+            {dmMessages.isFetched && blockedUsers.isFetched && map(dmMessages.data, msg => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ? 
                         null

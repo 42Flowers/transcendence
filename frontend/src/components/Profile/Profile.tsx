@@ -22,13 +22,6 @@ export interface AvatarContextType {
     setAvatar: (avatar: string) => void;
 }
 
-export interface LeaderContextType {
-    smallLeader: boolean
-    setSmallLeader: (smallLeader: boolean) => void;
-    greatLeader: boolean
-    setGreatLeader: (greatLeader: boolean) => void;
-}
-
 export interface PerfectContextType {
     perfectWin: boolean
     setPerfectWin: (perfectWin: boolean) => void;
@@ -64,8 +57,6 @@ const Profile: React.FC = () => {
     });
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
-    // const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
-    //const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType; // TODO: voir avec Max
 
     const patchProfileMutation = useMutation({
         mutationFn: (data: PatchUserProfile) => patchUserProfile('@me', data),
@@ -88,12 +79,6 @@ const Profile: React.FC = () => {
         },
         onSuccess(data) {
             setAvatar(`http://localhost:3000/static/${data.avatar}`)
-            // if (!profileInfos?.avatar) {
-            //     showPopup('Newwww Avatar');
-            //     addAchievement({
-            //         achievementId: profileInfos.achievements['Newwww Avatar'].id,
-            //     });
-            // }
         }
     });
 

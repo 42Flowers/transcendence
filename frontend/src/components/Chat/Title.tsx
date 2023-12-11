@@ -85,72 +85,76 @@ const Title: React.FC = () => {
         border: "none",
     };
 
+    interface Channel {
+        channelId: number
+    }
+
     const quitMutation = useMutation({
         mutationFn: quit,
-        onSuccess(data) {
-            setCurrentChannel(null);
+        onSuccess() {
+            setCurrentChannel(0);
             /* Delete the channel from the list of channels */
-            queryClient.setQueryData(['channels-list'], channels => filter(channels, ({ channelId }) => channelId !== currentChannel));
+            queryClient.setQueryData(['channels-list'], (channels: Channel[] | undefined) => filter(channels, ({ channelId }: Channel) => channelId !== currentChannel));
         },
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot quit");
         }
     });
 
     const deleteMutation = useMutation({
         mutationFn: deleteM,
-        onSuccess(data) {
-            setCurrentChannel(null);
+        onSuccess() {
+            setCurrentChannel(0);
             /* Delete the channel from the list of channels */
-            queryClient.setQueryData(['channels-list'], channels => filter(channels, ({ channelId }) => channelId !== currentChannel));
+            queryClient.setQueryData(['channels-list'], (channels: Channel[] | undefined) => filter(channels, ({ channelId }: Channel) => channelId !== currentChannel));
         },
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot delete");
         }
     });
 
     const addPasswordMutation = useMutation({
         mutationFn: addPwd,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot add password");
         }
     });
 
     const changePasswordMutation = useMutation({
         mutationFn: changePwd,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot change password");
         }
     });
 
     const deletePasswordMutation = useMutation({
         mutationFn: deletePwd,
-        onError(e: AxiosError) {
+        onError() {
             alert("Cannot delete password");
         }
     });
 
-    const handleQuit = (event) => {
+    const handleQuit = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         quitMutation.mutate({ channelId: currentChannel });
     };
 
-    const handleDelete = (event) => {
+    const handleDelete = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         deleteMutation.mutate({ channelId: currentChannel });
     };
 
-    const handleAddPassword = (event) => {
+    const handleAddPassword = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         addPasswordMutation.mutate({ channelId: currentChannel, pwd: addPassword });
     };
 
-    const handleChangePassword = (event) => {
+    const handleChangePassword = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         changePasswordMutation.mutate({ channelId: currentChannel, pwd: changePassword });
     };
 
-    const handleDeletePassword = (event) => {
+    const handleDeletePassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         deletePasswordMutation.mutate({ channelId: currentChannel });
     };

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext, useCallback } from "react";
 import { AvatarContext } from "../../contexts/AvatarContext";
 import { PseudoContext } from "../../contexts/PseudoContext";
-import { AchievementsListContext } from "../../contexts/AchievementsListContext";
 import { LeaderContext } from "../../contexts/LeaderContext";
 import async from 'async';
 
@@ -64,9 +63,8 @@ type Achievements = {
     achievements: Achievement[]
 }
 
-interface AchievementsListContextType {
-    achievementsList: UserAchievement[];
-    setAchievementsList: (achievementsList: UserAchievement[]) => void;
+type AchievementType = {
+    achievementId: number | undefined
 }
 
 type gamesParticipated = {
@@ -81,10 +79,20 @@ type Game = {
     game: gamesParticipated;
 };
 
+export type ProfileInfosType = {
+    id: number
+    pseudo: string
+    avatar: string | null
+    gamesParticipated: gamesParticipated[]
+    achievements: {
+        [key: string]: Achievement
+    }
+}
+
 const Profile: React.FC = () => {
     const auth = useAuthContext();
 
-    const [profileInfos, setProfileInfos] = useState(null);
+    const [profileInfos, setProfileInfos] = useState<ProfileInfosType | null>(null);
     const [currentPopup, setCurrentPopup] = useState({
         'Newwww Avatar': false,
         'Newwww Pseudo': false,
@@ -106,10 +114,8 @@ const Profile: React.FC = () => {
     const [isPseudoAdded, setIsPseudoAdded] = useState(false);
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
-    const { setAchievementsList } = useContext(AchievementsListContext) as AchievementsListContextType;
     const { pseudo, setPseudo } = useContext(PseudoContext) as PseudoContextType;
     const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
-    //const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType; // TODO: voir avec Max
 
     const gamesWonFunc = ( userId: number, games: Game[] ): number => {
         let gamesWon = 0;
@@ -165,18 +171,17 @@ const Profile: React.FC = () => {
         return maxConsecutiveWins;
     };
      
-     const addAchievement = useCallback(achievement => {
-        return fetchAddAchievementToUser(achievement)
-            .then((data) => {
-                queryClient.setQueryData('achievements', old => ([ ...(old ?? []), data ]));
-            })
-            .catch((error) => {
-                console.error(error);
-            });
+     const addAchievement = useCallback(async (achievement: AchievementType)=> {
+        try {
+             const data = await fetchAddAchievementToUser(achievement);
+             queryClient.setQueryData('achievements', old => ([...(old ?? []), data]));
+         } catch (error) {
+             console.error(error);
+         }
     }, []);
 
-     // Only with SQLite ? For Postgresql might need to change concurrency limite or pool size
-    const queue = async.queue((task, callback) => {
+     // Only with SQLite ? For Postgresql might need to change concurrency limit or pool size
+    const queue = async.queue((task: AchievementType, callback) => {
         addAchievement(task)
             .then(data => {
                 callback(null, data);
@@ -276,10 +281,11 @@ const Profile: React.FC = () => {
         },
         onSuccess(data) {
             setAvatar(`http://localhost:3000/static/${data.avatar}`)
+            console.log("ProfileInfos", profileInfos);
             if (!profileInfos?.avatar) {
                 showPopup('Newwww Avatar');
                 addAchievement({
-                    achievementId: profileInfos.achievements['Newwww Avatar'].id,
+                    achievementId: profileInfos?.achievements['Newwww Avatar'].id,
                 });
             }
         }
@@ -303,11 +309,11 @@ const Profile: React.FC = () => {
                 setIsPseudoAdded(true);
                 showPopup('Newwww Pseudo');
                 addAchievement({
-                    achievementId: profileInfos.achievements['Newwww Pseudo'].id,
+                    achievementId: profileInfos?.achievements['Newwww Pseudo'].id,
                 });
             }
         },
-        onError(e: AxiosError) {
+        onError() {
             alert("Min 3 characters and maximum 10 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
         }
     });

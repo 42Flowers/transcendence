@@ -52,7 +52,12 @@ export class RoomService {
 
 	async getChannelId(name: string) {
 		try{
-			const chanId = await this.prismaService.channel.findUnique({where: {name: name}, select: {id: true}});
+			const chanId = await this.prismaService.channel.findUnique({where: {
+				name
+			},
+			select: {
+				id: true
+			}});
 			if (chanId == null)
 				return undefined;
 			return chanId.id;
@@ -61,7 +66,7 @@ export class RoomService {
 				throw error;
 			}
 			else 
-			console.log(error.message);
+				console.log(error.message);
 		}
 	}
 
@@ -112,12 +117,12 @@ export class RoomService {
 				const channel = await this.getRoom(channelId);
 				if (channel !== null) {
 					if (channel.accessMask == 4) {
-							if (!await bcrypt.compare(pwd, channel.password))
-								throw new MyError("This channel is password protected");
+						console.log(pwd, channel, 'PASSWORD CHECK');
+						if (!await bcrypt.compare(pwd, channel.password))
+							throw new MyError("This channel is password protected");
 					}
 				}
 				else {
-					this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: "No room registered under this id/name combination"});
 					throw new MyError("No channels under this id/name combination");
 				}
 				try {
@@ -143,7 +148,7 @@ export class RoomService {
 						throw error;
 					}
 					else {
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', 'You are already in this channel'));
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', "You are already in this channel"));
 						throw new MyError("User already in channel");
 					}
 				}
@@ -153,7 +158,7 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.message});
+				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', err.message))
 				console.log(err.message);
 				return;
 			}
@@ -175,7 +180,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
 				console.log(err.message);
 				return;
 			}
@@ -191,7 +195,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
 				console.log(err.message);
 				return;
 			}
@@ -230,14 +233,22 @@ export class RoomService {
 		try {
 			if (channelId == null)
 				return null;
-			return await this.prismaService.channel.findUnique({where: {id: channelId}, select: {id: true, name:true, accessMask: true}});
+			return await this.prismaService.channel.findUnique({where: {
+				id: channelId
+			},
+			select: {
+				id: true,
+				name:true,
+				accessMask: true,
+				password: true,
+			}});
 		} catch (err) {throw new MyError(err.message) }
 	}
 
 
-	async kickUser(userId: number, channelId: number) : Promise<any> {
+	async kickUser(targetId: number, channelId: number) : Promise<any> {
 		try {
-			const membership = await  this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: userId, channelId: channelId}}});
+			const membership = await  this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: targetId, channelId: channelId}}});
 			if (membership != null) {
 				return {status: true};
 			}
@@ -402,7 +413,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				this.eventEmitter.emit('sendtoclient', userId, 'info', {type: 'channel', msg: err.msg});
 				console.log(err.message);
 				return;
 		}

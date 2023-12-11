@@ -3,7 +3,7 @@ import filter from 'lodash/filter';
 import map from 'lodash/map';
 import React, { useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
-import { ChannelMembership, addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
+import { addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
 import default_avatar from '../../assets/images/default_avatar.png';
 import { useAuthContext } from "../../contexts/AuthContext";
 import { queryClient } from "../../query-client";
@@ -12,6 +12,31 @@ import './Chat.css';
 
 type Props = {
     side: string
+}
+
+interface Member {
+    userId: number;
+    userName: string;
+    membershipState: number;
+    permissionMask: number;
+    avatar: string | null;
+}
+
+interface Channel {
+    channelId: number;
+    channelName: string;
+    userPermissionMask: number;
+    accessMask: number;
+}
+
+interface ChannelMember {
+    userId: number;
+}
+
+interface Dm {
+    targetId: number;
+    targetName: string;
+    avatar: string | null;
 }
 
 type DisplayProps = {
@@ -29,7 +54,7 @@ type DropdownProps = {
     options: string[],
     onOptionClick: (option: string) => void,
     functions: { [key: string]: (permissionMask?: number) => void },
-    myPermissionMask: number
+    myPermissionMask?: number
 }
 
 type FunctionType = (myPermissionMask?: number) => void;
@@ -70,7 +95,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
         console.log(`Option ${option} clicked`);
     };
 
-    const usersQuery = useQuery(['available-users'], fetchAvailableUsers, {
+    useQuery(['available-users'], fetchAvailableUsers, {
         onSuccess: (data) => {
             data.map(([ id, pseudo, availability ]) => {
                 if (userId === id) {
@@ -81,13 +106,13 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     });
 
     useEffect(() => {
-        if (myPermissionMask > userPermissionMask) {
+        if (myPermissionMask !== undefined && userPermissionMask !== undefined && myPermissionMask > userPermissionMask) {
             if (memberShipState === 1) {
                 setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
             } else if (memberShipState === 2) {
                 setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
             } else if (memberShipState === 4) {
-                setOptions(['Mute', 'Kick', 'Unban', 'Add Admin', 'Play']);
+                setOptions(['Unban', 'Play']);
             }
         } else {
             setOptions(['Play']);
@@ -110,16 +135,13 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     const banMutation = useMutation({
         mutationFn: ban,
-        onSuccess(data) {
-            
-            /*
-            // TODO
-            // ALEXIS HELP PLEASE WE ARE DYING OUT THERE sniffffffff......
-            //
-            //
-            // snifff...
-            */
-            // queryClient.setQueryData(['channel-members'], members => filter(channels, ({ channelId }) => channelId !== currentChannel));
+        onSuccess(_data, { channelId, targetId }) {
+            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
+                map(memberships, ({ membershipState, userId, ...membership }) => ({
+                    userId,
+                    membershipState: (userId === targetId) ? 4 : membershipState,
+                    ...membership,
+                })));
         },
         onError() {
             alert("Cannot ban");
@@ -128,6 +150,14 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
     const unbanMutation = useMutation({
         mutationFn: unban,
+        onSuccess(_data, { channelId, targetId }) {
+            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
+            map(memberships, ({ membershipState, userId, ...membership }) => ({
+                userId,
+                membershipState: (userId === targetId) ? 1 : membershipState,
+                ...membership,
+            })));
+        },
         onError() {
             alert("Cannot unban");
         }
@@ -136,8 +166,8 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     const kickMutation = useMutation({
         mutationFn: kick,
         onSuccess(_data, { channelId, targetId }) {
-            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
-                filter(memberships, ({ userId }) => userId !== targetId));
+            queryClient.setQueryData(['channel-members', channelId], (memberships: ChannelMember[] | undefined) =>
+                filter(memberships, ({ userId }: ChannelMember) => userId !== targetId));
         },
         onError() {
             alert("Cannot kick");
@@ -217,12 +247,12 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 }
 
 const MembersList: React.FC = () => {
-    const { currentChannel, setCurrentChannel, usersOrBanned, myPermissionMask, setMyPermissionMask } = useContext(ChatContext);
+    const { currentChannel, usersOrBanned, myPermissionMask, setMyPermissionMask } = useContext(ChatContext);
     const allMembers = useQuery(['channel-members', currentChannel], () => fetchChannelMembers(currentChannel));
     const auth = useAuthContext();
 
     useEffect(() => {
-        allMembers.isFetched && map(allMembers.data, member => {
+        allMembers.isFetched && map(allMembers.data, (member: Member) => {
             if (member.userId === auth.user.id)
                 setMyPermissionMask(member.permissionMask);
         });
@@ -232,19 +262,16 @@ const MembersList: React.FC = () => {
         usersOrBanned === 'users' 
                 ?
                     <div className="listClass">
-                        {allMembers.isFetched && map(allMembers.data, member => (
-                            member.membershipState !== 4
-                                ?
-                                    <div key={member.userId} className="listRightClass">
-                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
-                                    </div>
-                                :
-                                    null
+                        {allMembers.isFetched && map(allMembers.data, (member: Member) => (
+                            member.membershipState !== 4 &&
+                                <div key={member.userId} className="listRightClass">
+                                    <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
+                                </div>
                         ))}
                     </div>
                 : // if banned users
                     <div className="listClass">
-                        {allMembers.isFetched && map(allMembers.data, member => (
+                        {allMembers.isFetched && map(allMembers.data, (member: Member) => (
                             member.membershipState === 4
                                 ?
                                     <div key={member.userId} className="listRightClass">
@@ -257,9 +284,8 @@ const MembersList: React.FC = () => {
     );
 };
   
-
 const List: React.FC<Props> = ({ side }) => {
-    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, currentDm, setCurrentChannelName, setCurrentAccessMask } = useContext(ChatContext) as ChatContextType;
+    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask } = useContext(ChatContext) as ChatContextType;
     const auth = useAuthContext();
 
     const channels = useQuery(['channels-list'], fetchAvailableChannels);
@@ -274,7 +300,7 @@ const List: React.FC<Props> = ({ side }) => {
                 chanOrDm === 'channel' 
                     ?
                         <div className="listClass">
-                            {channels.isFetched && map(channels.data, channel => (
+                            {channels.isFetched && map(channels.data, (channel: Channel) => (
                                 <div key={channel.channelId} onClick={() => {
                                     setCurrentChannel(channel.channelId)
                                     setCurrentChannelName(channel.channelName)
@@ -286,14 +312,16 @@ const List: React.FC<Props> = ({ side }) => {
                         </div>
                     :
                         <div className="listClass">
-                            {directMessages.isFetched && map(directMessages.data, dm => (
+                            {directMessages.isFetched && map(directMessages.data, (dm: Dm) => (
                                 <div key={dm.targetId} className="listLeftClass" onClick={() => setCurrentDm(dm.targetId)}>
                                     <DisplayUser myId={auth.user.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
                                 </div>
                             ))}
                         </div>
             :
-                currentChannel && <MembersList />
+                <>
+                    {currentChannel !== 0 && <MembersList />}
+                </>
     );
 };
 

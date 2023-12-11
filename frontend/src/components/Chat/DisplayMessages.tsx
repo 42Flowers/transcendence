@@ -1,5 +1,5 @@
-import { ChatContext } from "../../contexts/ChatContext";
-import { useCallback, useContext } from "react";
+import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
+import { useCallback, useContext, useEffect, useState, createRef } from "react";
 import { useQuery } from "react-query";
 import { ChannelMessage, PrivateMessage, fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../api";
 import { useSocketEvent } from "../Socket/Context/Context";
@@ -7,6 +7,7 @@ import './Chat.css';
 import { queryClient } from "../../query-client";
 import { useAuthContext } from "../../contexts/AuthContext";
 import map from "lodash/map";
+import sortBy from "lodash/sortBy";
 
 interface messageElem {
     type: string, //conversation/channel
@@ -32,6 +33,9 @@ const MessagesChannel: React.FC = () => {
     const channelMessages = useQuery(['channel-messages', currentChannel], () => fetchChannelMessages(currentChannel));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
+
+
+    const [sortedMessages, setSortedMessages] = useState([]);
 
     const updateChannelMessages = useCallback((msg: messageElem) => {
         if (msg.type !== "channel")
@@ -63,22 +67,42 @@ const MessagesChannel: React.FC = () => {
     //
     // Sort messages by creationDate before display
     */
+
+    const getTime = (date) => {
+        const dateObject = new Date(date);
+        const hours = dateObject.getHours();
+        const minutes = dateObject.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    };
+
+    useEffect(() => {
+        if (channelMessages.isFetched) {
+            setSortedMessages(sortBy(channelMessages.data, ['createdAt']));
+        }
+    }, [channelMessages.isFetched, channelMessages.data]);
+
+    const messagesEndRef = createRef<HTMLDivElement>();
+
+    useEffect(() => {
+            messagesEndRef.current?.scrollIntoView({ block: 'end' });
+    }, [channelMessages.data, messagesEndRef]);
+
     return (
-        <div className="displayMessageClass">
-            {channelMessages.isFetched && blockedUsers.isFetched && map(channelMessages.data, msg => (
+        <div ref={messagesEndRef} className="displayMessageClass">
+            {channelMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, msg => (
                 isBlocked(blockedUsers.data, msg.authorId)
-                    ? 
+                    ?
                         null
                     :
                         msg.authorId === user.id 
                             ?
                                 <div key={msg.id} className="userBubble">
-                                    <p className="userNameBubble">{msg.authorName}</p>
+                                    <p className="userNameBubble">{msg.authorName} - {getTime(msg.createdAt)}</p>
                                     <p className="userConvBubble">{msg.content}</p>
                                 </div>
                             :
                                 <div key={msg.id} className="otherBubble">
-                                    <p className="otherNameBubble">{msg.authorName}</p>
+                                    <p className="otherNameBubble">{msg.authorName} - {getTime(msg.createdAt)}</p>
                                     <p className="otherConvBubble">{msg.content}</p>
                                 </div>
             ))}
@@ -91,6 +115,8 @@ const MessagesDm: React.FC = () => {
     const dmMessages = useQuery(['dm-messages', currentDm], () => fetchDmMessages(currentDm));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
+
+    const [sortedMessages, setSortedMessages] = useState([]);
 
     const updateDmMessages = useCallback((msg: messageElem) => {
         if (msg.type === "channel" || msg.id != currentDm)
@@ -117,9 +143,29 @@ const MessagesDm: React.FC = () => {
     // Sort messages by creationDate before display
     */
 
+    const getTime = (date) => {
+        const dateObject = new Date(date);
+        const hours = dateObject.getHours();
+        const minutes = dateObject.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+    };
+
+    useEffect(() => {
+        if (dmMessages.isFetched) {
+            setSortedMessages(sortBy(dmMessages.data, ['createdAt']));
+        }
+    }, [dmMessages.isFetched, dmMessages.data]);
+
+    const messagesEndRef = createRef<HTMLDivElement>();
+
+    useEffect(() => {
+            messagesEndRef.current?.scrollIntoView({ block: 'end' });
+    }, [dmMessages.data, messagesEndRef]);
+
+    console.log("HEEEEY",dmMessages.data);
     return (
-        <div className="displayMessageClass">
-            {dmMessages.isFetched && blockedUsers.isFetched && map(dmMessages.data, msg => (
+        <div ref={messagesEndRef} className="displayMessageClass">
+            {dmMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, msg => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ? 
                         null
@@ -127,12 +173,12 @@ const MessagesDm: React.FC = () => {
                         msg.authorId === user.id 
                             ?
                                 <div key={msg.id} className="userBubble">
-                                    <p className="userNameBubble">{msg.authorName}</p>
+                                    <p className="userNameBubble">{msg.authorName} - {getTime(msg.creationTime)}</p>
                                     <p className="userConvBubble">{msg.content}</p>
                                 </div>
                             :
                                 <div key={msg.id} className="otherBubble">
-                                    <p className="otherNameBubble">{msg.authorName}</p>
+                                    <p className="otherNameBubble">{msg.authorName} - {getTime(msg.creationTime)}</p>
                                     <p className="otherConvBubble">{msg.content}</p>
                                 </div>
             ))}
@@ -145,10 +191,15 @@ const DisplayMessages: React.FC = () => {
 
     return (
         chanOrDm === 'channel' ?
-            currentChannel && <MessagesChannel />
+            <>
+                {currentChannel !== 0 && <MessagesChannel />}
+            </>
         :
-            currentDm && <MessagesDm />
+            <>
+                {currentDm !== 0 && <MessagesDm />}
+            </>
     );
 };
 
 export default DisplayMessages;
+

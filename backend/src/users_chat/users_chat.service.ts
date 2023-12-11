@@ -50,7 +50,8 @@ export class UsersService {
 					id: userId
 				}, 
 				select: {
-					pseudo: true
+					pseudo: true,
+					avatar: true,
 				}});
 			return name;
 		} catch (err) {

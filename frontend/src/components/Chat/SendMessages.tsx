@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import SocketContext from "../Socket/Context/Context";
-import { ChatContext } from "../../contexts/ChatContext";
+import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { AiOutlineSend } from 'react-icons/ai';
 import './Chat.css';
 

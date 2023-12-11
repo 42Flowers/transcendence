@@ -97,7 +97,7 @@ export class ChannelMessageDTO {
 	@IsNotEmpty()
 	@MaxLength(10)
 	@MinLength(3)
-	@IsNoSpecialCharactersChat()
+	// @IsNoSpecialCharactersChat()
 	channelName: string
 
 	@IsString()
@@ -204,21 +204,20 @@ export class SocketGateway implements
 		const user1 = event.user1;
 		const user2 = event.user2;
 		console.log(event);
-		this.socketService.emitToUserSockets(user2, 'message', {type: event.type,
+		this.socketService.emitToUserSockets(user1, 'message', {type: event.type,
 				id: event.id, 
 				authorId: event.authorId, 
 				authorName: event.authorName, 
 				message: event.message, 
 				createdAt : event.createdAt
 			});
-		this.socketService.emitToUserSockets(user2, 'message', {type: event.type, data:
-			{
+			this.socketService.emitToUserSockets(user2, 'message', {type: event.type,
 				id: event.id, 
 				authorId: event.authorId, 
 				authorName: event.authorName, 
 				message: event.message, 
 				createdAt : event.createdAt
-			}});
+			});
 	}
 
 	@OnEvent('chat.sendtochannel')

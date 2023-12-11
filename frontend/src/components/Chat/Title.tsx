@@ -1,15 +1,14 @@
 import filter from 'lodash/filter';
-import { useContext, useState } from "react";
-import { useMutation, useQuery } from "react-query";
-import { addPwd, changePwd, deleteM, deletePwd, quit, fetchAvailableDMs, fetchAvailableUsers } from "../../api";
-import { queryClient } from "../../query-client";
 import map from 'lodash/map';
-import { ChatContext, ChatContextType  } from "../../contexts/ChatContext";
+import React, { useContext, useState } from "react";
+import { useMutation, useQuery } from "react-query";
+import { addPwd, changePwd, deleteM, deletePwd, fetchAvailableDMs, quit } from "../../api";
+import { ChatContext } from "../../contexts/ChatContext";
+import { queryClient } from "../../query-client";
 
-import './Chat.css';
 import { useAuthContext } from '../../contexts/AuthContext';
-import AvatarOthers from '../AvatarOthers/AvatarOthers';
-import default_avatar from '../../assets/images/default_avatar.png';
+import { UserAvatar } from "../UserAvatar";
+import './Chat.css';
 
 type DisplayProps = {
     myId: number
@@ -22,8 +21,7 @@ type DisplayProps = {
     memberShipState?: number
 }
 
-const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {
-    const [availability, setAvailability] = useState<string>('');
+const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {    
     const buttonStyle: React.CSSProperties = {
         width: "30%",
         height: "100%",
@@ -31,15 +29,6 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
         cursor: "pointer",
         border: "none",
     };
-    const usersQuery = useQuery(['available-users'], fetchAvailableUsers, {
-        onSuccess: (data) => {
-            data.map(([ id, pseudo, availability ]) => {
-                if (userId === id) {
-                    setAvailability(availability);
-                }
-            });
-        }
-    });
 
     const handlePlay = (event) => {
         // event.preventDefault();
@@ -49,10 +38,9 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
     return (
         <div className='titleDMChildChild'>
             <div className="avatarCursorPointer">
-                <AvatarOthers
-                    status={availability}
-                    avatar={avatar ? `http://localhost:3000/static/${avatar}` : default_avatar}
-                    userId={userId} />
+                <UserAvatar
+                    userId={userId}
+                    avatar={avatar} />
             </div>
             <p>{userName}</p>
             <button style={buttonStyle} className="buttonClassPurple" onClick={handlePlay}>PLAY</button>
@@ -212,7 +200,7 @@ const Title: React.FC = () => {
                         }
                     </>
                 :
-                    chanOrDm === "dm" && currentDm !== null
+                    chanOrDm === "dm" && currentDm !== 0
                         ?
                             <div className="titleDM">
                                 {directMessages.isFetched && map(directMessages.data, dm => (

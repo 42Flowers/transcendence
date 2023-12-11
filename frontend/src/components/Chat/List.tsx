@@ -1,13 +1,12 @@
-import { ChatContext, ChatContextType  } from "../../contexts/ChatContext";
 import filter from 'lodash/filter';
 import map from 'lodash/map';
 import React, { useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
-import { addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchAvailableUsers, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
-import default_avatar from '../../assets/images/default_avatar.png';
+import { addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
 import { useAuthContext } from "../../contexts/AuthContext";
+import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
-import AvatarOthers from "../AvatarOthers/AvatarOthers";
+import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
 
 type Props = {
@@ -87,7 +86,6 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
    };
 
 const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel, memberShipState}) => {
-    const [availability, setAvailability] = useState<string>('');
     const [options, setOptions] = useState<string[]>([]);
     const { chanOrDm } = useContext(ChatContext) as ChatContextType;
 
@@ -95,16 +93,6 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
         console.log(`Option ${option} clicked`);
     };
 
-    useQuery(['available-users'], fetchAvailableUsers, {
-        onSuccess: (data) => {
-            data.map(([ id, pseudo, availability ]) => {
-                console.log('availability',availability);
-                if (userId === id) {
-                    setAvailability(availability);
-                }
-            });
-        }
-    });
 
     useEffect(() => {
         if (myPermissionMask !== undefined && userPermissionMask !== undefined && myPermissionMask > userPermissionMask) {
@@ -228,17 +216,16 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     
     return (
         <>
-            {/* <div className="avatarCursorPointer">
-                <AvatarOthers
-                    status={availability}
-                    avatar={avatar ? `http://localhost:3000/static/${avatar}` : default_avatar}
-                    userId={userId} />
-            </div> */}
+            <div className="avatarCursorPointer">
+            <UserAvatar
+                    userId={userId}
+                    avatar={avatar} />
+            </div>
             <p>{userName}</p>
             <div className="channelButtonsplace">
                 {
                     (myId !== userId && chanOrDm === 'channel') &&
-                     <div className="channelButtonForUsers">
+                    <div className="channelButtonForUsers">
                         <Dropdown options={options} onOptionClick={handleOptionClick} functions={functions} myPermissionMask={myPermissionMask}/>
                     </div>
                 }
@@ -315,7 +302,7 @@ const List: React.FC<Props> = ({ side }) => {
                         <div className="listClass">
                             {directMessages.isFetched && map(directMessages.data, (dm: Dm) => (
                                 <div key={dm.targetId} className="listLeftClass" onClick={() => setCurrentDm(dm.targetId)}>
-                                    <DisplayUser myId={auth.user.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
+                                   <p>{dm.targetName}</p>
                                 </div>
                             ))}
                         </div>

@@ -13,6 +13,7 @@ import { useQuery } from "react-query";
 import { ProfileInfosType } from "./Profile";
 
 import './Profile.css';
+import { UserAvatar } from "../UserAvatar";
 
 export interface AvatarContextType {
     avatar: string;
@@ -55,20 +56,9 @@ const ProfilePublic: React.FC = () => {
 
     const [profileInfos, setProfileInfos] = useState<ProfileInfosType | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [status, setStatus] = useState<string>('');
     const { userId } = useParams();
     const auth = useAuthContext();
 
-    useQuery('available-users', fetchAvailableUsers, {
-        onSuccess: (data) => {
-            data.map(([ id, pseudo, status ]) => {
-                if (Number(userId) === id) {
-                    setStatus(status);
-                }
-            });
-        }
-    });
- 
     useEffect(() => {
         const fetchData = async () => {
             const response = await fetch(`http://localhost:3000/api/profile/${userId}`);
@@ -102,11 +92,9 @@ const ProfilePublic: React.FC = () => {
     return (
         <>
             <div className="Profile">
-                {profileInfos?.avatar ?
-                    <AvatarOthers status={status} avatar={`http://localhost:3000/static/${profileInfos.avatar}`} userId={profileInfos.id} />
-                    :
-                    <AvatarOthers status={status} avatar={default_avatar} userId={profileInfos?.id} />
-                }                
+                <UserAvatar
+                    avatar={profileInfos.avatar}
+                    userId={profileInfos.id} />
                 <p>{profileInfos?.pseudo}</p>
                 { Number(auth.user?.id) === Number(userId) ?
                     ''

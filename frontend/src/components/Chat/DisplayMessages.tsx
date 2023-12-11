@@ -9,13 +9,13 @@ import { useAuthContext } from "../../contexts/AuthContext";
 import map from "lodash/map";
 import sortBy from "lodash/sortBy";
 
-interface messageElem {
+interface NewMessageElem {
     type: string, //conversation/channel
     id: number, //channelId/targetId
     authorId: number,
     authorName: string 
     message: string,
-    creationTime: Date,
+    createdAt: string,
     msgId: number,
 }
 
@@ -25,6 +25,22 @@ type MsgType = {
     authorName: string
     content: string
     createdAt: string
+}
+        
+interface ChannelMessage {
+    id: number;
+    authorId: number;
+    authorName: string;
+    content: string;
+    createdAt: string;
+}
+
+interface DmMessage {
+    id: number;
+    authorId: number;
+    authorName: string;
+    content: string;
+    createdAt: string;
 }
 
 const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
@@ -43,40 +59,25 @@ const MessagesChannel: React.FC = () => {
     const { user } = useAuthContext();
 
 
-    const [sortedMessages, setSortedMessages] = useState([]);
+    const [sortedMessages, setSortedMessages] = useState<ChannelMessage[]>([]);
 
-    const updateChannelMessages = useCallback((msg: messageElem) => {
-        if (msg.type !== "channel")
+    const updateChannelMessages = useCallback((msg: NewMessageElem) => {
+        if (!msg || msg.type !== "channel" || msg.id != currentChannel)
             return ;
 
-        /**
-         * If the channel is in the cache, update it.
-         * If the channel isn't in the cache, ignore the message.
-         * A full request will be received with the message list anyway.
-         */
-        if (queryClient.getQueryData<ChannelMessage[]>([ 'channels-messages', msg.id ]) !== undefined) {
-            queryClient.setQueryData<ChannelMessage[]>([ 'channels-messages', msg.id ], messages => [
-                ...(messages ?? []),
-                {
-                    id: msg.msgId,
-                    authorId: msg.authorId,
-                    authorName: msg.authorName,
-                    content: msg.message,
-                    createdAt: msg.creationTime.toISOString()
-                },
-            ]);
-        }
+        setSortedMessages((prevMessages) => [...prevMessages, {
+            id: msg.msgId,
+            authorId: msg.authorId,
+            authorName: msg.authorName,
+            content: msg.message,
+            createdAt: msg.createdAt,
+        }]);
     }, []);
 
     useSocketEvent('message', updateChannelMessages);
 
-    /*
-    // TODO
-    //
-    // Sort messages by creationDate before display
-    */
-
     const getTime = (date: string) => {
+    const getTime = (date) => {
         const dateObject = new Date(date);
         const hours = dateObject.getHours();
         const minutes = dateObject.getMinutes().toString().padStart(2, '0');
@@ -124,32 +125,22 @@ const MessagesDm: React.FC = () => {
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
-    const [sortedMessages, setSortedMessages] = useState([]);
+    const [sortedMessages, setSortedMessages] = useState<DmMessage[]>([]);
 
-    const updateDmMessages = useCallback((msg: messageElem) => {
-        if (msg.type === "channel" || msg.id != currentDm)
+    const updateDmMessages = useCallback((msg: NewMessageElem) => {
+        if (!msg || msg.type === "channel" || msg.id != currentDm)
             return;
 
-        if (queryClient.getQueryData<PrivateMessage[]>(['dm-messages', currentDm]) !== undefined) {
-            queryClient.setQueryData<PrivateMessage[]>(['dm-messages', currentDm], messages => [
-                ...(messages ?? []),
-                {
-                    id: msg.msgId,
-                    authorId: msg.authorId,
-                    authorName: msg.authorName,
-                    content: msg.message,
-                    createdAt: msg.creationTime.toISOString(),
-                }]);
-        }
+        setSortedMessages((prevMessages) => [...prevMessages, {
+            id: msg.msgId,
+            authorId: msg.authorId,
+            authorName: msg.authorName,
+            content: msg.message,
+            createdAt: msg.createdAt,
+        }]);
     }, []);
 
     useSocketEvent('message', updateDmMessages);
-
-    /*
-    // TODO
-    //
-    // Sort messages by creationDate before display
-    */
 
     const getTime = (date) => {
         const dateObject = new Date(date);
@@ -170,7 +161,6 @@ const MessagesDm: React.FC = () => {
             messagesEndRef.current?.scrollIntoView({ block: 'end' });
     }, [dmMessages.data, messagesEndRef]);
 
-    console.log("HEEEEY",dmMessages.data);
     return (
         <div ref={messagesEndRef} className="displayMessageClass">
             {dmMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, (msg: MsgType) => (
@@ -181,12 +171,12 @@ const MessagesDm: React.FC = () => {
                         msg.authorId === user.id 
                             ?
                                 <div key={msg.id} className="userBubble">
-                                    <p className="userNameBubble">{msg.authorName} - {getTime(msg.creationTime)}</p>
+                                    <p className="userNameBubble">{msg.authorName} - {getTime(msg.createdAt)}</p>
                                     <p className="userConvBubble">{msg.content}</p>
                                 </div>
                             :
                                 <div key={msg.id} className="otherBubble">
-                                    <p className="otherNameBubble">{msg.authorName} - {getTime(msg.creationTime)}</p>
+                                    <p className="otherNameBubble">{msg.authorName} - {getTime(msg.createdAt)}</p>
                                     <p className="otherConvBubble">{msg.content}</p>
                                 </div>
             ))}
@@ -210,4 +200,3 @@ const DisplayMessages: React.FC = () => {
 };
 
 export default DisplayMessages;
-

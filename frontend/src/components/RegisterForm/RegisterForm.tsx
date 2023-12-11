@@ -24,7 +24,7 @@ const registerFormValidator: FormValidator = {
 		}
 
 		if (value.length > 10) {
-			throw new Error('Usernames must be less or equel to 10 characters');
+			throw new Error('Usernames must be less or equal to 10 characters');
 		}
 	},
 	password(value: string, data: object) {
@@ -128,6 +128,7 @@ const RegisterForm: React.FC = () => {
 						autoComplete="off"
 						type="text"
                         maxLength={10}
+						minLength={3}
 						required
 						/>
 					<Input
@@ -154,6 +155,7 @@ const RegisterForm: React.FC = () => {
 						name="password"
 						type="password"
                         maxLength={20}
+						minLength={3}
 						required
 						/>
 					<Input
@@ -162,6 +164,7 @@ const RegisterForm: React.FC = () => {
 						name="password_confirm"
 						type="password"
 						maxLength={20}
+						minLength={3}
 						required
 						/>
 					<Stack direction="row" justifyContent="flex-start">

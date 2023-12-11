@@ -24,7 +24,7 @@ import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
-import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, MinLength, Length } from 'class-validator';
 
 
 interface Message {
@@ -45,24 +45,28 @@ interface users {
 
 export class JoinChannelDto {
     @IsString()
-	@MaxLength(10)
+	@IsNotEmpty()
+	@Length(3, 10)
     channelName: string;
 
     @IsString()
-	@MaxLength(20)
+	@IsNotEmpty()
+	@Length(3, 20)
     password: string;
 }
 
 export class QuitDto {
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     channelId: number;
 }
 
 export class TargetDto {
     @IsString()
-    //@IsNotEmpty() ??
+	@IsNotEmpty()
+	@Length(3, 10)
     targetName: string;
 }
 
@@ -70,6 +74,7 @@ export class DeleteChannelDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(1)
+	@Max(Number.MAX_SAFE_INTEGER)
     channelId: number
 }
 
@@ -77,10 +82,12 @@ export class ActionsDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(1)
+	@Max(Number.MAX_SAFE_INTEGER)
     channelId: number
 
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     targetId: number
 }
@@ -88,16 +95,20 @@ export class ActionsDto {
 export class ManagePwdDto {
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     channelId: number
 
     @IsString()
+	@MinLength(3)
+	@Length(3, 20)
     pwd: string
 }
 
 export class RemovePwdDto {
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     channelId: number
 }
@@ -299,7 +310,7 @@ export class ChatController {
             const messages = [];
             if (conversations != null) {
                 const authorNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.authorId)));
-                conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, creationTime: msg.createdAt, id: msg.id}));
+                conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, createdAt: msg.createdAt, id: msg.id}));
                 return messages;
             }
             return "nope";

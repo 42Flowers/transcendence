@@ -39,7 +39,8 @@ declare module 'socket.io' {
 	}
 }
 
-import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, ValidationOptions, registerDecorator, ValidationArguments, IsAscii } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, ValidationOptions, registerDecorator, ValidationArguments, IsAscii, MinLength } from 'class-validator';
+import { ChatSendMessageToConversationdEvent } from "src/events/chat/sendMessageToConversation.event";
 
 export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions) {
 	return function (object: object, propertyName: string) {
@@ -64,6 +65,7 @@ export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions)
 export class GameInvitationDTO {
 	@IsNumber()
 	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
 	targetId: number
 };
@@ -72,12 +74,14 @@ export class GameInvitationDTO {
 export class PrivateMessageDTO {
 	@IsNumber()
 	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
 	targetId: number
 
 	@IsString()
 	@IsNotEmpty()
 	@MaxLength(100)
+	@MinLength(1)
 	@IsAscii()
 	message: string
 };
@@ -85,18 +89,21 @@ export class PrivateMessageDTO {
 export class ChannelMessageDTO {
 	@IsNumber()
 	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
 	channelId: number
 
 	@IsString()
 	@IsNotEmpty()
 	@MaxLength(10)
-	@IsNoSpecialCharactersChat()
+	@MinLength(3)
+	// @IsNoSpecialCharactersChat()
 	channelName: string
 
 	@IsString()
 	@IsNotEmpty()
 	@MaxLength(100)
+	@MinLength(1)
 	@IsAscii()
 	message: string
 };
@@ -190,6 +197,27 @@ export class SocketGateway implements
 				this.socketService.leaveChannel(user.userId, dest);
 			})
 		}
+	}
+
+	@OnEvent('chat.sendtoconversation') 
+	sendToConversation (event: ChatSendMessageToConversationdEvent) {
+		const user1 = event.user1;
+		const user2 = event.user2;
+		console.log(event);
+		this.socketService.emitToUserSockets(user1, 'message', {type: event.type,
+				id: event.id, 
+				authorId: event.authorId, 
+				authorName: event.authorName, 
+				message: event.message, 
+				createdAt : event.createdAt
+			});
+			this.socketService.emitToUserSockets(user2, 'message', {type: event.type,
+				id: event.id, 
+				authorId: event.authorId, 
+				authorName: event.authorName, 
+				message: event.message, 
+				createdAt : event.createdAt
+			});
 	}
 
 	@OnEvent('chat.sendtochannel')

@@ -28,6 +28,7 @@ import { ChatSendMessageEvent } from 'src/events/chat/sendMessage.event';
 import { ChatSocketJoinChannelsEvent } from 'src/events/chat/socketJoinChannels.event';
 import { ChatSocketLeaveChannelsEvent } from 'src/events/chat/socketLeaveChannels.event';
 import { MyError } from 'src/errors/errors';
+import { ChatSendMessageToConversationdEvent } from 'src/events/chat/sendMessageToConversation.event';
 
 interface convElem {
     isChannel: boolean,
@@ -43,7 +44,7 @@ interface convElem {
 interface convMessage {
     authorName: string,
     authorId: number,
-    creationTime: Date,
+    createdAt: Date,
     content: string,
 }
 
@@ -168,6 +169,7 @@ export class ChatService {
 						}
 						const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation.id, event.message);
 						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', conversation.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, newMsg.id));
+						this.eventEmitter.emit('chat.sendtoconversation', new ChatSendMessageToConversationdEvent(user.id, dest.id, "conversation", conversation.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, newMsg.id));
 					} else {
 						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "No such connected user"));
 						return;
@@ -215,7 +217,7 @@ export class ChatService {
 				const msg = room.name + " does not exists or you are not a member";
 				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'channel', msg));
 			} else {
-				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, "message", "You are unknowwn to the database"));
+				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, "message", "Are you in a channel ?"));
 			}
 		} catch (err) {
 			console.log(err.message);

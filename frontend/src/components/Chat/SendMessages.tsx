@@ -17,6 +17,8 @@ const SendMessages: React.FC = () => {
 
     const handleSubmitMessage = (event: React.FormEvent) => {
         event.preventDefault();
+		if (message.length < 1)
+			return;
         if (chanOrDm === "channel")
             SocketState.socket?.emit("channelmessage", {channelId: currentChannel, message: message});
         else if (chanOrDm === "dm")
@@ -43,6 +45,7 @@ const SendMessages: React.FC = () => {
                                 placeholder="msg"
                                 className="inputSendMessageClass"
                                 maxLength={100}
+								minLength={1}
                             />
                             {/*<AiOutlineSend className="icon-send"/>*/}
                             {/* <button type="submit" style={{ flex: "1 1 auto" }}>SEND</button> */}
@@ -50,7 +53,9 @@ const SendMessages: React.FC = () => {
                         </form>
                     </div>
                 :
-                    null
+                    <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center" }} className="sendMessageClass"/>
+                        // null
+
             }
         </>
     );

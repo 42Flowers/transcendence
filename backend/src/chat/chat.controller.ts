@@ -50,8 +50,7 @@ export class JoinChannelDto {
     channelName: string;
 
     @IsString()
-	@IsNotEmpty()
-	@Length(3, 20)
+	@MaxLength(20)
     password: string;
 }
 
@@ -166,10 +165,8 @@ export class ChatController {
             const rooms = await this.roomService.getPublicRooms(userId);
 			console.log(rooms);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
-			console.log("t", access, "t");
             const chans = [];
             rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask}));
-			console.log("t", chans, "t");
 			return chans;
         } catch (err) {
                 console.log(err.message);

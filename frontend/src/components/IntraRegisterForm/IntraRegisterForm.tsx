@@ -84,6 +84,7 @@ const IntraRegisterForm: React.FC = () => {
 						name="pseudo"
 						autoComplete="off"
 						maxLength={10}
+						minLength={3}
 						type="text"
 						required
 					/>

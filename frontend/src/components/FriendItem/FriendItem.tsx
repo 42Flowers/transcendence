@@ -1,11 +1,8 @@
-import './FriendItem.css';
-import MainButton from '../MainButton/MainButton'
+import default_avatar from '../../assets/images/default_avatar.png';
 import AvatarOthers from '../AvatarOthers/AvatarOthers';
-import default_avatar from '../../assets/images/default_avatar.png'
-import { useState } from 'react';
-import { useQuery } from 'react-query';
-import { fetchAvailableUsers } from '../../api';
+import MainButton from '../MainButton/MainButton';
 import { UserAvatar } from '../UserAvatar';
+import './FriendItem.css';
 
 const SENDER = 0;
 const RECEIVER = 1;
@@ -149,12 +146,9 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-					{ 
-							avatar ?
-								<AvatarOthers status={availability} avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
-							:
-								<AvatarOthers status={availability} avatar={default_avatar} userId={friendId} />
-						}
+						<UserAvatar
+							userId={friendId}
+							avatar={avatar} />
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>
@@ -171,12 +165,9 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						{ 
-							avatar ?
-								<AvatarOthers status={availability} avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
-							:
-								<AvatarOthers status={availability} avatar={default_avatar} userId={friendId} />
-						}
+						<UserAvatar
+							userId={friendId}
+							avatar={avatar} />
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>
@@ -192,12 +183,9 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 			<div className="FriendItem-wrapper">
 				<div className="box-popup">
 					<div className="input-box">
-						{ 
-							avatar ?
-								<AvatarOthers status={availability} avatar={`http://localhost:3000/static/${avatar}`} userId={friendId} />
-							:
-								<AvatarOthers status={availability} avatar={default_avatar} userId={friendId} />
-						}
+						<UserAvatar
+							userId={friendId}
+							avatar={avatar} />
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>

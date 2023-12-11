@@ -2,7 +2,6 @@
 import { Module } from "@nestjs/common";
 import { ProfilePublicController } from "./profilePublic.controller";
 import { ProfilePublicService } from "./profilePublic.service";
-import { PrismaService } from "src/prisma/prisma.service";
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from "path";
 
@@ -10,7 +9,6 @@ import { join } from "path";
     controllers: [ProfilePublicController],
     providers: [
         ProfilePublicService,
-        PrismaService
     ],
     imports: [
         ServeStaticModule.forRoot({

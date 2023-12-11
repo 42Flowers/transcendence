@@ -9,8 +9,6 @@ export const AuthGuard: React.FC<PropsWithChildren> = ({ children }) => {
     const navigate = useNavigate();
     const currentLocation = useLocation();
 
-    console.log('Location', currentLocation);
-
     React.useEffect(() => {
         if (ignore.current)
             return ;

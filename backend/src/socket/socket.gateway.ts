@@ -1,4 +1,6 @@
-import { Server, Socket } from "socket.io";
+import { Injectable } from "@nestjs/common";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
+import { JwtService } from "@nestjs/jwt";
 import {
 	ConnectedSocket,
 	MessageBody,
@@ -9,38 +11,47 @@ import {
 	WebSocketGateway,
 	WebSocketServer
 } from "@nestjs/websockets";
-import { Injectable } from "@nestjs/common";
-import { SocketService } from "./socket.service";
-import { GameKeyUpEvent } from "src/events/game/keyUp.event";
-import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
-import { GameKeyDownEvent } from "src/events/game/keyDown.event";
-import { ChatUserBlockEvent } from "src/events/chat/userBlock.event";
-import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
-import { ChatUserUnBlockEvent } from "src/events/chat/userUnBlock.event";
-import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
-import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
+import { Server, Socket } from "socket.io";
+import { UserPayload } from "src/auth/user.payload";
 import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
 import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
-import { UserPayload } from "src/auth/user.payload";
-import { JwtService } from "@nestjs/jwt";
-import { GameInviteToNormal } from "src/events/game/inviteToNormalGame.event";
-import { GameJoinInvite } from "src/events/game/joinInvite.event";
-import { GameInviteToSpecial } from "src/events/game/inviteToSpecialGame.event";
-import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
 import { ChatSendRoomToClientEvent } from "src/events/chat/sendRoomToClient.event";
+import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
+import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
 import { ChatSocketJoinChannelsEvent } from "src/events/chat/socketJoinChannels.event";
 import { ChatSocketLeaveChannelsEvent } from "src/events/chat/socketLeaveChannels.event";
+import { ChatUserBlockEvent } from "src/events/chat/userBlock.event";
+import { ChatUserUnBlockEvent } from "src/events/chat/userUnBlock.event";
+import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
+import { GameInviteToNormal } from "src/events/game/inviteToNormalGame.event";
+import { GameInviteToSpecial } from "src/events/game/inviteToSpecialGame.event";
+import { GameJoinInvite } from "src/events/game/joinInvite.event";
+import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
+import { GameKeyDownEvent } from "src/events/game/keyDown.event";
+import { GameKeyUpEvent } from "src/events/game/keyUp.event";
+import { Game, GameMode } from "src/game/game";
+import { PrismaService } from "src/prisma/prisma.service";
 import { v4 as uuidv4 } from 'uuid';
+import { SocketService } from "./socket.service";
+import { IsAscii, IsNotEmpty, IsNumber, IsString, Max, MaxLength, Min, MinLength, ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator';
+import { ChatSendMessageToConversationdEvent } from "src/events/chat/sendMessageToConversation.event";
+import { UserDeclineGameInvitation } from "src/events/user.decline.invitation.event";
 
 declare module 'socket.io' {
 	interface Socket {
+		/**
+		 * Authenticated user for this socket.
+		 * Should always be defined.
+		 */
 		user?: UserPayload;
+
+		/**
+		 * Current game for this socket.
+		 */
+		game?: Game;
 	}
 }
-
-import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, ValidationOptions, registerDecorator, ValidationArguments, IsAscii, MinLength } from 'class-validator';
-import { ChatSendMessageToConversationdEvent } from "src/events/chat/sendMessageToConversation.event";
 
 export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions) {
 	return function (object: object, propertyName: string) {
@@ -119,34 +130,37 @@ export class SocketGateway implements
 	OnGatewayConnection,
 	OnGatewayDisconnect
 {
-
-	sockets: Socket[] = [];
-	
 	@WebSocketServer()
 	server: Server;
 
 	constructor(
 		private readonly socketService: SocketService,
 		private readonly eventEmitter: EventEmitter2,
+		private readonly prismaService: PrismaService,
 		private readonly jwtService: JwtService
 		) {}
 
 	afterInit() {
-		console.log("Init socket Gateway")
+		this.server.use((socket, next) => {
+			this.authenticateUser(socket).then(
+				() => next(),
+				err => next(err));
+		})
 	}
 
-	async handleConnection(client: Socket) {
-		const { authorization: token } = client.handshake.headers;
-		
-		try {
-			const payload = await this.jwtService.verifyAsync<UserPayload>(token);
+	private async authenticateUser(socket: Socket): Promise<void> {
+		const { auth } = socket.handshake;
 
-			client.user = payload;
-		} catch {
-			console.warn('Socket %s disconnected : bad token', client.id);
-			client.disconnect(true);
-			return ;
-		}
+		const payload = await this.jwtService.verifyAsync<UserPayload>(auth['token']);
+		const userPayload = await this.prismaService.user.findUniqueOrThrow({
+			where: {
+				id: Number(payload.sub),
+			},
+		});
+		socket.user = { ...userPayload, ...payload };
+	}
+
+	async handleConnection(client: Socket) {	
 		console.log(`Client connected: ${client.id}`);
 		client.join('server');
 		this.socketService.addSocket(client);
@@ -160,7 +174,7 @@ export class SocketGateway implements
 		client.leave('server');
 		this.eventEmitter.emit('chat.socketleavechannels', new ChatSocketLeaveChannelsEvent(Number(client.user.sub), client));
 		this.socketService.removeSocket(client);
-		console.log(`Client disconnected: ${client.id}`);
+		console.log(`Client disconnected: ${client.id}`);		
 		// this.socketService.removeSocket(token.id, client);
 	}
 
@@ -303,13 +317,27 @@ export class SocketGateway implements
 	@SubscribeMessage('handshake')
 	// @UseGuards(AuthGuard)
 	chatHandshake(
-		@ConnectedSocket()  client:Socket
+		@ConnectedSocket() client: Socket
 	) {
 		console.log("Received Handshake");
 		return {}
 	}
 
 	// GAME EVENTS
+
+	@SubscribeMessage("joinRandomNormal")
+	onJoinRandomNormal(
+		@ConnectedSocket() socket: Socket)
+	{
+		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, GameMode.Normal));
+	}
+	
+	@SubscribeMessage("joinRandomSpecial")
+	onRandomSpecial(
+		@ConnectedSocket() socket: Socket)
+	{
+		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, GameMode.Special));
+	}
 
 	@SubscribeMessage('cancelGameSearch')
 	onCancelSearch(
@@ -347,32 +375,6 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
-		} catch (err) {
-			console.log(err.message);
-		}
-	}
-
-	@SubscribeMessage("joinRandomNormal")
-	onJoinRandomNormal(
-		@ConnectedSocket() socket: Socket)
-	{
-		if (!socket)
-			return;
-		try {
-			this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 0));
-		} catch (err) {
-			console.log(err.message);
-		}
-	}
-	
-	@SubscribeMessage("joinRandomSpecial")
-	onRandomSpecial(
-		@ConnectedSocket() socket: Socket)
-	{
-		if (!socket)
-			return;
-		try {
-			this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, 1));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -420,6 +422,14 @@ export class SocketGateway implements
 		} catch (err) {
 			console.log(err.message);
 		}
+	}
+
+	@SubscribeMessage('declineGameInvitation')
+	onUserDeclineInvitation(
+		@ConnectedSocket() socket: Socket
+	) {
+
+		this.eventEmitter.emit('user.decline.invitation', new UserDeclineGameInvitation(socket));
 	}
 
 }

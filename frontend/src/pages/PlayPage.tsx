@@ -4,6 +4,7 @@ import { useCallback, useContext, useState } from "react";
 import SocketContext from "../components/Socket/Context/Context";
 import { useQuery } from "react-query";
 import { fetchAvailableUsers } from "../api";
+import map from 'lodash/map';
 
 type UserStatus = [
     id: number,
@@ -17,7 +18,7 @@ interface SelectUserProps {
 }
 
 const SelectUser: React.FC<SelectUserProps> = ({ usersList, handleChange }) => {
-    const availableUsers = usersList.map(([ id, pseudo, status ]) => {
+    const availableUsers = map(usersList, ([ id, pseudo, status ]) => {
         if (status == "online") {
             return (
                 <option value={ id } key={ id }>

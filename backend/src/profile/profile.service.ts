@@ -64,38 +64,7 @@ export class ProfileService {
         };
     }
 
-    async addAchievementToUser(dto: CreateUserAchievementDto, userId: number): Promise<any> {
-        const existingUserAchievement = await this.prisma.userAchievement.findFirst({
-            where: {
-                userId: userId,
-                achievementId: dto.achievementId
-            }
-        });
-        if (existingUserAchievement) {
-            throw new BadRequestException('Already connected');
-        }
-
-        const newUserAchievement = await this.prisma.userAchievement.create({
-            data: {
-                user: {
-                    connect: {
-                        id: userId
-                    }
-                },
-                achievement: {
-                    connect: {
-                        id: dto.achievementId
-                    }
-                }
-            },
-            include: {
-                achievement: true,
-            }
-        });
-        return newUserAchievement;
-    }
-
-    async addAvatar(avatarPath: string, userId: number): Promise<any> {
+    async addAvatar(avatarPath: string, userId: number): Promise<{ avatar: string; }> {
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
             data: { avatar: avatarPath },
@@ -104,21 +73,6 @@ export class ProfileService {
             }
         });
         return { "avatar": updatedUser.avatar };
-    }
-
-    async changePseudo(dto: ChangePseudoDto, userId: number): Promise<any> {
-        const existingUser = await this.prisma.user.findUnique({
-            where: { pseudo: dto.pseudo },
-        });
-        if (existingUser) {
-            throw new BadRequestException('Pseudo already exists');
-        }
-
-        const updatedPseudo = await this.prisma.user.update({
-            where: { id: userId },
-            data: { pseudo: dto.pseudo },
-        })
-        return { "pseudo" : updatedPseudo.pseudo };
     }
 
     async getMatchHistory(userId: number): Promise<any> {
@@ -200,17 +154,5 @@ export class ProfileService {
             }
         });
         return allUsers;
-    }
-
-    async getAchievements(userId: number): Promise<any> {
-        const allAchievementsUnlocked = await this.prisma.userAchievement.findMany({
-            where: {
-                userId: userId,
-            },
-            include: {
-                achievement: true,
-            }
-        });
-        return allAchievementsUnlocked;
     }
 }

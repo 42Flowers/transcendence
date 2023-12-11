@@ -2,15 +2,11 @@ import React, { PropsWithChildren, useEffect, useReducer, useState } from 'react
 import { useSocket } from '../Hooks/useSocket';
 import { defaultSocketContextState, SocketContextProvider, SocketReducer } from './Context';
 
-export interface ISocketContextComponentProps extends PropsWithChildren {}
-
-const SocketContextComponent: React.FunctionComponent<ISocketContextComponentProps> = ({ children }) => {
-
-	// return children;
+const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
 	const [SocketState, SocketDispatch] = useReducer(SocketReducer, defaultSocketContextState);
 	const [loading, setLoading] = useState(true);
 
-	const socket = useSocket('ws://localhost:3000', {
+	const socket = useSocket(import.meta.env.WEBSOCKET_URL, {
 		reconnectionAttempts: 5,
 		reconnectionDelay: 5000,
 		autoConnect: false
@@ -31,7 +27,6 @@ const SocketContextComponent: React.FunctionComponent<ISocketContextComponentPro
 
 		// eslint-disable-next-line
 	}, [socket]);
-
 
 	const StartListeners = () => {
 
@@ -70,7 +65,7 @@ const SocketContextComponent: React.FunctionComponent<ISocketContextComponentPro
 
 	if (loading) return <p>Loading Socket IO........</p>;
 
-	return <SocketContextProvider value={{ SocketState, SocketDispatch }}>{children}</SocketContextProvider>;
+	return <SocketContextProvider value={{ SocketState, SocketDispatch, socket }}>{children}</SocketContextProvider>;
 }
 
 export default SocketContextComponent;

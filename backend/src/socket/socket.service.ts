@@ -1,7 +1,9 @@
-import { PrismaService } from 'src/prisma/prisma.service';
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Socket } from 'socket.io';
-import { OnEvent } from '@nestjs/event-emitter';
+import { SocketConnectedEvent } from 'src/events/socket-connected.event';
+import { SocketDisconnectedEvent } from 'src/events/socket-disconnected.event';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 type ConnectedUsers = {
 	[k: number]: Socket[];
@@ -11,7 +13,8 @@ type ConnectedUsers = {
 export class SocketService {
 	
 	constructor(
-		private readonly prismaService : PrismaService,
+		private readonly prismaService: PrismaService,
+		private readonly eventEmitter: EventEmitter2
 		) {}
 
 	private connectedUsers : ConnectedUsers = {};
@@ -43,13 +46,15 @@ export class SocketService {
 	}
 
 	addSocket(socket: Socket) {
-		const userId = Number(socket.user!.sub);
+		const userId = socket.user.id;
 
 		if (!(userId in this.connectedUsers)) {
 			this.connectedUsers[userId] = [];
 		}
 
 		this.connectedUsers[userId].push(socket);
+	
+		this.eventEmitter.emit('socket.connected', new SocketConnectedEvent(socket));
 	}
 
 	removeSocket(socket: Socket) {
@@ -66,6 +71,8 @@ export class SocketService {
 				delete this.connectedUsers[userId];
 			}
 		}
+
+		this.eventEmitter.emit('socket.disconnected', new SocketDisconnectedEvent(socket));
 	}
 
 	deleteAllSockets() {

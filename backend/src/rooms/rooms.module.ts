@@ -1,12 +1,11 @@
+import { Module } from '@nestjs/common';
 import { MessagesModule } from 'src/messages/messages.module';
-import { PrismaModule } from 'src/prisma/prisma.module';
 import { SocketModule } from 'src/socket/socket.module';
 import { RoomService } from './rooms.service';
-import { Module } from '@nestjs/common';
 
 @Module({
 	exports: [RoomService],
-	imports: [PrismaModule, MessagesModule, SocketModule],
+	imports: [MessagesModule, SocketModule],
 	providers: [RoomService],
 })
 export class RoomsModule {}

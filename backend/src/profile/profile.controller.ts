@@ -1,22 +1,25 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Post, Param, Body, Request, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
-import { UseInterceptors, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
+import { BadRequestException, Controller, Get, HttpStatus, NotFoundException, Param, ParseFilePipeBuilder, ParseIntPipe, Post, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ProfileService } from './profile.service';
-import { CreateUserAchievementDto, ChangePseudoDto, AvatarDto } from './profile.dto';
-import { CheckIntPipe } from './profile.pipe';
-import { diskStorage } from 'multer';
-import { Request as ExpressRequest } from 'express';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { Request as ExpressRequest } from 'express';
 import sizeOf from 'image-size';
+import { diskStorage } from 'multer';
+import { AchievementsService } from 'src/achievements/achievements.service';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { AvatarUpdatedEvent } from 'src/events/avatar-updated.event';
+import { AvatarDto } from './profile.dto';
+import { ProfileService } from './profile.service';
 
 @Controller('profile')
 @UseGuards(AuthGuard)
 export class ProfileController {
     constructor( 
-        private readonly profileService: ProfileService
+        private readonly profileService: ProfileService,
+        private readonly achievementsService: AchievementsService,
+        private readonly eventEmitter: EventEmitter2
     ) {}
 
     @Get('/ladder')
@@ -31,27 +34,19 @@ export class ProfileController {
 
     @Get()
     async getProfileInfos(@Request() req: ExpressRequest) {
-        return this.profileService.getProfileInfos(Number(req.user.sub)); // TODO: await ??
-    }
-
-    @Post('change-pseudo')
-    async changePseudo(@Body() dto: ChangePseudoDto, @Request() req: ExpressRequest): Promise<any> {
-        return await this.profileService.changePseudo(dto, Number(req.user.sub));
-    }
-
-    @Post('add-achievement-to-user')
-    async addAchievementToUser(@Body() dto: CreateUserAchievementDto, @Request() req: ExpressRequest): Promise<any> {
-        return this.profileService.addAchievementToUser(dto, Number(req.user.sub));
+        const userId = req.user.id;
+        const profileInfo = await this.profileService.getProfileInfos(userId);
+        
+        return profileInfo;
     }
 
     @Post('add-avatar')
     @UseInterceptors(FileInterceptor('file', { 
         storage: diskStorage({
             destination: './uploads',
-            filename: (req, file, callback) => {
-                const name = file.originalname.split(".")[0];
-                const extension = file.originalname.split(".")[1];
-                const newFileName = name.split(" ").join("_") + "_" + Date.now() + "." + extension;
+            filename: (req: ExpressRequest, file, callback) => {
+                const extension = file.originalname.split(".").at(-1);
+                const newFileName = `${req.user.id}_${Date.now()}.${extension}`;
 
                 callback(null, newFileName);
             }
@@ -69,8 +64,11 @@ export class ProfileController {
                 errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),
         )
         avatar: Express.Multer.File, @Request() req: ExpressRequest) {
+
+        const userId = req.user.id;
+
         // Transform the plain JavaScript object into an instance of the AvatarDto class
-        const AvatarDtoTransformed = plainToClass(AvatarDto, { filename: avatar.filename, userId: Number(req.user.sub) });
+        const AvatarDtoTransformed = plainToClass(AvatarDto, { filename: avatar.filename, userId });
         // Validate the AvatarDtoTransformed instance
         const errors = await validate(AvatarDtoTransformed);
         if (errors.length > 0) {
@@ -86,9 +84,16 @@ export class ProfileController {
                 throw new BadRequestException('Invalid image dimensions');
             }
             try {
-                return this.profileService.addAvatar(avatar.filename, Number(req.user.sub));
-            } catch (error) {
-                throw error; // TODO: correct ?
+                const avatarData = await this.profileService.addAvatar(avatar.filename, userId);
+            
+                this.eventEmitter.emit('avatar.updated', new AvatarUpdatedEvent(
+                    userId,
+                    avatarData.avatar
+                ));
+
+                return avatarData;
+            } catch {
+                throw new UnprocessableEntityException();
             }
         }
     }
@@ -103,8 +108,33 @@ export class ProfileController {
         return this.profileService.getStats(Number(req.user.sub));
     }
 
-    @Get('achievements')
-    async getAchievements(@Request() req: ExpressRequest): Promise<any> {
-        return this.profileService.getAchievements(Number(req.user.sub));
+    @Get('/@me/achievements')
+    async retrieveAchievementsForCurrentUser(
+        @Request() req: ExpressRequest
+    ) {
+        const userId = req.user.id;
+
+        try {
+            const achievements = await this.achievementsService.listAchievements(userId);
+
+            return achievements;
+        } catch {
+            throw new NotFoundException();
+        }
+    }
+
+    /* TODO add id validation pipe even if it is catched and returned as a 404 */
+
+    @Get('/:id/achievements')
+    async getAchievements(
+        @Param('id', ParseIntPipe) userId: number): Promise<any> {
+        
+        try {
+            const achievements = await this.achievementsService.listAchievements(userId);
+
+            return achievements;
+        } catch {
+            throw new NotFoundException();
+        }
     }
 }

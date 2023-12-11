@@ -1,7 +1,9 @@
 import './Game.css'
-import SocketContext from '../Socket/Context/Context';
-import { useRef, useEffect, useContext, useCallback } from 'react';
+import SocketContext, { useSocketEvent } from '../Socket/Context/Context';
+import React, { useRef, useEffect, useContext, useCallback } from 'react';
 
+const BOARD_WIDTH = 800; // in px
+const BOARD_HEIGHT = 600; // in px
 const BALL_DEFAULT_RADIUS = 15;
 
 interface scoreElem {
@@ -43,38 +45,92 @@ let redColor = "red";
 let lastTimeColorCheck = 0;
 let change = false;
 
+let   gameEnd = false;
+let   gameStart = false;
+let   countdownMessage = '';
+let   lastCountdownReceivedTime = 0;
+
+let   ball: ballElem = {
+	speed: {x: 1, y: 1},
+	x: 0,
+	y: 0,
+	radius: BALL_DEFAULT_RADIUS,
+};
+
+let   leftPad: paddleElem = {
+	length: 0,
+	width: 10,
+	x: 5,
+	y: 0,
+};
+
+let   rightPad: paddleElem = {
+	length: 0,
+	width: 10,
+	x: 0,
+	y: 0,
+};
+
+let   score: scoreElem = {
+	leftPlayer: '0',
+	rightPlayer: '0',
+}
+
+function resetGame(width: number, height: number) {
+	gameEnd = false;
+	gameStart = true;
+
+	console.log('Game RESET !');
+
+	ball = {
+		speed: {x: 1, y: 1},
+		x: Math.round(width / 2),
+		y: Math.round(height / 2),
+		radius: BALL_DEFAULT_RADIUS,
+	};
+	leftPad = {
+		length: Math.round(width / 10),
+		width: 10,
+		x: 5,
+		y: Math.round(height / 2) - Math.round(width / 20),
+	};
+	rightPad = {
+		length: Math.round(width / 10),
+		width: 10,
+		x: width - 5 - 10,
+		y: Math.round(height / 2) - Math.round(width / 20),
+	};
+	score = {
+		leftPlayer: '0',
+		rightPlayer: '0',
+	}
+}
+
+function useAnimationFrame(cb: () => void, deps: React.DependencyList = []) {
+	const requestRef = React.useRef<number>(-1);
+
+	React.useEffect(() => {
+		const animate = () => {
+			cb();
+
+			requestRef.current = window.requestAnimationFrame(animate);
+		};
+
+		requestRef.current = window.requestAnimationFrame(animate);
+
+		return () => {
+			window.cancelAnimationFrame(requestRef.current);
+		}
+	}, [ cb, ...deps ]);
+}
+
 //////////////////////////////
 //           GAME           //
 //////////////////////////////
 const Game: React.FC<gameProps> = (props) => {
 	const { SocketState } = useContext(SocketContext);
-	const canvasRef = useRef<HTMLCanvasElement | null>(null);
-	let   gameEnd = false;
-	let   gameStart = false;
-	let   count = 3;
-
-	let   ball: ballElem = {
-		speed: {x: 1, y: 1},
-		x: Math.round(props.width / 2),
-		y: Math.round(props.height / 2),
-		radius: BALL_DEFAULT_RADIUS,
-	};
-	let   leftPad: paddleElem = {
-		length: Math.round(props.width / 10),
-		width: 10,
-		x: 5,
-		y: Math.round(props.height / 2) - Math.round(props.width / 20),
-	};
-	let   rightPad: paddleElem = {
-		length: Math.round(props.width / 10),
-		width: 10,
-		x: props.width - 5 - 10,
-		y: Math.round(props.height / 2) - Math.round(props.width / 20),
-	};
-	let   score: scoreElem = {
-		leftPlayer: '0',
-		rightPlayer: '0',
-	}
+	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const ctx = canvasRef.current?.getContext('2d');
 	
 	function handleKeyDown(event: KeyboardEvent) {
 		event.preventDefault();
@@ -135,13 +191,23 @@ const Game: React.FC<gameProps> = (props) => {
 		ctx.fillText(score.rightPlayer,Math.round(width / 2 * 1.5), Math.round(height / 8));
 	};
 
-	function drawStart(ctx: CanvasRenderingContext2D, count: number): void {
+	function drawStart(ctx: CanvasRenderingContext2D): void {
 		const { width, height } = ctx.canvas;
 
 		ctx.fillStyle = yellowColor;
 		ctx.font = "40px Short Stack";
 		ctx.fillText("Get READY !", Math.round(width / 3), Math.round(height / 8));
-		ctx.fillText(count.toString(), Math.round(width / 2), Math.round(height / 2));
+
+		const t = Math.min(1.0, (Date.now() - lastCountdownReceivedTime) / 250);
+
+		ctx.save();
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.translate(width / 2, height / 2);
+		ctx.scale(5.0 - t * 4.0, 5.0 - t * 4.0);
+		ctx.globalAlpha = 0.2 + t * 0.8;
+		ctx.fillText(countdownMessage, 0, 0);
+		ctx.restore();
 	};
 
 	function drawEnd(ctx: CanvasRenderingContext2D): void {
@@ -154,11 +220,11 @@ const Game: React.FC<gameProps> = (props) => {
 		ctx.fillText(score.rightPlayer,Math.round(props.width / 2 * 1.5), Math.round(height / 8));
 	}
 	
-	function renderFrame(context: CanvasRenderingContext2D | null | undefined, count: number): void {
+	function renderFrame(context: CanvasRenderingContext2D | null | undefined): void {
 		if (context != null && context != undefined) {
 			clearBackground(context);
 			if (gameStart == false) {
-				drawStart(context, count);
+				drawStart(context);
 			}
 			else if (gameEnd == true)
 				drawEnd(context);
@@ -196,57 +262,46 @@ const Game: React.FC<gameProps> = (props) => {
 		ball = newBall;
 	}, []);
 
-	const countdown = useCallback(() => {
-		--count;
-		if (count == 0)
-			gameStart = true;
+	const countdown = useCallback((msg: string) => {
+		countdownMessage = msg;
+		lastCountdownReceivedTime = Date.now();
+		gameEnd = false;
+		gameStart = false;
 	}, []);
 
 	const activateBall = useCallback(() => {
 		dangerousBall = true;
 	}, [])
 
-	useEffect(() => {
+	useSocketEvent('gameStart', () => resetGame(props.width, props.height));
+	useSocketEvent('countdown', countdown);
+	useSocketEvent('gameFinished', finishGame);
+	useSocketEvent('updateScore', updateScore);
+	useSocketEvent('updateGame', updateGame);
 
-		SocketState.socket?.on("countdown", countdown);
-		SocketState.socket?.on("gameFinished", finishGame);
-		SocketState.socket?.on("updateScore", updateScore);
-		SocketState.socket?.on("updateGame", updateGame);
+	useEffect(() => {
 		if (props.specialMode) {
 			SocketState.socket?.on("shield", activateShield);
 			SocketState.socket?.on("dangerousBall", activateBall);
-		}
-		
-		return () => {
-			SocketState.socket?.off("countdown", countdown);
-			SocketState.socket?.off("gameFinished", finishGame);
-			SocketState.socket?.off("updateScore", updateScore);
-			SocketState.socket?.off("updateGame", updateGame);
-			if (props.specialMode) {
+			return () => {
 				SocketState.socket?.off("shield", activateShield);
 				SocketState.socket?.off("dangerousBall", activateBall);
-			}
-		};
+			};
+		}
 	}, [SocketState.socket]);
 
-	useEffect(() => {
-		const context = canvasRef.current?.getContext('2d');
+	useAnimationFrame(() => {
+		const ctx = canvasRef.current?.getContext('2d');
+		if (ctx) {
+			renderFrame(ctx);
+		}
+	}, []);
 
+	useEffect(() => {
 		document.addEventListener('keydown', handleKeyDown);
 		document.addEventListener('keyup', handleKeyUp);
 
-		const gameLoop = () => {
-			renderFrame(context, count);
-			if (!gameEnd) {
-				window.requestAnimationFrame(gameLoop);
-			}
-		};
-
-		const frameId = window.requestAnimationFrame(gameLoop);
-
 		return () => {
-			// finishGame();
-			window.cancelAnimationFrame(frameId)
 			document.removeEventListener('keydown', handleKeyDown);
 			document.removeEventListener('keyup', handleKeyUp);
 		};

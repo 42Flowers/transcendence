@@ -128,9 +128,8 @@ const MessagesDm: React.FC = () => {
     const [sortedMessages, setSortedMessages] = useState<DmMessage[]>([]);
 
     const updateDmMessages = useCallback((msg: NewMessageElem) => {
-        if (!msg || msg.type === "channel" || msg.id != currentDm)
+        if (!msg || msg.type !== "conversation" || (msg.id !== currentDm && msg.id !== user.id))
             return;
-
         setSortedMessages((prevMessages) => [...prevMessages, {
             id: msg.msgId,
             authorId: msg.authorId,

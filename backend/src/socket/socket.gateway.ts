@@ -210,7 +210,7 @@ export class SocketGateway implements
 				authorName: event.authorName, 
 				message: event.message, 
 				createdAt : event.createdAt,
-				msgId: event.msgId
+				msgId: event.msgId,
 			});
 			this.socketService.emitToUserSockets(user2, 'message', {type: event.type,
 				id: event.id, 
@@ -218,7 +218,7 @@ export class SocketGateway implements
 				authorName: event.authorName, 
 				message: event.message, 
 				createdAt : event.createdAt,
-				msgId: event.msgId
+				msgId: event.msgId,
 			});
 	}
 

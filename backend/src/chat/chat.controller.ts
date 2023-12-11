@@ -299,7 +299,7 @@ export class ChatController {
             const messages = [];
             if (conversations != null) {
                 const authorNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.authorId)));
-                conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, creationTime: msg.createdAt, id: msg.id}));
+                conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, createdAt: msg.createdAt, id: msg.id}));
                 return messages;
             }
             return "nope";

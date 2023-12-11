@@ -100,11 +100,13 @@ export const patchUserProfile = (profile: UserID, data: PatchUserProfile) =>
 /* ==== PROFILE ==== */
 export type PublicUserProfile = {
     id: number;
-    
+    pseudo: string;
+    avatar: string | null;
+
 };
 
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
-export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<number>(`/api/profile/${targetId}`));
+export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<PublicUserProfile>(`/api/profile/${targetId}`));
 export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
 export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
 export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats'));

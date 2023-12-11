@@ -11,7 +11,6 @@ import Ladder from "./Ladder/Ladder";
 import MatchHistory from "./MatchHistory/MatchHistory";
 import './Profile.css';
 
-
 export interface LeaderContextType {
     smallLeader: boolean
     setSmallLeader: (smallLeader: boolean) => void;
@@ -26,25 +25,12 @@ export interface PerfectContextType {
     setPerfectLose: (perfectLose: boolean) => void;
 }
 
-interface Achievement {
-    id: number;
-    name: string;
-    description: string;
-    difficulty: number;
-    isHidden: boolean;
-    createdAt: Date;
-}
-
-type Achievements = {
-    achievements: Achievement[]
-}
-
 const ProfilePublic: React.FC = () => {
 
     const { targetId } = useParams();
     const auth = useAuthContext();
 
-    const profileInfos = useQuery(['public-profile-infos', targetId], () => fetchProfilePublic(targetId as any as number));
+    const profileInfos = useQuery(['public-profile-infos', targetId], () => fetchProfilePublic(Number(targetId)));
 
     if (!profileInfos.isFetched || undefined === profileInfos.data)
         return null;
@@ -56,7 +42,7 @@ const ProfilePublic: React.FC = () => {
                 userId={profileInfos.data.id} />
             <p>{profileInfos.data.pseudo}</p>
             {
-                (auth.user.id === targetId) && <FriendChoiceButtons  userId={Number(auth.user?.id)} friendId={Number(targetId)} />
+                (auth.user?.id === targetId) && <FriendChoiceButtons userId={Number(auth.user?.id)} friendId={Number(targetId)} />
             }
             <Ladder auth={Number(auth.user?.id)} />
             <Stats userId={Number(targetId)} auth={Number(auth.user?.id)} />

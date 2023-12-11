@@ -32,8 +32,6 @@ const CreateJoin: React.FC = () => {
     const handleSubmitJoin = (event: React.FormEvent<HTMLFormElement>) => {
 		if (channelName.length < 3)
 			return;
-		if (password.length < 3)
-			return;
         event.preventDefault();
         joinChannelMutation.mutate({ channelName, password });
         console.log("name", name, "password", password);
@@ -43,7 +41,7 @@ const CreateJoin: React.FC = () => {
 
     const handleSubmitAdd = (event: React.FormEvent<HTMLFormElement>) => {
 		if (userName.length < 3)
-		return;
+			return;
         event.preventDefault();
         addDmMutation.mutate({ targetName: userName });
         console.log(userName);
@@ -71,7 +69,6 @@ const CreateJoin: React.FC = () => {
                         style={{ flex: "1 1 auto" }}
                         placeholder="password"
                         className="inputClass"
-						minLength={3}
                         maxLength={20}
                     />
                     <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">JOIN</button>

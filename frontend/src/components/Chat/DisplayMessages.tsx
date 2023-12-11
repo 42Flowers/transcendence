@@ -19,13 +19,21 @@ interface NewMessageElem {
     msgId: number,
 }
 
-interface Message {
+interface ChannelMessage {
     id: number;
     authorId: number;
     authorName: string;
     content: string;
     createdAt: string;
-   }
+}
+
+interface DmMessage {
+    id: number;
+    authorId: number;
+    authorName: string;
+    content: string;
+    createdAt: string;
+}
 
 const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
     for (let i = 0; i < blockedIdArray.length; ++i) {
@@ -43,7 +51,7 @@ const MessagesChannel: React.FC = () => {
     const { user } = useAuthContext();
 
 
-    const [sortedMessages, setSortedMessages] = useState<Message[]>([]);
+    const [sortedMessages, setSortedMessages] = useState<ChannelMessage[]>([]);
 
     const updateChannelMessages = useCallback((msg: NewMessageElem) => {
         if (!msg || msg.type !== "channel" || msg.id != currentChannel)
@@ -108,10 +116,9 @@ const MessagesDm: React.FC = () => {
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
-    const [sortedMessages, setSortedMessages] = useState<Message[]>([]);
+    const [sortedMessages, setSortedMessages] = useState<DmMessage[]>([]);
 
     const updateDmMessages = useCallback((msg: NewMessageElem) => {
-        console.log("DM", msg);
         if (!msg || msg.type === "channel" || msg.id != currentDm)
             return;
 
@@ -145,7 +152,6 @@ const MessagesDm: React.FC = () => {
             messagesEndRef.current?.scrollIntoView({ block: 'end' });
     }, [dmMessages.data, messagesEndRef]);
 
-    console.log("HEEEEY",dmMessages.data);
     return (
         <div ref={messagesEndRef} className="displayMessageClass">
             {dmMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, msg => (
@@ -156,12 +162,12 @@ const MessagesDm: React.FC = () => {
                         msg.authorId === user.id 
                             ?
                                 <div key={msg.id} className="userBubble">
-                                    <p className="userNameBubble">{msg.authorName} - {getTime(msg.creationTime)}</p>
+                                    <p className="userNameBubble">{msg.authorName} - {getTime(msg.createdAt)}</p>
                                     <p className="userConvBubble">{msg.content}</p>
                                 </div>
                             :
                                 <div key={msg.id} className="otherBubble">
-                                    <p className="otherNameBubble">{msg.authorName} - {getTime(msg.creationTime)}</p>
+                                    <p className="otherNameBubble">{msg.authorName} - {getTime(msg.createdAt)}</p>
                                     <p className="otherConvBubble">{msg.content}</p>
                                 </div>
             ))}

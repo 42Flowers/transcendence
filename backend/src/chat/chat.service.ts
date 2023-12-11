@@ -43,7 +43,7 @@ interface convElem {
 interface convMessage {
     authorName: string,
     authorId: number,
-    creationTime: Date,
+    createdAt: Date,
     content: string,
 }
 

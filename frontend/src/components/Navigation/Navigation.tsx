@@ -8,10 +8,8 @@ import PopUpInvite from '../PopUpInvite/PopUpInvite.tsx';
 import './Navigation.css';
 import { useAuthContext } from "../../contexts/AuthContext";
 import SocketContext from "../Socket/Context/Context";
-import { Socket } from "socket.io-client";
 
 interface Props {
-    // onRouteChange: (route: string) => void;
     isSignedIn: boolean;
 }
 

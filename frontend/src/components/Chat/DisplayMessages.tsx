@@ -1,4 +1,4 @@
-import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
+import { ChatContext } from "../../contexts/ChatContext";
 import { useCallback, useContext, useEffect, useState, createRef } from "react";
 import { useQuery } from "react-query";
 import { ChannelMessage, PrivateMessage, fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../api";
@@ -19,6 +19,14 @@ interface NewMessageElem {
     msgId: number,
 }
 
+type MsgType = {
+    id: number
+    authorId: number
+    authorName: string
+    content: string
+    createdAt: string
+}
+        
 interface ChannelMessage {
     id: number;
     authorId: number;
@@ -68,6 +76,7 @@ const MessagesChannel: React.FC = () => {
 
     useSocketEvent('message', updateChannelMessages);
 
+    const getTime = (date: string) => {
     const getTime = (date) => {
         const dateObject = new Date(date);
         const hours = dateObject.getHours();
@@ -89,7 +98,7 @@ const MessagesChannel: React.FC = () => {
 
     return (
         <div ref={messagesEndRef} className="displayMessageClass">
-            {channelMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, msg => (
+            {channelMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, (msg: MsgType) => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ?
                         null
@@ -154,7 +163,7 @@ const MessagesDm: React.FC = () => {
 
     return (
         <div ref={messagesEndRef} className="displayMessageClass">
-            {dmMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, msg => (
+            {dmMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, (msg: MsgType) => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ? 
                         null

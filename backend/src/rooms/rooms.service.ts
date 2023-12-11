@@ -75,7 +75,11 @@ export class RoomService {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
 			if (name.length > 10)
 				throw new MyError("A channel name can only be 10 characters long");
-			let accessMask = 1;
+			if (pwd != '' && pwd != null) {
+				if (pwd.length < 3 || pwd.length >= 20)
+					throw new MyError("A channel password has to be between 3 and 20 characters");
+			}
+				let accessMask = 1;
 			if (pwd != '' && pwd != null)
 				accessMask = 4;
 			const password = await bcrypt.hash(pwd, 10);

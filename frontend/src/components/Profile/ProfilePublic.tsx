@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
-import { fetchAvailableUsers } from "../../api";
-import default_avatar from '../../assets/images/default_avatar.png';
 import { useAuthContext } from "../../contexts/AuthContext";
-import AvatarOthers from "../AvatarOthers/AvatarOthers";
 import Stats from "../Stats/Stats";
 import Achievements from "./Achievements/Achievements";
 import FriendChoiceButtons from "./FriendChoiceButtons/FriendChoiceButtons";
 import Ladder from "./Ladder/Ladder";
 import MatchHistory from "./MatchHistory/MatchHistory";
+import { ProfileInfosType } from "./Profile";
+
+import { UserAvatar } from "../UserAvatar";
 import './Profile.css';
 
 
@@ -34,49 +33,19 @@ interface Achievement {
     difficulty: number;
     isHidden: boolean;
     createdAt: Date;
- }
- 
-interface UserAchievement {
-    userId: number;
-    achievement: Achievement;
 }
 
 type Achievements = {
     achievements: Achievement[]
 }
 
-interface AchievementsListContextType {
-    achievementsList: UserAchievement[];
-    setAchievementsList: (achievementsList: UserAchievement[]) => void;
-}
-
-type gamesParticipated = {
-    winnerId: number
-    createdAt: Date
-};
-
-type Game = {
-    game: gamesParticipated;
-};
-
 const ProfilePublic: React.FC = () => {
 
-    const [profileInfos, setProfileInfos] = useState(null);
+    const [profileInfos, setProfileInfos] = useState<ProfileInfosType | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [status, setStatus] = useState<string>('');
     const { userId } = useParams();
     const auth = useAuthContext();
 
-    const usersQuery = useQuery('available-users', fetchAvailableUsers, {
-        onSuccess: (data) => {
-            data.map(([ id, pseudo, status ]) => {
-                if (Number(userId) === id) {
-                    setStatus(status);
-                }
-            });
-        }
-    });
- 
     useEffect(() => {
         const fetchData = async () => {
             const response = await fetch(`http://localhost:3000/api/profile/${userId}`);
@@ -110,12 +79,9 @@ const ProfilePublic: React.FC = () => {
     return (
         <>
             <div className="Profile">
-                {/* <ChangeAvatar handleUploadAvatar={handleUploadAvatar} /> */}
-                {profileInfos?.avatar ?
-                    <AvatarOthers status={status} avatar={`http://localhost:3000/static/${profileInfos.avatar}`} userId={profileInfos.id} />
-                    :
-                    <AvatarOthers status={status} avatar={default_avatar} userId={profileInfos?.id} />
-                }                
+                <UserAvatar
+                    avatar={profileInfos.avatar}
+                    userId={profileInfos.id} />
                 <p>{profileInfos?.pseudo}</p>
                 { Number(auth.user?.id) === Number(userId) ?
                     ''

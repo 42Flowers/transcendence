@@ -28,6 +28,7 @@ import { ChatSendMessageEvent } from 'src/events/chat/sendMessage.event';
 import { ChatSocketJoinChannelsEvent } from 'src/events/chat/socketJoinChannels.event';
 import { ChatSocketLeaveChannelsEvent } from 'src/events/chat/socketLeaveChannels.event';
 import { MyError } from 'src/errors/errors';
+import { ChatSendMessageToConversationdEvent } from 'src/events/chat/sendMessageToConversation.event';
 
 interface convElem {
     isChannel: boolean,
@@ -43,7 +44,7 @@ interface convElem {
 interface convMessage {
     authorName: string,
     authorId: number,
-    creationTime: Date,
+    createdAt: Date,
     content: string,
 }
 
@@ -99,6 +100,10 @@ export class ChatService {
 	) {
 		const target = await this.usersService.getUserByName(targetName);
 		const user = await this.usersService.getUserById(userId);
+		if (userId == target.id) {
+			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'conversation', "You cannot start a conversation with yourself"));
+			return null;
+		}
 		if (target != null && user != null) {
 			const blocked = await this.usersService.isUserBlocked(user.id, target.id);
 			const isblocked = await this.usersService.blockedByUser(user.id, target.id);
@@ -137,7 +142,7 @@ export class ChatService {
 	) {
 		try {
 			if (event.message.length > 100)
-			throw new MyError("This message is too long");
+				throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
 			console.log(event.message, event.message.length);
 			if (user) {
@@ -164,6 +169,7 @@ export class ChatService {
 						}
 						const newMsg = await this.messagesService.newPrivateMessage(user.id, conversation.id, event.message);
 						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(conversation.name, 'conversation', conversation.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, newMsg.id));
+						this.eventEmitter.emit('chat.sendtoconversation', new ChatSendMessageToConversationdEvent(user.id, dest.id, "conversation", conversation.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, newMsg.id));
 					} else {
 						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'message', "No such connected user"));
 						return;
@@ -204,14 +210,14 @@ export class ChatService {
 						const newMsg = await this.messagesService.newChannelMessage(user.id, event.channelId, event.message);
 						const channelName = await this.roomService.getRoom(event.channelId);
 						const channelUsers = await this.roomService.getUsersFromRoomWithoutBlocked(user.id, event.channelId);
-						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, newMsg.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, channelUsers));
+						this.eventEmitter.emit('chat.sendmessage', new ChatSendMessageEvent(channelName.name, "channel", channelName.id, user.id, user.pseudo, newMsg.content, newMsg.createdAt, newMsg.id, channelUsers));
 						return;
 					}
 				}
 				const msg = room.name + " does not exists or you are not a member";
 				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'channel', msg));
 			} else {
-				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, "message", "You are unknowwn to the database"));
+				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, "message", "Are you in a channel ?"));
 			}
 		} catch (err) {
 			console.log(err.message);
@@ -282,7 +288,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "You have been muted on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, "channel", "You have been muted on " + room.name));
 							return;
 						}
 					}
@@ -314,7 +320,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "You have been unmuted on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, "channel", "You have been unmuted on " + room.name));
 							return;
 						}
 					}
@@ -346,7 +352,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been banned from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been banned from " + room.name));
 							return;
 						}
 					}
@@ -378,7 +384,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been unbanned from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been unbanned from " + room.name));
 							return;
 						}
 					}
@@ -410,7 +416,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You have been kicked from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been kicked from " + room.name));
 							return;
 						}
 					}
@@ -434,7 +440,7 @@ export class ChatService {
 				const room = await this.roomService.roomExists(event.channelId);
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
-					if (member && member.permissionMask <= 2 && member.membershipState !== 4) {
+					if (member && member.permissionMask >= 2 && member.membershipState !== 4) {
 						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
 							const result = await this.roomService.addAdmin(event.targetId, event.channelId);
@@ -442,7 +448,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are now admin on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You are now admin on " + room.name));
 							return;
 						}
 					} else {
@@ -476,7 +482,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are no longer admin on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You are no longer admin on " + room.name));
 							return;
 						}
 					} else {

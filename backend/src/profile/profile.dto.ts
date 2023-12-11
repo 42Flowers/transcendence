@@ -1,10 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { IsNotEmpty, IsString, IsInt, MinLength, MaxLength, IsNumber, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, MinLength, MaxLength, IsNumber, Min, Max } from 'class-validator';
 import { IsNoSpecialCharacters } from './profile.pipe';
 
 export class CreateUserAchievementDto {
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     achievementId: number;
 }
@@ -25,6 +26,7 @@ export class AvatarDto {
 
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     userId: number;
 }

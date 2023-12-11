@@ -1,22 +1,18 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, { useContext } from "react";
 import { AvatarContext } from "../../contexts/AvatarContext";
-import { PseudoContext } from "../../contexts/PseudoContext";
-import { LeaderContext } from "../../contexts/LeaderContext";
-import async from 'async';
 
 import Stats from "../Stats/Stats";
+import Achievements from "./Achievements/Achievements";
+import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 import Ladder from "./Ladder/Ladder";
 import MatchHistory from "./MatchHistory/MatchHistory";
-import Achievements from "./Achievements/Achievements";
-import Switch2FA from "./Switch2FA/Switch2FA";
-import PopUp from "../PopUp/PopUp";
 import PseudoButton from "./PseudoButton/PseudoButton";
-import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
+import Switch2FA from "./Switch2FA/Switch2FA";
 
-import './Profile.css';
+import { useMutation, useQuery } from "react-query";
+import { Achievement, PatchUserProfile, fetchAddAvatar, fetchProfile, patchUserProfile } from "../../api";
 import { useAuthContext } from "../../contexts/AuthContext";
-import { fetchAddAchievementToUser, fetchProfile, fetchAddAvatar, patchUserProfile, PatchUserProfile, Achievement } from "../../api";
-import { useMutation, useQueries, useQuery } from "react-query";
+import './Profile.css';
 
 import { AxiosError } from 'axios';
 import { queryClient } from "../../query-client";
@@ -24,11 +20,6 @@ import { queryClient } from "../../query-client";
 export interface AvatarContextType {
     avatar: string;
     setAvatar: (avatar: string) => void;
-}
-
-export interface PseudoContextType {
-    pseudo: string
-    setPseudo: (pseudo: string) => void;
 }
 
 export interface LeaderContextType {

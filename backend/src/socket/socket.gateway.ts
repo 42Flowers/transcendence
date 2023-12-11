@@ -1,4 +1,6 @@
-import { Server, Socket } from "socket.io";
+import { Injectable } from "@nestjs/common";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
+import { JwtService } from "@nestjs/jwt";
 import {
 	ConnectedSocket,
 	MessageBody,
@@ -9,31 +11,32 @@ import {
 	WebSocketGateway,
 	WebSocketServer
 } from "@nestjs/websockets";
-import { Injectable } from "@nestjs/common";
-import { SocketService } from "./socket.service";
-import { GameKeyUpEvent } from "src/events/game/keyUp.event";
-import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
-import { GameKeyDownEvent } from "src/events/game/keyDown.event";
-import { ChatUserBlockEvent } from "src/events/chat/userBlock.event";
-import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
-import { ChatUserUnBlockEvent } from "src/events/chat/userUnBlock.event";
-import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
-import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
+import { Server, Socket } from "socket.io";
+import { UserPayload } from "src/auth/user.payload";
 import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
 import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
-import { UserPayload } from "src/auth/user.payload";
-import { JwtService } from "@nestjs/jwt";
-import { GameInviteToNormal } from "src/events/game/inviteToNormalGame.event";
-import { GameJoinInvite } from "src/events/game/joinInvite.event";
-import { GameInviteToSpecial } from "src/events/game/inviteToSpecialGame.event";
-import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
-import { PrismaService } from "src/prisma/prisma.service";
-import { Game, GameMode } from "src/game/game";
 import { ChatSendRoomToClientEvent } from "src/events/chat/sendRoomToClient.event";
+import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
+import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
 import { ChatSocketJoinChannelsEvent } from "src/events/chat/socketJoinChannels.event";
 import { ChatSocketLeaveChannelsEvent } from "src/events/chat/socketLeaveChannels.event";
+import { ChatUserBlockEvent } from "src/events/chat/userBlock.event";
+import { ChatUserUnBlockEvent } from "src/events/chat/userUnBlock.event";
+import { GameCancelSearchEvent } from "src/events/game/cancelSearch.event";
+import { GameInviteToNormal } from "src/events/game/inviteToNormalGame.event";
+import { GameInviteToSpecial } from "src/events/game/inviteToSpecialGame.event";
+import { GameJoinInvite } from "src/events/game/joinInvite.event";
+import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
+import { GameKeyDownEvent } from "src/events/game/keyDown.event";
+import { GameKeyUpEvent } from "src/events/game/keyUp.event";
+import { Game, GameMode } from "src/game/game";
+import { PrismaService } from "src/prisma/prisma.service";
 import { v4 as uuidv4 } from 'uuid';
+import { SocketService } from "./socket.service";
+import { IsAscii, IsNotEmpty, IsNumber, IsString, Max, MaxLength, Min, MinLength, ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator';
+import { ChatSendMessageToConversationdEvent } from "src/events/chat/sendMessageToConversation.event";
+import { UserDeclineGameInvitation } from "src/events/user.decline.invitation.event";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -49,9 +52,6 @@ declare module 'socket.io' {
 		game?: Game;
 	}
 }
-
-import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, ValidationOptions, registerDecorator, ValidationArguments, IsAscii } from 'class-validator';
-import { UserDeclineGameInvitation } from "src/events/user.decline.invitation.event";
 
 export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions) {
 	return function (object: object, propertyName: string) {
@@ -72,15 +72,27 @@ export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions)
 	};
 }
 
+/* ==== GAME DTO ==== */
+export class GameInvitationDTO {
+	@IsNumber()
+	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
+	@Min(1)
+	targetId: number
+};
+
+/* ==== CHAT DTO ==== */
 export class PrivateMessageDTO {
 	@IsNumber()
 	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
 	targetId: number
 
 	@IsString()
 	@IsNotEmpty()
 	@MaxLength(100)
+	@MinLength(1)
 	@IsAscii()
 	message: string
 };
@@ -88,18 +100,21 @@ export class PrivateMessageDTO {
 export class ChannelMessageDTO {
 	@IsNumber()
 	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
 	channelId: number
 
 	@IsString()
 	@IsNotEmpty()
 	@MaxLength(10)
-	@IsNoSpecialCharactersChat()
+	@MinLength(3)
+	// @IsNoSpecialCharactersChat()
 	channelName: string
 
 	@IsString()
 	@IsNotEmpty()
 	@MaxLength(100)
+	@MinLength(1)
 	@IsAscii()
 	message: string
 };
@@ -190,7 +205,26 @@ export class SocketGateway implements
 		else {
 			dest = event.destination;
 		}
-		this.server.to(dest).emit('message', {type: event.type, id: event.id, msgId: event.msgId, authorId: event.authorId, authorName: event.authorName, message: event.message, createdAt: event.createdAt});
+		this.server.to(dest).emit('message', 
+			{
+				type: event.type, 
+				authorId: event.authorId, 
+				authorName: event.authorName, 
+				createdAt: event.createdAt, 
+				id: event.id, 
+				message: event.message, 
+				msgId: event.msgId
+			});
+		this.socketService.emitToUserSockets(event.authorId, 'message', 
+			{
+				type: event.type, 
+				authorId: event.authorId, 
+				authorName: event.authorName, 
+				createdAt: event.createdAt, 
+				id: event.id, 
+				message: event.message, 
+				msgId: event.msgId
+			})
 		if (event.type == "channel") {
 			event.channelUsers.forEach(user => {
 				this.socketService.leaveChannel(user.userId, dest);
@@ -198,9 +232,32 @@ export class SocketGateway implements
 		}
 	}
 
+	@OnEvent('chat.sendtoconversation') 
+	sendToConversation (event: ChatSendMessageToConversationdEvent) {
+		const user1 = event.user1;
+		const user2 = event.user2;
+		console.log(event);
+		this.socketService.emitToUserSockets(user1, 'message', {type: event.type,
+				id: event.id, 
+				authorId: event.authorId, 
+				authorName: event.authorName, 
+				message: event.message, 
+				createdAt : event.createdAt,
+				msgId: event.msgId,
+			});
+			this.socketService.emitToUserSockets(user2, 'message', {type: event.type,
+				id: event.id, 
+				authorId: event.authorId, 
+				authorName: event.authorName, 
+				message: event.message, 
+				createdAt : event.createdAt,
+				msgId: event.msgId,
+			});
+	}
+
 	@OnEvent('chat.sendtochannel')
 	sendToChannel(event: ChatSendToChannelEvent) {
-		this.server.to(event.channelName).emit('info', {type: event.type, message: event.message});
+		this.server.to(event.channelName).emit('info', {type: event.type, msg: event.message});
 	}
 
 	// CHAT EVENTS
@@ -294,7 +351,13 @@ export class SocketGateway implements
 	onCancelSearch(
 		@ConnectedSocket() socket: Socket)
 	{
-		this.eventEmitter.emit('game.cancelSearch', new GameCancelSearchEvent(socket));
+		if (!socket)
+			return;
+		try {
+				this.eventEmitter.emit('game.cancelSearch', new GameCancelSearchEvent(socket));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage("keyUp")
@@ -302,7 +365,13 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() key: string)
 	{
-		this.eventEmitter.emit('game.keyUp', new GameKeyUpEvent(socket, key));
+		if (!socket || key == null || key == undefined || (key !== " " && key !== "ArrowUp" && key !== "ArrowDown"))
+			return;
+		try {
+			this.eventEmitter.emit('game.keyUp', new GameKeyUpEvent(socket, key));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage("keyDown")
@@ -310,25 +379,43 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() key: string)
 	{
-		this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
+		if (!socket || key == null || key == undefined || (key !== " " && key !== "ArrowUp" && key !== "ArrowDown"))
+			return;
+		try {
+			this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage("inviteNormal")
 	onInviteNormal(
+		@MessageBody() data: GameInvitationDTO,
 		@ConnectedSocket() socket: Socket,
-		@MessageBody() targetId: number,
 	)
 	{
-		this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, targetId));
+		if (!socket)
+			return;
+		try {
+			this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, data.targetId));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 	
 	@SubscribeMessage("inviteSpecial")
 	onInviteSpecial(
+		@MessageBody() data: GameInvitationDTO,
 		@ConnectedSocket() socket: Socket,
-		@MessageBody() targetId: number,
 	)
 	{
-		this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, targetId));
+		if (!socket)
+			return;
+		try {
+			this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, data.targetId));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage("joinInviteGame")
@@ -336,7 +423,13 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket
 	)
 	{
-		this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
+		if (!socket)
+			return;
+		try {
+			this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
+		} catch (err) {
+			console.log(err.message);
+		}
 	}
 
 	@SubscribeMessage('declineGameInvitation')

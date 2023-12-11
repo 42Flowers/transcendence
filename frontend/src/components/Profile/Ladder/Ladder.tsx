@@ -18,6 +18,7 @@ import AvatarOthers from '../../AvatarOthers/AvatarOthers';
 import './Ladder.css';
 import { fetchAvailableUsers, fetchLadder } from '../../../api';
 import { useQuery } from 'react-query';
+import { UserAvatar } from '../../UserAvatar';
 
 type LadderProps = {
     auth: number;
@@ -33,22 +34,9 @@ const Ladder: React.FC<LadderProps> = ({ auth }) => {
     const [statusList, setStatusList] = useState<Status>({});
     const { userId } = useParams();
 
-    const usersQuery = useQuery('available-users', fetchAvailableUsers, {
-        onSuccess: (data) => {
-            data.map(([ id, pseudo, status ]) => {
-                const newStatusList: Status = {};
-                data.forEach(([id, pseudo, status]) => {
-                    newStatusList[id] = status;
-                });
-                setStatusList(newStatusList);
-            });
-        }
-    });
     const q = useQuery(['ladder', auth, userId, ladder, setLadder], fetchLadder, {
-        enabled: !!usersQuery.data,
         onSuccess(data) {
             setLadder(calculateRanking(calculateWinsAndLosses(data)));
-
         },
     });
 
@@ -185,11 +173,9 @@ const Ladder: React.FC<LadderProps> = ({ auth }) => {
                                     {user.losses}
                                 </TableCell>
                                 <TableCell id="cell-avatar-l">
-                                    {user.avatar ?
-                                        <AvatarOthers status={statusList[user.id]} avatar={`http://localhost:3000/static/${user.avatar}`} userId={user.id} />
-                                        :
-                                        <AvatarOthers status={statusList[user.id]} avatar={default_avatar} userId={user.id} />
-                                    }
+                                    <UserAvatar
+                                        avatar={user.avatar}
+                                        userId={user.id} />
                                 </TableCell>
                             </TableRow>
                         ))}

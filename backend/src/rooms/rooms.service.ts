@@ -81,10 +81,12 @@ export class RoomService {
 				if (pwd.length < 3 || pwd.length >= 20)
 					throw new MyError("A channel password has to be between 3 and 20 characters");
 			}
-				let accessMask = 1;
-			if (pwd != '' && pwd != null)
+			let accessMask = 1;
+			let password = null;
+			if (pwd != '' && pwd != null) {
 				accessMask = 4;
-			const password = await bcrypt.hash(pwd, 10);
+				password = await bcrypt.hash(pwd, 10);
+			}
 			const channel = await this.prismaService.channel.create({
 				data: {
 					name: name,
@@ -374,10 +376,11 @@ export class RoomService {
 
 	async addPwd(channelId: number, pwd: string) : Promise<any> {
 		try {
-			if (pwd.length > 20) {
+			if (pwd.length > 20 ||pwd.length < 3) {
 				throw new MyError("A channel password has to be under 20 characters");
 			}
-			const chan = await this.prismaService.channel.update({where: {id: channelId}, data: {password: pwd, accessMask: 4}});
+			const password = await bcrypt.hash(pwd, 10);
+			const chan = await this.prismaService.channel.update({where: {id: channelId}, data: {password: password, accessMask: 4}});
 			if (chan != null) {
 				return {status: true};
 			} else {

@@ -50,7 +50,9 @@ const GameWrapper: React.FC<wrapperProps> = (props) => {
 				}
 				{!playersData && <p style={{ color: 'white' }}>Waiting for players data ...</p>}
 			</div>
-			<Game className="gameCanvas" width={props.width} height={props.height} specialMode={props.specialMode} />
+			<div className="game-div">
+				<Game className="gameCanvas" width={props.width} height={props.height} specialMode={props.specialMode} />
+			</div>
 		</div>
 	)
 }

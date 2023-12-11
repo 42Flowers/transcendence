@@ -11,6 +11,8 @@ export interface ChatContextType {
   setCurrentChannel: (currentChannel: number) => void;
   currentDm: number | null
   setCurrentDm: (currentDm: number) => void;
+  currentAvatar: string | null
+  setCurrentAvatar: (currentAvatar: string) => void;
   currentChannelName: string
   setCurrentChannelName: (currentChannelName: string) => void;
   myPermissionMask: number | null
@@ -28,12 +30,13 @@ export const ChatProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [isDm, setIsDm] = useState(false);
   const [currentChannel, setCurrentChannel] = useState(null);
   const [currentDm, setCurrentDm] = useState(null);
+  const [currentAvatar, setCurrentAvatar] = useState(null);
   const [currentChannelName, setCurrentChannelName] = useState('');
   const [myPermissionMask, setMyPermissionMask] = useState(null);
   const [currentAccessMask, setCurrentAccessMask] = useState(1);
 
   return (
-    <ChatContext.Provider value={{ chanOrDm, setChanOrDm, usersOrBanned, setUsersOrBanned, isDm, setIsDm, currentChannel, setCurrentChannel, currentDm, setCurrentDm, currentChannelName, setCurrentChannelName, myPermissionMask, setMyPermissionMask, currentAccessMask, setCurrentAccessMask }}>
+    <ChatContext.Provider value={{ chanOrDm, setChanOrDm, usersOrBanned, setUsersOrBanned, isDm, setIsDm, currentChannel, setCurrentChannel, currentDm, setCurrentDm, currentAvatar, setCurrentAvatar, currentChannelName, setCurrentChannelName, myPermissionMask, setMyPermissionMask, currentAccessMask, setCurrentAccessMask }}>
       {children}
     </ChatContext.Provider>
   );

@@ -39,6 +39,21 @@
 	/* border-top-right-radius: 20px; */
 }
 
+.titleDM {
+	width: 100%;
+}
+
+.titleDMChild {
+	height: 100%;
+}
+
+.titleDMChildChild {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 100%;
+}
+
 .channelPasswordHandle {
     /* box-shadow: 0 0 30px rgb(0, 0, 0, .5);
 	border-radius: 20px; */
@@ -264,13 +279,13 @@
 }
 
 .userNameBubble {
-text-align: right;
-margin-right: 2%;
+	text-align: right;
+	margin-right: 2%;
 }
 
 .userConvBubble {
-float: right;
-clear: both;
+	float: right;
+	clear: both;
 }
 
 /**************************************** SEND MESSAGE ****************************************/

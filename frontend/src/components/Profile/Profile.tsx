@@ -29,6 +29,8 @@ export interface AvatarContextType {
 export interface PseudoContextType {
     pseudo: string
     setPseudo: (pseudo: string) => void;
+    value: string
+    setValue: (value: string) => void;
 }
 
 export interface LeaderContextType {
@@ -114,7 +116,7 @@ const Profile: React.FC = () => {
     const [isPseudoAdded, setIsPseudoAdded] = useState(false);
 
     const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
-    const { pseudo, setPseudo } = useContext(PseudoContext) as PseudoContextType;
+    const { pseudo, setPseudo, setValue } = useContext(PseudoContext) as PseudoContextType;
     const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
 
     const gamesWonFunc = ( userId: number, games: Game[] ): number => {
@@ -320,10 +322,10 @@ const Profile: React.FC = () => {
 
     const handleChangePseudo = async (e) => {
         e.preventDefault();
-
         const pseudo = (e.target.elements as HTMLFormControlsCollection)['outlined-basic'].value;
 
         changeUsernameMutation.mutate({ pseudo });
+        setValue('');
     }
 
     const closePopup = () => {

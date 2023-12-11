@@ -119,7 +119,6 @@ const MessagesDm: React.FC = () => {
     const [sortedMessages, setSortedMessages] = useState<DmMessage[]>([]);
 
     const updateDmMessages = useCallback((msg: NewMessageElem) => {
-		console.log(msg);
         if (!msg || msg.type === "channel" || msg.id != currentDm)
             return;
 

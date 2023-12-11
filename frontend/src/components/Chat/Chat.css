@@ -15,7 +15,7 @@
 	border-top-right-radius: 20px;
 }
 
-.buttonClass {
+.buttonClass, .buttonClassPurple {
     font-family: "Short Stack";
 	color: white;
 	text-shadow: 0 0 4px var(--color-purple);
@@ -25,7 +25,7 @@
 	text-shadow: 0 0 4px var(--color-yellow);
 }
 
-.buttonClass:hover {
+.buttonClass:hover, .buttonClassPurple:hover {
 	cursor: pointer;
 	text-shadow: 0 0 4px var(--color-blue);
 }
@@ -38,6 +38,74 @@
 	border: 2px solid white;
 	/* border-top-right-radius: 20px; */
 }
+
+.titleDM {
+	width: 100%;
+}
+
+.titleDMChild {
+	height: 100%;
+}
+
+.titleDMChildChild {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 100%;
+}
+
+.channelPasswordHandle {
+    /* box-shadow: 0 0 30px rgb(0, 0, 0, .5);
+	border-radius: 20px; */
+}
+
+.channelPasswordInput, .channelPasswordInputBis {
+	background: none;
+	border: 1px solid white;
+	color: white;
+	text-shadow: 0 0 4px var(--color-purple);
+	background: none;
+	padding: 5px;
+	padding-left: 15px;
+}
+
+.channelPasswordInput {
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+}
+
+.channelPasswordInputBis {
+	border-top-left-radius: 20px;
+}
+
+.channelPasswordButton, .channelPasswordButtonBis, .channelPasswordButtonBisEnd {
+	cursor: pointer;
+	background: none;
+	border: 1px solid white;
+	color: white;
+    background: linear-gradient(to bottom, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+	text-shadow: 0 0 4px var(--color-light-pink);
+	padding: 5px;
+}
+
+.channelPasswordButton {
+	border-bottom-left-radius: 20px;
+	border-bottom-right-radius: 20px;
+}
+
+.channelPasswordButtonBis {
+	border-bottom-left-radius: 20px;
+}
+
+.channelPasswordButtonBisEnd {
+	border-top-right-radius: 20px;
+	border-bottom-right-radius: 20px;
+}
+
+.channelPasswordButton:hover, .channelPasswordButtonBis:hover, .channelPasswordButtonBisEnd:hover {
+	text-shadow: 0 0 4px var(--color-blue);
+}
+
 
 /**************************************** List ****************************************/
 
@@ -77,6 +145,51 @@
 
 .listRightClass:hover {
 	background-color: rgba(254, 254, 212, 0.375);
+}
+
+.avatarCursorPointer {
+	cursor: pointer;
+}
+
+.channelButtonsplace {
+	width: 30%;
+}
+
+.channelButtonForUsers {
+    background: linear-gradient(to top, #BF9CE8 10%, #FFEA95 100%) no-repeat;
+	border: solid 2px white;
+	border-radius: 20px;
+	padding: 5px;
+}
+
+.channelActionAndHideButtons {
+	cursor: pointer;
+	background: none;
+	border: none;
+	color: white;
+	text-shadow: 0 0 4px var(--color-light-pink);
+}
+
+.channelActionAndHideButtons:hover {
+	text-shadow: 0 0 4px var(--color-light-purple);
+}
+
+.channelBackgroundButtons {
+	display: flex;
+	flex-direction: column;
+}
+
+.channelButtons {
+	align-items: center;
+	cursor: pointer;
+	background: none;
+	border: none;
+	color: white;
+	text-shadow: 0 0 4px var(--color-blue);
+}
+
+.channelButtons:hover {
+	text-shadow: 0 0 4px var(--color-light-pink);
 }
 
 /**************************************** CREATE JOIN ****************************************/
@@ -166,13 +279,13 @@
 }
 
 .userNameBubble {
-text-align: right;
-margin-right: 2%;
+	text-align: right;
+	margin-right: 2%;
 }
 
 .userConvBubble {
-float: right;
-clear: both;
+	float: right;
+	clear: both;
 }
 
 /**************************************** SEND MESSAGE ****************************************/

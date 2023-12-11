@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import SocketContext from "../Socket/Context/Context";
-import { ChatContext } from "../../contexts/ChatContext";
+import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { AiOutlineSend } from 'react-icons/ai';
 import './Chat.css';
 
@@ -53,7 +53,9 @@ const SendMessages: React.FC = () => {
                         </form>
                     </div>
                 :
-                    null
+                    <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center" }} className="sendMessageClass"/>
+                        // null
+
             }
         </>
     );

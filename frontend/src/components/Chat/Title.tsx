@@ -171,6 +171,7 @@ const Title: React.FC = () => {
                                                     onChange={(e) => setAddPassword(e.target.value)}
                                                     style={{ flex: "1 1 auto" }}
                                                     className='channelPasswordInput'
+													minLength={3}
                                                 />
                                                 <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButton' >Add password</button>
                                             </form>

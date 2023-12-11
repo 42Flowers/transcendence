@@ -77,7 +77,6 @@ const MessagesChannel: React.FC = () => {
     useSocketEvent('message', updateChannelMessages);
 
     const getTime = (date: string) => {
-    const getTime = (date) => {
         const dateObject = new Date(date);
         const hours = dateObject.getHours();
         const minutes = dateObject.getMinutes().toString().padStart(2, '0');

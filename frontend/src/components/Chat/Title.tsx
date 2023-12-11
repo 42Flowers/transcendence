@@ -1,9 +1,10 @@
-import filter from 'lodash/filter';
-import { useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useMutation, useQuery } from "react-query";
 import { addPwd, changePwd, deleteM, deletePwd, quit, fetchAvailableDMs, fetchAvailableUsers } from "../../api";
 import { queryClient } from "../../query-client";
 import map from 'lodash/map';
+import filter from 'lodash/filter';
+import find from 'lodash/find';
 import { ChatContext, ChatContextType  } from "../../contexts/ChatContext";
 
 import './Chat.css';
@@ -22,8 +23,7 @@ type DisplayProps = {
     memberShipState?: number
 }
 
-const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {
-    const [availability, setAvailability] = useState<string>('');
+const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {    
     const buttonStyle: React.CSSProperties = {
         width: "30%",
         height: "100%",
@@ -31,15 +31,20 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
         cursor: "pointer",
         border: "none",
     };
-    const usersQuery = useQuery(['available-users'], fetchAvailableUsers, {
-        onSuccess: (data) => {
-            data.map(([ id, pseudo, availability ]) => {
-                if (userId === id) {
-                    setAvailability(availability);
-                }
-            });
+
+    const usersQuery = useQuery(['available-users'], fetchAvailableUsers);
+
+    const availability = React.useMemo(() => {
+        const userStatus = find(usersQuery.data, status => userId === status[0]);
+
+        if (userStatus) {
+            return userStatus[2] ?? '';
         }
-    });
+
+        return ''; /* Status not available yet */
+    }, [ usersQuery, userId ]);
+
+    console.log('%cStatus: ' + availability, 'font-size: 4em')
 
     const handlePlay = (event) => {
         // event.preventDefault();
@@ -212,7 +217,7 @@ const Title: React.FC = () => {
                         }
                     </>
                 :
-                    chanOrDm === "dm" && currentDm !== null
+                    chanOrDm === "dm" && currentDm !== 0
                         ?
                             <div className="titleDM">
                                 {directMessages.isFetched && map(directMessages.data, dm => (

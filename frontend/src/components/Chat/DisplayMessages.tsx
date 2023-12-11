@@ -27,7 +27,7 @@ type MsgType = {
     createdAt: string
 }
         
-interface ChannelMessage {
+interface ChannelMessageBis {
     id: number;
     authorId: number;
     authorName: string;
@@ -59,7 +59,7 @@ const MessagesChannel: React.FC = () => {
     const { user } = useAuthContext();
 
 
-    const [sortedMessages, setSortedMessages] = useState<ChannelMessage[]>([]);
+    const [sortedMessages, setSortedMessages] = useState<ChannelMessageBis[]>([]);
 
     const updateChannelMessages = useCallback((msg: NewMessageElem) => {
         if (!msg || msg.type !== "channel" || msg.id != currentChannel)
@@ -77,7 +77,6 @@ const MessagesChannel: React.FC = () => {
     useSocketEvent('message', updateChannelMessages);
 
     const getTime = (date: string) => {
-    const getTime = (date) => {
         const dateObject = new Date(date);
         const hours = dateObject.getHours();
         const minutes = dateObject.getMinutes().toString().padStart(2, '0');

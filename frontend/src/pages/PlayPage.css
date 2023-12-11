@@ -28,6 +28,13 @@
 	overflow: hidden;
 }
 
+.choose h3 {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+}
+
 .normal-mode {
 	border: 2px solid white;
     border-radius: 20px;

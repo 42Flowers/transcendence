@@ -33,7 +33,7 @@ const SendMessages: React.FC = () => {
     return (
         // <div style={{ display: "flex", flexDirection: "column", height: "100%", alignItems: "center", justifyContent: "center" }}>
         <>
-            { currentChannel !== null || currentDm !== null
+            { currentChannel !== 0 || currentDm !== 0
                 ?
                     <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center" }} className="sendMessageClass">
                         <form onSubmit={handleSubmitMessage} style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", height: "100%", width: "100%"}}>
@@ -55,7 +55,6 @@ const SendMessages: React.FC = () => {
                 :
                     <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center" }} className="sendMessageClass"/>
                         // null
-
             }
         </>
     );

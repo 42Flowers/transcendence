@@ -228,17 +228,17 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     
     return (
         <>
-            {/* <div className="avatarCursorPointer">
+            <div className="avatarCursorPointer">
                 <AvatarOthers
                     status={availability}
                     avatar={avatar ? `http://localhost:3000/static/${avatar}` : default_avatar}
                     userId={userId} />
-            </div> */}
+            </div>
             <p>{userName}</p>
             <div className="channelButtonsplace">
                 {
                     (myId !== userId && chanOrDm === 'channel') &&
-                     <div className="channelButtonForUsers">
+                    <div className="channelButtonForUsers">
                         <Dropdown options={options} onOptionClick={handleOptionClick} functions={functions} myPermissionMask={myPermissionMask}/>
                     </div>
                 }
@@ -315,7 +315,7 @@ const List: React.FC<Props> = ({ side }) => {
                         <div className="listClass">
                             {directMessages.isFetched && map(directMessages.data, (dm: Dm) => (
                                 <div key={dm.targetId} className="listLeftClass" onClick={() => setCurrentDm(dm.targetId)}>
-                                    <DisplayUser myId={auth.user.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
+                                   <p>{dm.targetName}</p>
                                 </div>
                             ))}
                         </div>

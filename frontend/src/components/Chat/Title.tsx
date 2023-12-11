@@ -51,7 +51,8 @@ const Title: React.FC = () => {
         onSuccess() {
             setCurrentChannel(0);
             /* Delete the channel from the list of channels */
-            queryClient.setQueryData(['channels-list'], (channels: Channel[] | undefined) => filter(channels, ({ channelId }: Channel) => channelId !== currentChannel));
+            queryClient.setQueryData(['channels-list'], (channels: Channel[] | undefined) => 
+                filter(channels, ({ channelId }: Channel) => channelId !== currentChannel));
         },
         onError() {
             alert("Cannot delete");

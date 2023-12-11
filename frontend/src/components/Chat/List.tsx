@@ -50,14 +50,14 @@ type DisplayProps = {
     memberShipState?: number
 }
 
+type FunctionType = (myPermissionMask: number) => void;
+
 type DropdownProps = {
     options: string[],
     onOptionClick: (option: string) => void,
-    functions: { [key: string]: (permissionMask?: number) => void },
+    functions: { [key: string]: (permissionMask: number) => void },
     myPermissionMask?: number
 }
-
-type FunctionType = (myPermissionMask?: number) => void;
 
 const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, myPermissionMask }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -98,6 +98,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     useQuery(['available-users'], fetchAvailableUsers, {
         onSuccess: (data) => {
             data.map(([ id, pseudo, availability ]) => {
+                console.log('availability',availability);
                 if (userId === id) {
                     setAvailability(availability);
                 }
@@ -136,11 +137,11 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     const banMutation = useMutation({
         mutationFn: ban,
         onSuccess(_data, { channelId, targetId }) {
-            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
-                map(memberships, ({ membershipState, userId, ...membership }) => ({
-                    userId,
-                    membershipState: (userId === targetId) ? 4 : membershipState,
-                    ...membership,
+            queryClient.setQueryData([ 'channel-members', channelId ], (memberships: Member[] | undefined) =>
+                map(memberships, ({ membershipState, userId, ...membership }: Member) => ({
+                        userId,
+                        membershipState: (userId === targetId) ? 4 : membershipState,
+                        ...membership,
                 })));
         },
         onError() {
@@ -151,12 +152,12 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     const unbanMutation = useMutation({
         mutationFn: unban,
         onSuccess(_data, { channelId, targetId }) {
-            queryClient.setQueryData<ChannelMembership[]>([ 'channel-members', channelId ], memberships =>
-            map(memberships, ({ membershipState, userId, ...membership }) => ({
-                userId,
-                membershipState: (userId === targetId) ? 1 : membershipState,
-                ...membership,
-            })));
+            queryClient.setQueryData([ 'channel-members', channelId ], (memberships: Member[] | undefined) =>
+                map(memberships, ({ membershipState, userId, ...membership }: Member) => ({
+                    userId,
+                    membershipState: (userId === targetId) ? 1 : membershipState,
+                    ...membership,
+                })));
         },
         onError() {
             alert("Cannot unban");
@@ -199,11 +200,11 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
         },
         'Ban': () => {
             setOptions(['Unban', 'Play'])
-            banMutation.mutate({ channelId: currentChannel, targetId: userId });
+            banMutation.mutate({ channelId: currentChannel!, targetId: userId });
         },
         'Unban': () => {
             setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
-            unbanMutation.mutate({ channelId: currentChannel, targetId: userId });
+            unbanMutation.mutate({ channelId: currentChannel!, targetId: userId });
         },
         'Kick': () => {
             kickMutation.mutate({ channelId: currentChannel!, targetId: userId });
@@ -250,7 +251,7 @@ const MembersList: React.FC = () => {
             if (member.userId === auth.user.id)
                 setMyPermissionMask(member.permissionMask);
         });
-     }, [allMembers.data, auth.user.id]);
+    }, [allMembers.data, auth.user.id]);
 
     return (
         usersOrBanned === 'users' 

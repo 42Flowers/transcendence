@@ -1,4 +1,4 @@
-import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
+import { ChatContext } from "../../contexts/ChatContext";
 import { useCallback, useContext, useEffect, useState, createRef } from "react";
 import { useQuery } from "react-query";
 import { ChannelMessage, PrivateMessage, fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../api";
@@ -17,6 +17,14 @@ interface messageElem {
     message: string,
     creationTime: Date,
     msgId: number,
+}
+
+type MsgType = {
+    id: number
+    authorId: number
+    authorName: string
+    content: string
+    createdAt: string
 }
 
 const isBlocked = (blockedIdArray: {blockedId: number}[], id: number) => {
@@ -68,7 +76,7 @@ const MessagesChannel: React.FC = () => {
     // Sort messages by creationDate before display
     */
 
-    const getTime = (date) => {
+    const getTime = (date: string) => {
         const dateObject = new Date(date);
         const hours = dateObject.getHours();
         const minutes = dateObject.getMinutes().toString().padStart(2, '0');
@@ -89,7 +97,7 @@ const MessagesChannel: React.FC = () => {
 
     return (
         <div ref={messagesEndRef} className="displayMessageClass">
-            {channelMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, msg => (
+            {channelMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, (msg: MsgType) => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ?
                         null
@@ -165,7 +173,7 @@ const MessagesDm: React.FC = () => {
     console.log("HEEEEY",dmMessages.data);
     return (
         <div ref={messagesEndRef} className="displayMessageClass">
-            {dmMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, msg => (
+            {dmMessages.isFetched && blockedUsers.isFetched && map(sortedMessages, (msg: MsgType) => (
                 isBlocked(blockedUsers.data, msg.authorId)
                     ? 
                         null

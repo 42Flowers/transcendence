@@ -65,6 +65,7 @@ export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions)
 export class GameInvitationDTO {
 	@IsNumber()
 	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
 	targetId: number
 };
@@ -73,6 +74,7 @@ export class GameInvitationDTO {
 export class PrivateMessageDTO {
 	@IsNumber()
 	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
 	targetId: number
 
@@ -87,6 +89,7 @@ export class PrivateMessageDTO {
 export class ChannelMessageDTO {
 	@IsNumber()
 	@IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
 	channelId: number
 

@@ -58,6 +58,7 @@ export class JoinChannelDto {
 export class QuitDto {
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     channelId: number;
 }
@@ -73,6 +74,7 @@ export class DeleteChannelDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(1)
+	@Max(Number.MAX_SAFE_INTEGER)
     channelId: number
 }
 
@@ -80,10 +82,12 @@ export class ActionsDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(1)
+	@Max(Number.MAX_SAFE_INTEGER)
     channelId: number
 
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     targetId: number
 }
@@ -91,6 +95,7 @@ export class ActionsDto {
 export class ManagePwdDto {
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     channelId: number
 
@@ -103,6 +108,7 @@ export class ManagePwdDto {
 export class RemovePwdDto {
     @IsNumber()
     @IsNotEmpty()
+	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
     channelId: number
 }

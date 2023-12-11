@@ -97,6 +97,7 @@ export const patchUserProfile = (profile: '@me' | number, data: Partial<PatchUse
 
 /* ==== PROFILE ==== */
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
+export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<number>(`/api/profile/${targetId}`));
 export const fetchAchievements = () => wrapResponse(authorizedGet('/api/profile/achievements'));
 export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
 export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));

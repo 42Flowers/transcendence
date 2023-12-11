@@ -3,14 +3,14 @@ import {io, ManagerOptions, SocketOptions, Socket } from 'socket.io-client';
 
 export const useSocket = (
 	uri: string,
-	opts?: Partial<ManagerOptions & SocketOptions> | undefined
+	opts?: Partial<ManagerOptions & SocketOptions>
 	): Socket  => {
 
 	const options: typeof opts = {
 		...(opts ?? {}),
-		extraHeaders: {
-			'Authorization': localStorage.getItem('token') ?? '',
-		}
+		auth(cb) {
+			cb({ token: localStorage.getItem('token') });
+		},
 	}
 
 	const {current: socket} = useRef(io(uri, options));

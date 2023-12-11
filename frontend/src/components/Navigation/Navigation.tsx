@@ -1,37 +1,39 @@
-import React, { MouseEvent, useCallback, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Avatar, Stack, Popover, List, ListItem, ListItemButton, ListItemText, Divider } from "@mui/material";
+import { Avatar, Divider, List, ListItem, ListItemButton, ListItemText, Popover, Stack } from "@mui/material";
+import React, { useContext } from "react";
+import { Link, useLocation } from "react-router-dom";
 import default_avatar from "../../assets/images/default_avatar.png";
-import { AvatarContext } from "../../contexts/AvatarContext";
-import PopUpInvite from '../PopUpInvite/PopUpInvite.tsx';
-
-import './Navigation.css';
 import { useAuthContext } from "../../contexts/AuthContext";
+import { AvatarContext } from "../../contexts/AvatarContext";
+import './Navigation.css';
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SocketContext from "../Socket/Context/Context";
+import './Navigation.css';
+import MemoizedPopUpInvite from "../PopUpInvite/PopUpInvite";
 
-interface Props {
-    isSignedIn: boolean;
-}
-
-interface AvatarContextType {
-    avatar: string;
-    setAvatar: (avatar: string) => void;
-}
-
-const Navigation: React.FC<Props> = ({ isSignedIn }) => {
+const Navigation: React.FC = () => {
+    const avatarRef = React.useRef<HTMLDivElement>(null);
+    const [ isOpen, setOpen ] = React.useState<boolean>(false);
     const navigate = useNavigate();
-    const [avatarEl, setAvatarEl] = React.useState<HTMLDivElement | null>(null);
-    const [senderPseudo, setSenderPseudo] = useState<string>("");
+    const location = useLocation();
+    const [ senderPseudo, setSenderPseudo ] = useState<string>("");
     const { signOut } = useAuthContext();
     const { SocketState } = useContext(SocketContext);
 
     const launchNormal = useCallback(() => {
         navigate('/game-normal');
-    }, []);
+    }, [ navigate ]);
 
     const launchSpecial = useCallback(() => {
         navigate('/game-special');
-    }, []);
+    }, [ navigate ]);
+
+    const [popup, setPopup] = useState(false);
+
+    const showPopup = React.useCallback((pseudo: string) => {
+        setPopup(true);
+        setSenderPseudo(pseudo);
+    }, [ setPopup, setSenderPseudo ]);
 
     useEffect(() => {
         SocketState.socket?.on("showGameInvite", showPopup);
@@ -43,24 +45,20 @@ const Navigation: React.FC<Props> = ({ isSignedIn }) => {
             SocketState.socket?.off("launchNormal", launchNormal);
             SocketState.socket?.off("launchSpecial", launchSpecial);
         };
-    }, [SocketState.socket]);
+    }, [SocketState.socket, launchNormal, launchSpecial, showPopup ]);
 
-    const { avatar } = useContext(AvatarContext) as AvatarContextType;
+    const { avatar } = useContext(AvatarContext);
 
-    const [popup, setPopup] = useState(false);
-
-    const handleAvatarClick = (e: MouseEvent<HTMLDivElement>) => {
-        setAvatarEl(e.currentTarget);
+    const handleAvatarClick = () => {
+        setOpen(true);
     };
 
     const handleAvatarClose = () => {
-        setAvatarEl(null);
+        setOpen(false);
     };
 
-    const showPopup = (pseudo: string) => {
-        setPopup(true);
-        setSenderPseudo(pseudo);
-    }
+    /* Close popover on url change */
+    React.useEffect(() => setOpen(false), [ location ]);
 
     const onAccept = () => {
         SocketState.socket?.emit('joinInviteGame');
@@ -68,81 +66,77 @@ const Navigation: React.FC<Props> = ({ isSignedIn }) => {
     };
 
     const onDecline = () => {
-        SocketState.socket?.emit('cancelGameSearch');
+        SocketState.socket?.emit('declineGameInvitation');
         setPopup(false);
     };
 
-    const open = Boolean(avatarEl);
-    const id: string | undefined = open ? "menu-popover" : undefined;
-    /* if user is not signed in, no navigation*/
-    if (!isSignedIn) {
-        return (null);
-    } else {
-        return (
-            <>
-                <div className="overlay" style={{ display: popup ? 'block': 'none' }}></div>
-                { popup && <PopUpInvite userName={senderPseudo} onAccept={onAccept} onDecline={onDecline} />}
-                <Stack direction="row" justifyContent="space-between" alignItems="center" style={{padding: '5px'}}>
-                    <p onClick={() => navigate('/')} className="logo">
-                        PONG
-                    </p>
+    const id: string | undefined = isOpen ? "menu-popover" : undefined;
+    return (
+        <>
+            <div className="overlay" style={{ display: popup ? 'block': 'none' }}></div>
+            { popup && <MemoizedPopUpInvite userName={senderPseudo} onAccept={onAccept} onDecline={onDecline} />}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" style={{padding: '5px'}}>
+                <Link to="/" className="logo">
+                    PONG
+                </Link>
+                <div ref={avatarRef}>
                     <Avatar aria-describedby={id} alt="Avatar" onClick={handleAvatarClick} src={avatar || default_avatar} style={{margin: '5px 10px'}}/>
-                </Stack>
+                </div>
+            </Stack>
 
-                <Popover
-                    id={id}
-                    open={open}
-                    anchorEl={avatarEl}
-                    onClose={handleAvatarClose}
-                    anchorOrigin={{
+            <Popover
+                id={id}
+                open={isOpen}
+                anchorEl={avatarRef.current}
+                onClose={handleAvatarClose}
+                anchorOrigin={{
                     vertical: "bottom",
                     horizontal: "left"
-                    }}
-                    sx={{
-                        '& .MuiPopover-paper': {
-                            backgroundColor: '#F8A38B', 
-                            borderLeft: '3px solid #9747FF', 
-                            borderBottom: '3px solid #9747FF',
-                            borderRadius: '20px',
-                        }
-                      }}
-                >
-                    <List disablePadding>
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => navigate('/profile')}>
-                                <ListItemText primary="Profile"/>
-                            </ListItemButton>
-                        </ListItem>
+                }}
+                sx={{
+                    '& .MuiPopover-paper': {
+                        backgroundColor: '#F8A38B',
+                        borderLeft: '3px solid #9747FF',
+                        borderBottom: '3px solid #9747FF',
+                        borderRadius: '20px',
+                    }
+                }}
+            >
+                <List disablePadding>
+                    <ListItem disablePadding>
+                        <ListItemButton component={Link} to="/profile">
+                            <ListItemText primary="Profile" />
+                        </ListItemButton>
+                    </ListItem>
 
-                        <Divider />
+                    <Divider />
 
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => navigate('/friends')}>
-                                <ListItemText primary="Friends" />
-                            </ListItemButton>
-                        </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton component={Link} to="/friends">
+                            <ListItemText primary="Friends" />
+                        </ListItemButton>
+                    </ListItem>
 
-                        <Divider />
+                    <Divider />
 
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => navigate('/chat')}>
-                                <ListItemText primary="Chat" />
-                            </ListItemButton>
-                        </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton component={Link} to="/chat">
+                            <ListItemText primary="Chat" />
+                        </ListItemButton>
+                    </ListItem>
 
-                        <Divider />
+                    <Divider />
 
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={signOut}>
-                                <ListItemText primary="Log Out" />
-                            </ListItemButton>
-                        </ListItem>
-                        
-                    </List>
-                </Popover>
-            </>
-        );
-    }
+                    <ListItem disablePadding>
+                        <ListItemButton onClick={signOut}>
+                            <ListItemText primary="Log Out" />
+                        </ListItemButton>
+                    </ListItem>
+
+                </List>
+            </Popover>
+        </>
+    );
 }
 
 export default Navigation;

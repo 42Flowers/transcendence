@@ -1,22 +1,18 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, { useContext } from "react";
 import { AvatarContext } from "../../contexts/AvatarContext";
-import { PseudoContext } from "../../contexts/PseudoContext";
-import { LeaderContext } from "../../contexts/LeaderContext";
-import async from 'async';
 
 import Stats from "../Stats/Stats";
+import Achievements from "./Achievements/Achievements";
+import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
 import Ladder from "./Ladder/Ladder";
 import MatchHistory from "./MatchHistory/MatchHistory";
-import Achievements from "./Achievements/Achievements";
-import Switch2FA from "./Switch2FA/Switch2FA";
-import PopUp from "../PopUp/PopUp";
 import PseudoButton from "./PseudoButton/PseudoButton";
-import ChangeAvatar from "./ChangeAvatar/ChangeAvatar";
+import Switch2FA from "./Switch2FA/Switch2FA";
 
-import './Profile.css';
+import { useMutation, useQuery } from "react-query";
+import { Achievement, PatchUserProfile, fetchAddAvatar, fetchProfile, patchUserProfile } from "../../api";
 import { useAuthContext } from "../../contexts/AuthContext";
-import { fetchAddAchievementToUser, fetchProfile, fetchAddAvatar, fetchChangePseudo } from "../../api";
-import { useMutation } from "react-query";
+import './Profile.css';
 
 import { AxiosError } from 'axios';
 import { queryClient } from "../../query-client";
@@ -24,13 +20,6 @@ import { queryClient } from "../../query-client";
 export interface AvatarContextType {
     avatar: string;
     setAvatar: (avatar: string) => void;
-}
-
-export interface PseudoContextType {
-    pseudo: string
-    setPseudo: (pseudo: string) => void;
-    value: string
-    setValue: (value: string) => void;
 }
 
 export interface LeaderContextType {
@@ -47,26 +36,8 @@ export interface PerfectContextType {
     setPerfectLose: (perfectLose: boolean) => void;
 }
 
-interface Achievement {
-    id: number;
-    name: string;
-    description: string;
-    difficulty: number;
-    isHidden: boolean;
-    createdAt: Date;
- }
- 
-interface UserAchievement {
-    userId: number;
-    achievement: Achievement;
-}
-
 type Achievements = {
     achievements: Achievement[]
-}
-
-type AchievementType = {
-    achievementId: number | undefined
 }
 
 type gamesParticipated = {
@@ -76,201 +47,35 @@ type gamesParticipated = {
     score2: number
     createdAt: Date
 };
-   
+
 type Game = {
     game: gamesParticipated;
 };
 
-export type ProfileInfosType = {
-    id: number
-    pseudo: string
-    avatar: string | null
-    gamesParticipated: gamesParticipated[]
-    achievements: {
-        [key: string]: Achievement
-    }
-}
-
 const Profile: React.FC = () => {
     const auth = useAuthContext();
 
-    const [profileInfos, setProfileInfos] = useState<ProfileInfosType | null>(null);
-    const [currentPopup, setCurrentPopup] = useState({
-        'Newwww Avatar': false,
-        'Newwww Pseudo': false,
-        '3 total': false,
-        '10 total': false,
-        '100 total': false,
-        'First Game': false,
-        'You\'re getting used to Pong': false,
-        'You\'re playing a lot': false,
-        '3': false,
-        '10': false,
-        '100': false,
-        'Small Leader': false,
-        'Great Leader': false,
-        'Perfect win': false,
-        'You\'re a looser': false,
-    });
-    const [popupQueue, setPopupQueue] = useState<string[]>([]);
-    const [isPseudoAdded, setIsPseudoAdded] = useState(false);
-
-    const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
-    const { pseudo, setPseudo, setValue } = useContext(PseudoContext) as PseudoContextType;
-    const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
-
-    const gamesWonFunc = ( userId: number, games: Game[] ): number => {
-        let gamesWon = 0;
-        games.map(game => {
-            if (game.game.winnerId === userId) {
-                gamesWon++;
-            }
-        });
-        return gamesWon;
-    };
-
-    const gamesPerfectFunc = ( userId: number, games: Game[] ): string => {
-        let gamePerfect = 0;
-        let gameLooser = 0;
-        games.map(game => {
-            if (game.game.winnerId === userId && ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10))) {
-                gamePerfect++;
-            } else if (game.game.looserId === userId && ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10))) {
-                gameLooser++;
-            }
-        })
-        if (gamePerfect > 0) {
-            return 'Perfect';
-        } else if (gameLooser > 0) {
-            return 'Looser';
-        }
-        return '';
-    };
-
-    const showPopup = ( popup: string ) => {
-        setCurrentPopup(prevPopup => ({
-            ...prevPopup,
-            [popup]: true
-        }));
-        setPopupQueue(prevQueue => [...prevQueue, popup]);
-    }
-
-    const gamesWonInARowFunc = (userId: number, games: Game[]): number => {
-        games.sort((a, b) => new Date(a.game.createdAt).getTime() - new Date(b.game.createdAt).getTime());
-
-        let maxConsecutiveWins = 0;
-        let currentConsecutiveWins = 0;
-
-        games.forEach((game) => {
-            if (userId === game.game.winnerId) {
-                currentConsecutiveWins++;
-                maxConsecutiveWins = Math.max(maxConsecutiveWins, currentConsecutiveWins);
-            } else {
-                currentConsecutiveWins = 0;
-            }
-        });
-
-        return maxConsecutiveWins;
-    };
-     
-     const addAchievement = useCallback(async (achievement: AchievementType)=> {
-        try {
-             const data = await fetchAddAchievementToUser(achievement);
-             queryClient.setQueryData('achievements', old => ([...(old ?? []), data]));
-         } catch (error) {
-             console.error(error);
-         }
-    }, []);
-
-     // Only with SQLite ? For Postgresql might need to change concurrency limit or pool size
-    const queue = async.queue((task: AchievementType, callback) => {
-        addAchievement(task)
-            .then(data => {
-                callback(null, data);
-            })
-            .catch(error => {
-                callback(error);
-            });
-    }, 1); // Set concurrency limit to 1
- 
-    useEffect(() => {
-        const fetchData = async () => {
-            const data = await fetchProfile();
+    const userProfileQuery = useQuery('profile', fetchProfile, {
+        onSuccess(data) {
             if (data.avatar !== avatar) {
                 setAvatar(`http://localhost:3000/static/${data.avatar}`);
             }
-            if (data.pseudo !== pseudo) {
-                setPseudo(data.pseudo);
-            }
-            setProfileInfos(prevState => {
-                if (JSON.stringify(data) !== JSON.stringify(prevState)) {
-                    return data;
-                }
-                return prevState;
-            });
-            if (data.achievements["Newwww Pseudo"].users.length > 0) {
-                setIsPseudoAdded(true);
-            }
+        },
+    });
 
-            if (data !== null) {
-                const handleAchievement = (achievementName: string) => {
-                    showPopup(achievementName);
-                    queue.push({
-                        achievementId: data.achievements[achievementName].id,
-                    });
-                };
+    const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
+    // const { smallLeader, greatLeader } = useContext(LeaderContext) as LeaderContextType;
+    //const { perfectWin, perfectLose } = useContext(PerfectContext) as PerfectContextType; // TODO: voir avec Max
 
-                const gamesWon = gamesWonFunc(auth.user.id, data?.gamesParticipated);
-                if (gamesWon >= 3 && data?.achievements['3 total'].users.length === 0) {
-                    handleAchievement('3 total');
-                }
-                if (gamesWon >= 10 && data?.achievements['10 total'].users.length === 0) {
-                    handleAchievement('10 total');
-                }
-                if (gamesWon >= 100 && data?.achievements['100 total'].users.length === 0) {
-                    handleAchievement('100 total');
-                }
-
-                const gamesWonInARow = gamesWonInARowFunc(auth.user.id, data?.gamesParticipated);
-                if (gamesWonInARow >= 3 && data?.achievements['3'].users.length === 0) {
-                    handleAchievement('3');
-                }
-                if (gamesWonInARow >= 10 && data?.achievements['10'].users.length === 0) {
-                    handleAchievement('10');
-                }
-                if (gamesWonInARow >= 100 && data?.achievements['100'].users.length === 0) {
-                    handleAchievement('100');
-                }
-
-                const gameParticipations = data?.gamesParticipated.length;
-                if (gameParticipations >= 1 && data?.achievements['First Game'].users.length === 0) {
-                    handleAchievement('First Game');
-                }
-                if (gameParticipations >= 10 && data?.achievements['You\'re getting used to Pong'].users.length === 0) {
-                    handleAchievement('You\'re getting used to Pong');
-                }
-                if (gameParticipations >= 100 && data?.achievements['You\'re playing a lot'].users.length === 0) {
-                    handleAchievement('You\'re playing a lot');
-                }
-
-                if (smallLeader && data?.achievements['Small Leader'].users.length === 0 && data?.gamesParticipated.length > 0) {
-                    handleAchievement('Small Leader');
-                }
-                if (greatLeader && data?.achievements['Great Leader'].users.length === 0 && data?.gamesParticipated.length > 0) {
-                    handleAchievement('Great Leader');
-                }
-                
-                const gamesPerfect = gamesPerfectFunc(auth.user.id, data?.gamesParticipated);
-                if (gamesPerfect === 'Perfect' && data?.achievements['Perfect win'].users.length === 0) {
-                    handleAchievement('Perfect win');
-                }
-                if (gamesPerfect === 'Looser' && data?.achievements['You\'re a looser'].users.length === 0) {
-                    handleAchievement('You\'re a looser');
-                }
-            }
-        };
-        fetchData();
-    }, [smallLeader, greatLeader]);
+    const patchProfileMutation = useMutation({
+        mutationFn: (data: PatchUserProfile) => patchUserProfile('@me', data),
+        onSuccess(data) {
+            queryClient.setQueryData('profile', data);
+        },
+        onError(e: AxiosError) {
+            alert("Min 3 characters and maximum 32 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
+        }
+    });
 
     const uploadAvatarMutation = useMutation({
         mutationFn: fetchAddAvatar,
@@ -283,15 +88,23 @@ const Profile: React.FC = () => {
         },
         onSuccess(data) {
             setAvatar(`http://localhost:3000/static/${data.avatar}`)
-            console.log("ProfileInfos", profileInfos);
-            if (!profileInfos?.avatar) {
-                showPopup('Newwww Avatar');
-                addAchievement({
-                    achievementId: profileInfos?.achievements['Newwww Avatar'].id,
-                });
-            }
+            // if (!profileInfos?.avatar) {
+            //     showPopup('Newwww Avatar');
+            //     addAchievement({
+            //         achievementId: profileInfos.achievements['Newwww Avatar'].id,
+            //     });
+            // }
         }
     });
+
+    if (userProfileQuery.isLoading) {
+        return 'Loading...';
+    }
+
+    if (userProfileQuery.isError) {
+        return 'Error';
+    }
+
 
     const handleUploadAvatar = (e) => {
         e.preventDefault();
@@ -303,64 +116,18 @@ const Profile: React.FC = () => {
         uploadAvatarMutation.mutate(formData);
     }
 
-    const changeUsernameMutation = useMutation({
-        mutationFn: fetchChangePseudo,
-        onSuccess(data) {
-            setPseudo(data.pseudo);
-            if (!isPseudoAdded) {
-                setIsPseudoAdded(true);
-                showPopup('Newwww Pseudo');
-                addAchievement({
-                    achievementId: profileInfos?.achievements['Newwww Pseudo'].id,
-                });
-            }
-        },
-        onError() {
-            alert("Min 3 characters and maximum 10 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
-        }
-    });
-
-    const handleChangePseudo = async (e) => {
-        e.preventDefault();
-        const pseudo = (e.target.elements as HTMLFormControlsCollection)['outlined-basic'].value;
-
-        changeUsernameMutation.mutate({ pseudo });
-        setValue('');
+    const handleChangePseudo = (pseudo: string) => {
+        patchProfileMutation.mutate({ pseudo });
     }
 
-    const closePopup = () => {
-        setPopupQueue(prevQueue => {
-            const firstItem = prevQueue[0];
-            setCurrentPopup(prevPopup => ({
-                ...prevPopup,
-                [firstItem]: false
-            }));
-            return prevQueue.slice(1)
-        });
-    };
+    const { pseudo } = userProfileQuery.data;
 
     return (
         <>
         {/* IF current user */}
-            <div className="overlay" style={{ display: currentPopup['Newwww Avatar'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Newwww Pseudo'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['3 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['10 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['100 total'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['First Game'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re getting used to Pong'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re playing a lot'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['3'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['10'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['100'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Small Leader'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Great Leader'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['Perfect win'] ? 'block': 'none' }}></div>
-            <div className="overlay" style={{ display: currentPopup['You\'re a looser'] ? 'block': 'none' }}></div>
             <div className="Profile">
-                {popupQueue.length > 0 && <PopUp userId={Number(auth.user?.id)} infos={profileInfos?.achievements[popupQueue[0]]} onClose={closePopup}/>}
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
-                <PseudoButton handleChangePseudo={handleChangePseudo} />
+                <PseudoButton currentPseudo={pseudo} onChangePseudo={handleChangePseudo} />
                 <div style={{ marginTop: '1em' }}>
                     <Switch2FA />
                 </div>
@@ -370,7 +137,7 @@ const Profile: React.FC = () => {
                 <Ladder auth={Number(auth.user?.id)} />
                 <Stats userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
-                <Achievements userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
+                <Achievements userId={'@me'} />
             </div>
         </>
     )

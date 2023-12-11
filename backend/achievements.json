@@ -1,0 +1,116 @@
+[
+    {
+        "name": "Newwww Avatar",
+        "slug": "new-avatar",
+        "description": "Congrats, you've just changed you're avatar for the very first time!",
+        "difficulty": 1
+    },
+    {
+        "name": "Newwww Pseudo",
+        "slug": "new-username",
+        "description": "Congrats, you've just changed you're pseudo for the very first time!",
+        "difficulty": 1
+    },
+    {
+        "name": "First Game",
+        "slug": "first-game",
+        "description": "It's you're first game ever!",
+        "difficulty": 1
+    },
+    {
+        "name": "You're getting used to Pong",
+        "slug": "games-played-10",
+        "description": "It's you're 10th game participation!",
+        "difficulty": 2
+    },
+    {
+        "name": "You're playing a lot",
+        "slug": "games-played-100",
+        "description": "It's you're 100th game participation!",
+        "difficulty": 3
+    },
+    {
+        "name": "3",
+        "slug": "streak-3",
+        "description": "3 wins in a row",
+        "difficulty": 2
+    },
+    {
+        "name": "3 total",
+        "slug": "total-won-3",
+        "description": "3 wins in total",
+        "difficulty": 1
+    },
+    {
+        "name": "10",
+        "description": "10 wins in a row",
+        "slug": "streak-10",
+        "difficulty": 2
+    },
+    {
+        "name": "10 total",
+        "description": "10 wins in total",
+        "slug": "total-won-10",
+        "difficulty": 2
+    },
+    {
+        "name": "100",
+        "description": "100 wins in a row",
+        "slug": "streak-100",
+        "difficulty": 3
+    },
+    {
+        "name": "100 total",
+        "description": "100 wins in total",
+        "slug": "total-won-100",
+        "difficulty": 3
+    },
+    {
+        "name": "Small Leader",
+        "slug": "owner-3",
+        "description": "You're the leader of a league that contains at least 3 participants",
+        "difficulty": 2
+    },
+    {
+        "name": "Great Leader",
+        "slug": "owner-10",
+        "description": "You're the leader of a league that contains at least 10 participants",
+        "difficulty": 3
+    },
+    {
+        "name": "Perfect win",
+        "slug": "won-10-0",
+        "description": "You won 10-0",
+        "difficulty": 2
+    },
+    {
+        "name": "You're a looser",
+        "slug": "loose-10-0",
+        "description": "You lost 10-0",
+        "difficulty": 2
+    },
+    {
+        "name": "New level",
+        "slug": "level-1",
+        "description": "You reached level 1!",
+        "difficulty": 1
+    },
+    {
+        "name": "Level 21",
+        "description": "You reached level 21! You're such a good player, I've never seen that before.",
+        "slug": "level-21",
+        "difficulty": 3
+    },
+    {
+        "name": "You like to talk?",
+        "slug": "messages-sent-10",
+        "description": "You've already sent 10 messages.",
+        "difficulty": 1
+    },
+    {
+        "name": "Chatterbox",
+        "slug": "messages-sent-100",
+        "description": "You can't stop talking! It's you're 100th message!",
+        "difficulty": 2
+    }
+]

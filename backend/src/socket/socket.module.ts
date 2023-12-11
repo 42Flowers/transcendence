@@ -1,16 +1,11 @@
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { Module } from '@nestjs/common';
+import { EventDispatcherService } from './event-dispatcher.service';
 import { SocketGateway } from './socket.gateway';
 import { SocketService } from './socket.service';
-import { Module } from '@nestjs/common';
-import { SocketController } from './socket.controller';
-import { ChatModule } from 'src/chat/chat.module';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
-	providers: [SocketService, SocketGateway],
-	controllers: [SocketController],
-	imports: [PrismaModule],
-	exports: [SocketService, SocketGateway]
-  
+	providers: [ SocketGateway, SocketService, EventDispatcherService, PrismaService ],
+	exports: [ SocketService, SocketGateway ],
 })
-
 export class SocketModule {}

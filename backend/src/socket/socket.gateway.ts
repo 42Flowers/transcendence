@@ -209,14 +209,16 @@ export class SocketGateway implements
 				authorId: event.authorId, 
 				authorName: event.authorName, 
 				message: event.message, 
-				createdAt : event.createdAt
+				createdAt : event.createdAt,
+				msgId: event.msgId,
 			});
 			this.socketService.emitToUserSockets(user2, 'message', {type: event.type,
 				id: event.id, 
 				authorId: event.authorId, 
 				authorName: event.authorName, 
 				message: event.message, 
-				createdAt : event.createdAt
+				createdAt : event.createdAt,
+				msgId: event.msgId,
 			});
 	}
 

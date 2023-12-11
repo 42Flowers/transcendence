@@ -12,19 +12,7 @@ import { UserAvatar } from "../UserAvatar";
 import './Profile.css';
 
 
-export interface LeaderContextType {
-    smallLeader: boolean
-    setSmallLeader: (smallLeader: boolean) => void;
-    greatLeader: boolean
-    setGreatLeader: (greatLeader: boolean) => void;
-}
 
-export interface PerfectContextType {
-    perfectWin: boolean
-    setPerfectWin: (perfectWin: boolean) => void;
-    perfectLose: boolean
-    setPerfectLose: (perfectLose: boolean) => void;
-}
 
 interface Achievement {
     id: number;

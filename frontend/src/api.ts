@@ -98,8 +98,23 @@ export const patchUserProfile = (profile: UserID, data: PatchUserProfile) =>
     wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
 
 /* ==== PROFILE ==== */
+export type LadderEntry = {
+    id: number;
+    pseudo: string;
+    avatar: string | null;
+    gameParticipation: {
+        opponentId: number;
+        userId: number;
+        gameId: number;
+        game: {
+            winnerId: number;
+            looserId: number;
+        };
+    }[];
+}
+
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
-export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
+export const fetchLadder = () => wrapResponse(authorizedGet<LadderEntry[]>('/api/profile/ladder'));
 export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
 export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats'));
 export const fetchAddAchievementToUser = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-achievement-to-user', payload));

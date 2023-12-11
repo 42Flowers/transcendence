@@ -152,7 +152,7 @@ const Title: React.FC = () => {
 
     return (
         <div style={{ display: "flex", flexDirection: "row", height: "100%" }} className="titleClass">
-            { chanOrDm === 'channel' && currentChannel !== null
+            { chanOrDm === 'channel' && currentChannel !== 0
                 ?
                     <>
                         <p style={titleStyle}>{currentChannelName}</p>

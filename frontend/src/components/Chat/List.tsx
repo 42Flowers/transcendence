@@ -197,12 +197,12 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     
     return (
         <>
-            <div className="avatarCursorPointer">
+            {/* <div className="avatarCursorPointer">
                 <AvatarOthers
                     status={availability}
                     avatar={avatar ? `http://localhost:3000/static/${avatar}` : default_avatar}
                     userId={userId} />
-            </div>
+            </div> */}
             <p>{userName}</p>
             <div className="channelButtonsplace">
                 {

@@ -55,7 +55,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
                     userId={userId} />
             </div>
             <p>{userName}</p>
-            <button style={buttonStyle} className="buttonClass" onClick={handlePlay}>PLAY</button>
+            <button style={buttonStyle} className="buttonClassPurple" onClick={handlePlay}>PLAY</button>
         </div>
     );
 }
@@ -82,7 +82,6 @@ const Title: React.FC = () => {
         height: "100%",
         backgroundColor: "transparent",
         cursor: "pointer",
-        // border: "1px solid red",
         border: "none",
     };
 
@@ -194,7 +193,6 @@ const Title: React.FC = () => {
                                                     <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButtonBis' >Change password</button>
                                                 </form>
                                                 <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword} className='channelPasswordButtonBisEnd' >Remove Password</button>
-                                                {/* <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword} className='channelPasswordButton' >Remove Password</button> */}
                                             </>
                                     }
                                 </div>
@@ -203,9 +201,9 @@ const Title: React.FC = () => {
                         }
                         { myPermissionMask === 4 
                             ?
-                                <button style={buttonStyle} className="buttonClass" onClick={handleDelete}>Delete Channel</button>
+                                <button style={buttonStyle} className="buttonClassPurple" onClick={handleDelete}>Delete Channel</button>
                             :
-                                <button style={buttonStyle} className="buttonClass" onClick={handleQuit}>Quit Channel</button>
+                                <button style={buttonStyle} className="buttonClassPurple" onClick={handleQuit}>Quit Channel</button>
                         }
                     </>
                 :

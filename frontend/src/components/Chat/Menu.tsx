@@ -7,7 +7,7 @@ type Props = {
 }
 
 const Menu: React.FC<Props> = ({ side }) => {
-    const { setChanOrDm, setUsersOrBanned, setIsDm } = useContext(ChatContext);
+    const { chanOrDm, currentChannel, setChanOrDm, setUsersOrBanned, setIsDm } = useContext(ChatContext);
     
     const buttonStyle: React.CSSProperties = {
         width: "50%",
@@ -35,10 +35,14 @@ const Menu: React.FC<Props> = ({ side }) => {
                         Direct Messages</button>
                 </div>
             :
-                <div className="menuRightClass">
-                    <button style={buttonStyle} className="buttonClass" onClick={() => setUsersOrBanned('users')}>Users</button>
-                    <button style={buttonStyle} className="buttonClass" onClick={() => setUsersOrBanned('banned')}>Banned Users</button>
-                </div>
+                chanOrDm === 'channel' && currentChannel !== 0
+                    ?
+                        <div className="menuRightClass">
+                            <button style={buttonStyle} className="buttonClass" onClick={() => setUsersOrBanned('users')}>Users</button>
+                            <button style={buttonStyle} className="buttonClass" onClick={() => setUsersOrBanned('banned')}>Banned Users</button>
+                        </div>
+                    :
+                        <div className="menuRightClass"/>
     );
 };
 

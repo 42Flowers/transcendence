@@ -136,11 +136,13 @@ const Title: React.FC = () => {
     const handleAddPassword = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         addPasswordMutation.mutate({ channelId: currentChannel, pwd: addPassword });
+        setAddPassword('');
     };
 
     const handleChangePassword = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         changePasswordMutation.mutate({ channelId: currentChannel, pwd: changePassword });
+        setChangePassword('');
     };
 
     const handleDeletePassword = (event: React.MouseEvent<HTMLButtonElement>) => {

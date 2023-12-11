@@ -8,6 +8,8 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { MyError } from 'src/errors/errors';
 import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
+import { UserLeftChannelEvent } from 'src/events/channels/user-left-channel.event';
+import { UserJoinedChannelEvent } from 'src/events/channels/user-joined-channel.event';
 
 @Injectable()
 export class RoomService {
@@ -121,7 +123,6 @@ export class RoomService {
 				const channel = await this.getRoom(channelId);
 				if (channel !== null) {
 					if (channel.accessMask == 4) {
-						console.log(pwd, channel, 'PASSWORD CHECK');
 						if (!await bcrypt.compare(pwd, channel.password))
 							throw new MyError("This channel is password protected");
 					}
@@ -131,21 +132,22 @@ export class RoomService {
 				}
 				try {
 					const channelMembership = await this.prismaService.channelMembership.create({
-					data: {
-						user : {
-							connect: {
-								id: userId,
+						data: {
+							user : {
+								connect: {
+									id: userId,
+								},
 							},
-						},
-						channel: {
-							connect : {
-								id: channelId,
+							channel: {
+								connect : {
+									id: channelId,
+								},
 							},
-						},
-						channelName: roomname,
-						permissionMask: 1
+							channelName: roomname,
+							permissionMask: 1
 						}
 					});
+					this.eventEmitter.emit('user.joined.channel', new UserJoinedChannelEvent(channelId, userId));
 					return channelMembership;
 				} catch (error) {
 					if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -249,11 +251,24 @@ export class RoomService {
 		} catch (err) {throw new MyError(err.message) }
 	}
 
-
+	/**
+	 * Forcefully deletes a channel membership
+	 * @param targetId 
+	 * @param channelId 
+	 * @returns 
+	 */
 	async kickUser(targetId: number, channelId: number) : Promise<any> {
 		try {
-			const membership = await  this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: targetId, channelId: channelId}}});
-			if (membership != null) {
+			const membership = await this.prismaService.channelMembership.delete({
+				where: {
+					userId_channelId: {
+						userId: targetId,
+						channelId: channelId
+					}
+				}
+			});
+			if (membership !== null) {
+				this.eventEmitter.emit('user.left.channel', new UserLeftChannelEvent(channelId, targetId));
 				return {status: true};
 			}
 			else {

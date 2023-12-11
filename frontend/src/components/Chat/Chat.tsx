@@ -9,16 +9,59 @@ import SendMessages from "./SendMessages";
 import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { useContext } from "react";
 
-import SocketContext from "../Socket/Context/Context";
+import SocketContext, { useSocketEvent } from "../Socket/Context/Context";
+import { queryClient } from "../../query-client";
+import { ChannelMembership } from "../../api";
+import filter from 'lodash/filter';
 
 interface infoElem {
     type: string,
     msg: string
 }
 
+type UserLeftChannelPayload = {
+    channelId: number;
+    userId: number;
+}
+
+type UserJoinedChannelPayload = {
+    channelId: number;
+    userId: number;
+    avatar: string;
+    pseudo: string;
+}
+
 const Chat: React.FC = () => {
     const { isDm } = useContext(ChatContext) as ChatContextType;
     const { SocketState } = useContext(SocketContext);
+
+    useSocketEvent<UserLeftChannelPayload>('user.left.channel', ({ channelId, userId }) => {
+        const queryKey = [ 'channel-members', channelId ];
+    
+        /* If the channel is loaded */
+        if (queryClient.getQueryData(queryKey) !== undefined) {
+            queryClient.setQueryData<ChannelMembership[]>(queryKey, members =>
+                filter(members, ({ userId: memberId }) => memberId !== userId));
+        }
+    });
+
+    useSocketEvent<UserJoinedChannelPayload>('user.joined.channel', ({ channelId, userId, avatar, pseudo }) => {
+        const queryKey = [ 'channel-members', channelId ];
+    
+        /* If the channel is loaded */
+        if (queryClient.getQueryData(queryKey) !== undefined) {
+            queryClient.setQueryData<ChannelMembership[]>(queryKey, members => [
+                ...filter(members, ({ userId: memberId }) => memberId !== userId),
+                {
+                    membershipState: 1,
+                    permissionMask: 1,
+                    userId,
+                    avatar,
+                    userName: pseudo,
+                }
+            ]);
+        }
+    });
 
     const containerStyle: React.CSSProperties = {
         display: "flex",

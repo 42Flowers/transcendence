@@ -7,9 +7,10 @@ import { RoomsModule } from '../rooms/rooms.module';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { Module } from '@nestjs/common';
+import { ChatEventsService } from './chat-events.service';
 
 @Module({
-	providers: [ ChatService ],
+	providers: [ ChatService, ChatEventsService ],
 	imports: [
 		RoomsModule, 
 		MessagesModule, 

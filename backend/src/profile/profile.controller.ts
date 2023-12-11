@@ -1,19 +1,17 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Post, Param, Body, Request, UploadedFile, BadRequestException, UseGuards, ParseIntPipe, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { UseInterceptors, ParseFilePipeBuilder, HttpStatus } from '@nestjs/common';
+import { BadRequestException, Controller, Get, HttpStatus, NotFoundException, Param, ParseFilePipeBuilder, ParseIntPipe, Post, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ProfileService } from './profile.service';
-import { CreateUserAchievementDto, ChangePseudoDto, AvatarDto } from './profile.dto';
-import { CheckIntPipe } from './profile.pipe';
-import { diskStorage } from 'multer';
-import { Request as ExpressRequest } from 'express';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { Request as ExpressRequest } from 'express';
 import sizeOf from 'image-size';
+import { diskStorage } from 'multer';
 import { AchievementsService } from 'src/achievements/achievements.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { AuthGuard } from 'src/auth/auth.guard';
 import { AvatarUpdatedEvent } from 'src/events/avatar-updated.event';
+import { AvatarDto } from './profile.dto';
+import { ProfileService } from './profile.service';
 
 @Controller('profile')
 @UseGuards(AuthGuard)

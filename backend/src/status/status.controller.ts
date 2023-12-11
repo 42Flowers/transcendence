@@ -4,7 +4,7 @@ import { Request as ExpressRequest } from 'express';
 import { SocketService } from "src/socket/socket.service";
 
 @Controller({
-	path: 'gateway'
+	path: 'gateway',
 })
 @UseGuards(AuthGuard)
 export class StatusController {

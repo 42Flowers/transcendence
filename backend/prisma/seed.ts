@@ -1,6 +1,10 @@
 /* eslint-disable prettier/prettier */
 import { PrismaClient } from '@prisma/client';
-const achievements: AchievementEntry[] = require('../achievements.json');
+const path = require('node:path');
+
+const achievementsPath = path.join(process.cwd(), 'achievements.json');
+
+const achievements: AchievementEntry[] = require(achievementsPath);
 
 type AchievementEntry = {
   name: string;

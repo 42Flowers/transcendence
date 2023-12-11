@@ -1,5 +1,7 @@
 FROM node:18
 
+EXPOSE 3000
+
 ARG DATABASE_URL
 ARG FT_APP_ID
 ARG FT_APP_SECRET
@@ -17,10 +19,10 @@ COPY . .
 
 RUN pnpm i --frozen-lockfile
 
-RUN pnpx prisma generate
+RUN pnpm run build
 
-COPY --chmod=744 docker-entrypoint.sh /docker-entrypoint.sh
+RUN pnpm i --prod --frozen-lockfile
 
-EXPOSE 3000
+COPY --chmod=744 ./docker-entrypoint.sh /docker-entrypoint.sh
 
-ENTRYPOINT [ "/docker-entrypoint.sh" ]
+ENTRYPOINT "/docker-entrypoint.sh"

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pnpx prisma migrate deploy
-pnpx prisma db seed
+npx prisma migrate deploy
 
-pnpm run start:dev
+node dist/prisma/seed.js
+node dist/src/main.js

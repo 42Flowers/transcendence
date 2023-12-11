@@ -46,7 +46,7 @@ export class SocketService {
 	}
 
 	addSocket(socket: Socket) {
-		const userId = Number(socket.user!.sub);
+		const userId = socket.user.id;
 
 		if (!(userId in this.connectedUsers)) {
 			this.connectedUsers[userId] = [];

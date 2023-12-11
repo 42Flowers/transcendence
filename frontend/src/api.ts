@@ -156,7 +156,7 @@ export const fetchAvailableUsers = () => wrapResponse(authorizedGet<UserStatus[]
 
 /* ==== FRIENDS ==== */
 export const fetchIsFriended = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isFriended: boolean; }>(`/api/profile/${userId}/isFriendwith/${friendId}`));
-export const addUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`api/profile/${userId}/add/${friendId}`, ''));
+export const addUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/add/${friendId}`, ''));
 export const fetchIsBlocked = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isBlocked: boolean; }>(`/api/profile/${userId}/isBlockWith/${friendId}`));
 export const blockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/block/${friendId}`, ''));
 export const unblockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/unblock/${friendId}`, ''));

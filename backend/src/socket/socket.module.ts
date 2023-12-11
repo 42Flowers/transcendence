@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { EventDispatcherService } from './event-dispatcher.service';
-import { SocketController } from './socket.controller';
 import { SocketGateway } from './socket.gateway';
 import { SocketService } from './socket.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
-	providers: [ SocketGateway, SocketService, EventDispatcherService ],
-	controllers: [ SocketController ],
-	exports: [ SocketService, SocketGateway ]
+	providers: [ SocketGateway, SocketService, EventDispatcherService, PrismaService ],
+	exports: [ SocketService, SocketGateway ],
 })
 export class SocketModule {}

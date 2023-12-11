@@ -33,12 +33,9 @@ async function main() {
   await prisma.achievement.deleteMany();
   await prisma.ticket.deleteMany();
   await prisma.user.deleteMany();
-  await prisma.$executeRaw`UPDATE sqlite_sequence SET seq = 0 WHERE name = 'User';`; // Eesier for testing in the URL: This ways, id of user always starts at 1 
-  //await prisma.$executeRaw`UPDATE sqlite_sequence SET seq = 0 WHERE name = 'Game';`;
-  //await prisma.$executeRaw`UPDATE sqlite_sequence SET seq = 0 WHERE name = 'Achievement';`;
+
     const user1 = await prisma.user.create({
       data: {
-        id: 1,
         pseudo: "User1",
         email: "user1@example.com",
         emailVerified: false,

@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpException, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiProperty, ApiTags } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length, MaxLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length, MaxLength, MinLength } from 'class-validator';
 import { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/register.dto';
@@ -30,6 +30,7 @@ export class PasswordLoginDto {
 
     @IsString()
     @IsNotEmpty()
+	@MinLength(3)
 	@MaxLength(20)
     password: string;
 }

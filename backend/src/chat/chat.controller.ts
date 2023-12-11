@@ -24,7 +24,7 @@ import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
-import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, MinLength, Length } from 'class-validator';
 
 
 interface Message {
@@ -45,11 +45,13 @@ interface users {
 
 export class JoinChannelDto {
     @IsString()
-	@MaxLength(10)
+	@IsNotEmpty()
+	@Length(3, 10)
     channelName: string;
 
     @IsString()
-	@MaxLength(20)
+	@IsNotEmpty()
+	@Length(3, 20)
     password: string;
 }
 
@@ -62,7 +64,8 @@ export class QuitDto {
 
 export class TargetDto {
     @IsString()
-    //@IsNotEmpty() ??
+	@IsNotEmpty()
+	@Length(3, 10)
     targetName: string;
 }
 
@@ -92,6 +95,8 @@ export class ManagePwdDto {
     channelId: number
 
     @IsString()
+	@MinLength(3)
+	@Length(3, 20)
     pwd: string
 }
 

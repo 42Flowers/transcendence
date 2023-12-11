@@ -94,6 +94,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ dispatch }) => {
 				type="password"
 				autoComplete="email"
 				maxLength={20}
+				minLength={3}
 				required />
 			<div className="remember-forgot">
 				<label className="checkbox">

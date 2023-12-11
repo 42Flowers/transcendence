@@ -199,7 +199,7 @@ export class SocketGateway implements
 				createdAt: event.createdAt, 
 				id: event.id, 
 				message: event.message, 
-				msgId: event.msgId
+				msgId: event.msgId,
 			});
 		this.socketService.emitToUserSockets(event.authorId, 'message', 
 			{
@@ -209,7 +209,7 @@ export class SocketGateway implements
 				createdAt: event.createdAt, 
 				id: event.id, 
 				message: event.message, 
-				msgId: event.msgId
+				msgId: event.msgId,
 			})
 		if (event.type == "channel") {
 			event.channelUsers.forEach(user => {
@@ -222,23 +222,15 @@ export class SocketGateway implements
 	sendToConversation (event: ChatSendMessageToConversationdEvent) {
 		const user1 = event.user1;
 		const user2 = event.user2;
-		console.log(event);
-		this.socketService.emitToUserSockets(user1, 'message', {type: event.type,
-				id: event.id, 
-				authorId: event.authorId, 
-				authorName: event.authorName, 
-				message: event.message, 
-				createdAt : event.createdAt,
-				msgId: event.msgId,
-			});
-			this.socketService.emitToUserSockets(user2, 'message', {type: event.type,
-				id: event.id, 
-				authorId: event.authorId, 
-				authorName: event.authorName, 
-				message: event.message, 
-				createdAt : event.createdAt,
-				msgId: event.msgId,
-			});
+		this.socketService.emitToUserSockets(user2, 'message', {
+			type: event.type,
+			id: event.id, 
+			authorId: event.authorId, 
+			authorName: event.authorName, 
+			message: event.message, 
+			createdAt : event.createdAt,
+			msgId: event.msgId,
+		});
 	}
 
 	@OnEvent('chat.sendtochannel')

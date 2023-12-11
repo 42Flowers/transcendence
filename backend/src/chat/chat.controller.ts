@@ -247,7 +247,6 @@ export class ChatController {
         @Body() quitDto: QuitDto,
         @Request() req : ExpressRequest
     ) {
-          console.log("Hello2");
 		  const userId = Number(req.user.sub);
 		  if (userId == undefined)
 			  return;

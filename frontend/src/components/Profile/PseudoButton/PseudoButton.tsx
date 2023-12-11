@@ -8,7 +8,7 @@ type PseudoButtonProps = {
 };
 
 const PseudoButton: React.FC<PseudoButtonProps> = ({ handleChangePseudo }) => {
-    const { pseudo } = useContext(PseudoContext) as PseudoContextType;
+    const { pseudo, value, setValue } = useContext(PseudoContext) as PseudoContextType;
 
     return (
         <form onSubmit={handleChangePseudo}>
@@ -22,6 +22,8 @@ const PseudoButton: React.FC<PseudoButtonProps> = ({ handleChangePseudo }) => {
                     }
                 }}
                 variant="outlined"
+                value={value}
+                onChange={(event) => setValue(event.target.value)}
                 placeholder={`${pseudo ?? ''}`}
                 sx={{
                     color: '#9747FF',

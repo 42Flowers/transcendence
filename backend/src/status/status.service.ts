@@ -48,12 +48,23 @@ export class StatusService {
                 },
             });
 
-            user.friends.forEach(({ friendId }) => {
-                this.socketService.emitToUserSockets(friendId, 'status', {
-                    userId,
-                    status,
-                });
-            });
+            await Promise.all(user.friends.map(async ({ friendId }) => {
+                try {
+                    const friend = await this.prismaService.user.findUniqueOrThrow({
+                        where: {
+                            id: friendId,
+                        },
+                    });
+
+                    this.socketService.emitToUserSockets(friendId, 'status', {
+                        userId,
+                        username: friend.pseudo,
+                        status,
+                    });
+                } catch {
+
+                }
+            }));
         } catch {
             ;
         }

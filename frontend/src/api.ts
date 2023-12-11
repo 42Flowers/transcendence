@@ -172,7 +172,7 @@ export const deletePwd = (payload: any) => wrapResponse(authorizedPost(`api/chat
 export const getConversations = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 
 /* ==== STATUS ==== */
-type UserStatus = [
+export type UserStatus = [
     number, /* ID */
     string, /* Username */
     string, /* Status */

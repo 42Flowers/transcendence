@@ -96,14 +96,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ dispatch }) => {
 				maxLength={20}
 				minLength={3}
 				required />
-			<div className="remember-forgot">
-				<label className="checkbox">
-					<input type="checkbox" name="remember_me" />
-					<div className="checkbox-check"></div>
-					Remember me
-				</label>
-				<a href="#">Forgot Password?</a>
-			</div>
 			<MainButton as="button" type="submit" buttonName="Login" loading={loginMutation.isLoading} />
 			<p className="or">or</p>
 			<MainButton as="a" href={authorizeUrl} buttonName="42 Account" />

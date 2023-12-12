@@ -141,6 +141,14 @@ export class SocketGateway implements
 		})
 	}
 
+	validateId(id: number) {
+		console.log("TESTED ID: ", id);
+		if (id == null || id == undefined || id < 1 || id > 1000000 || !Number.isInteger(id))
+			return false;
+
+		return true;
+	}
+
 	private async authenticateUser(socket: Socket): Promise<void> {
 		const { auth } = socket.handshake;
 
@@ -153,16 +161,17 @@ export class SocketGateway implements
 		socket.user = { ...userPayload, ...payload };
 	}
 
-	async handleConnection(client: Socket) {	
+	async handleConnection(client: Socket) {
+		if (client == null || client == undefined)
+			return;
 		client.join('server');
 		this.socketService.addSocket(client);
 		this.eventEmitter.emit('chat.socketjoinchannels', new ChatSocketJoinChannelsEvent(Number(client.user.sub), client))
 	}
 
 	async handleDisconnect(client: Socket) {
-		if (!client.user) {
-			return ;
-		}
+		if (client == null || client == undefined)
+			return;
 		client.leave('server');
 		this.eventEmitter.emit('chat.socketleavechannels', new ChatSocketLeaveChannelsEvent(Number(client.user.sub), client));
 		this.socketService.removeSocket(client);
@@ -251,7 +260,7 @@ export class SocketGateway implements
 	) {
 		try {
 			const userId = Number(client.user.sub);
-			if (userId == undefined)
+			if (client == null || client == undefined)
 				return;
 			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(userId, data.targetId));
 		} catch {
@@ -266,7 +275,7 @@ export class SocketGateway implements
 	) {
 		try {
 			const userId = Number(client.user.sub);
-			if (userId == undefined)
+			if (client == null || client == undefined)
 				return;
 			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(userId, data.targetId));
 		} catch {
@@ -279,10 +288,10 @@ export class SocketGateway implements
 		@MessageBody() dto: PrivateMessageDTO,
 		@ConnectedSocket() client : Socket 
 	) {
-		const userId = Number(client.user.sub);
-		if (userId == undefined)
-			return;
 		try {
+			const userId = Number(client.user.sub);
+			if (client == null || client == undefined)
+				return;
 			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, dto.targetId, dto.message));
 		} catch {
 			;
@@ -294,10 +303,10 @@ export class SocketGateway implements
 		@MessageBody() dto : ChannelMessageDTO,
 		@ConnectedSocket() client : Socket 
 	) {
-		const userId = Number(client.user.sub);
-		if (userId == undefined)
-			return;
 		try {
+			if (client == null || client == undefined)
+			return;
+			const userId = Number(client.user.sub);
 			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, dto.channelId, dto.message));
 		} catch {
 			;
@@ -318,24 +327,36 @@ export class SocketGateway implements
 	onJoinRandomNormal(
 		@ConnectedSocket() socket: Socket)
 	{
-		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, GameMode.Normal));
+		try {
+			if (socket == null || socket == undefined)
+				return;
+			this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, GameMode.Normal));
+		} catch (e) {
+			;
+		}
 	}
 	
 	@SubscribeMessage("joinRandomSpecial")
 	onRandomSpecial(
 		@ConnectedSocket() socket: Socket)
 	{
-		this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, GameMode.Special));
+		try {
+			if (socket == null || socket == undefined)
+				return;
+			this.eventEmitter.emit('game.joinRandom', new GameJoinRandomEvent(socket, GameMode.Special));
+		} catch (e) {
+			;
+		}
 	}
 
 	@SubscribeMessage('cancelGameSearch')
 	onCancelSearch(
 		@ConnectedSocket() socket: Socket)
 	{
-		if (!socket)
-			return;
 		try {
-				this.eventEmitter.emit('game.cancelSearch', new GameCancelSearchEvent(socket));
+			if (socket == null || socket == undefined)
+				return;
+			this.eventEmitter.emit('game.cancelSearch', new GameCancelSearchEvent(socket));
 		} catch {
 			;
 		}
@@ -343,12 +364,12 @@ export class SocketGateway implements
 
 	@SubscribeMessage("keyUp")
 	onKeyUp(
+		@MessageBody() key: string,
 		@ConnectedSocket() socket: Socket,
-		@MessageBody() key: string)
-	{
-		if (!socket || key == null || key == undefined || (key !== " " && key !== "ArrowUp" && key !== "ArrowDown"))
-			return;
+	) {
 		try {
+			if (socket == null || socket == undefined || key == null || key == undefined || (key !== " " && key !== "ArrowUp" && key !== "ArrowDown"))
+				return;
 			this.eventEmitter.emit('game.keyUp', new GameKeyUpEvent(socket, key));
 		} catch {
 			;
@@ -357,12 +378,12 @@ export class SocketGateway implements
 
 	@SubscribeMessage("keyDown")
 	onKeyDown(
+		@MessageBody() key: string,
 		@ConnectedSocket() socket: Socket,
-		@MessageBody() key: string)
-	{
-		if (!socket || key == null || key == undefined || (key !== " " && key !== "ArrowUp" && key !== "ArrowDown"))
-			return;
+	) {
 		try {
+			if (socket == null || socket == undefined || key == null || key == undefined || (key !== " " && key !== "ArrowUp" && key !== "ArrowDown"))
+				return;
 			this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
 		} catch {
 			;
@@ -375,9 +396,10 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket,
 	)
 	{
-		if (!socket)
-			return;
 		try {
+			if (socket == null || socket == undefined || !this.validateId(data)) {
+				return;
+			}
 			this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, data));
 		} catch {
 			;
@@ -390,9 +412,9 @@ export class SocketGateway implements
 		@ConnectedSocket() socket: Socket,
 	)
 	{
-		if (!socket)
-			return;
 		try {
+			if (socket == null || socket == undefined || !this.validateId(data))
+				return;
 			this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, data));
 		} catch {
 			;
@@ -402,11 +424,10 @@ export class SocketGateway implements
 	@SubscribeMessage("joinInviteGame")
 	onJoinInviteGame(
 		@ConnectedSocket() socket: Socket
-	)
-	{
-		if (!socket)
-			return;
+	) {
 		try {
+			if (socket == null || socket == undefined)
+				return;
 			this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
 		} catch {
 			;
@@ -417,8 +438,13 @@ export class SocketGateway implements
 	onUserDeclineInvitation(
 		@ConnectedSocket() socket: Socket
 	) {
-
-		this.eventEmitter.emit('user.decline.invitation', new UserDeclineGameInvitation(socket));
+		try {
+			if (socket == null || socket == undefined)
+				return;
+			this.eventEmitter.emit('user.decline.invitation', new UserDeclineGameInvitation(socket));
+		} catch (e) {
+			;
+		}
 	}
 
 }

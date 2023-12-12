@@ -95,6 +95,16 @@ export const completeRegister = (formData: FormData) =>
     wrapResponse(authorizedPost<UserProfile>('/api/v1/users/complete-profile', formData));
 
 /* ==== PROFILE ==== */
+export type PublicUserProfile = {
+    id: number;
+    pseudo: string;
+    avatar: string | null;
+
+};
+
+export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
+export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<PublicUserProfile>(`/api/profile/${targetId}`));
+
 export type LadderEntry = {
     id: number;
     pseudo: string;
@@ -110,7 +120,6 @@ export type LadderEntry = {
     }[];
 }
 
-export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
 export const fetchLadder = () => wrapResponse(authorizedGet<LadderEntry[]>('/api/profile/ladder'));
 export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
 export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats'));

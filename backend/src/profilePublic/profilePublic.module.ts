@@ -6,7 +6,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from "path";
 
 @Module({
-    controllers: [ProfilePublicController],
+    controllers: [ ProfilePublicController ],
     providers: [
         ProfilePublicService,
     ],
@@ -17,7 +17,4 @@ import { join } from "path";
         }),
     ],
 })
-export class ProfilePublicModule {
-    constructor() {
-    console.log(join(__dirname, '..', '..', '..', 'uploads')); // TODO: remove
-}}
+export class ProfilePublicModule {}

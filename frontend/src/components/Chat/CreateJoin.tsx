@@ -34,7 +34,6 @@ const CreateJoin: React.FC = () => {
 			return;
         event.preventDefault();
         joinChannelMutation.mutate({ channelName, password });
-        console.log("name", name, "password", password);
 		setChannelName('');
 		setPassword('');
     };
@@ -44,7 +43,6 @@ const CreateJoin: React.FC = () => {
 			return;
         event.preventDefault();
         addDmMutation.mutate({ targetName: userName });
-        console.log(userName);
 		setUserName('');
     };
 

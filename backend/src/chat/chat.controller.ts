@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Post, Body, Get, UseGuards, Request, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Param, NotFoundException } from '@nestjs/common';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { UsersService } from 'src/users_chat/users_chat.service';
@@ -149,8 +149,8 @@ export class ChatController {
 				}
 			});
 			return blockedUsers;
-		} catch(err) {
-                console.log(err.message);
+		} catch {
+            ;
 		}
 	}
 
@@ -163,13 +163,12 @@ export class ChatController {
 			if (userId == undefined)
 				return;
             const rooms = await this.roomService.getPublicRooms(userId);
-			console.log(rooms);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
             const chans = [];
             rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask}));
 			return chans;
-        } catch (err) {
-                console.log(err.message);
+        } catch {
+            ;
         }
     }
 
@@ -194,8 +193,8 @@ export class ChatController {
                 return messages;
             }
             return null;
-        } catch (err) {
-            console.log(err.message);
+        } catch {
+            ;
         }
     }
 
@@ -221,8 +220,8 @@ export class ChatController {
                 return users;
             }
             return null;
-        } catch (error) {
-            console.log(error.message);
+        } catch {
+            ;
         }
     }
 
@@ -237,8 +236,8 @@ export class ChatController {
 			if (userId == undefined)
 				return;
             this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(userId, joinChannelDto.channelName, joinChannelDto.password));
-        } catch (err) {
-			console.log(err.message);
+        } catch {
+            ;
         }
     }
 
@@ -273,8 +272,8 @@ export class ChatController {
                 convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo, avatar: userNames[index].avatar});
             });
             return convs;
-        } catch (err) {
-            console.log(err.message);
+        } catch {
+            ;
         }
     }
 
@@ -289,8 +288,8 @@ export class ChatController {
 				return;
             const conversation = await this.chatService.createConversation(userId, targetDto.targetName);
             return conversation;
-        } catch(error) {
-            console.log(error.message);
+        } catch {
+            ;
         }
     }
 
@@ -309,9 +308,9 @@ export class ChatController {
                 conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, createdAt: msg.createdAt, id: msg.id}));
                 return messages;
             }
-            return "nope";
-        } catch (err) {
-            console.log(err.message);
+            throw new NotFoundException();
+        } catch {
+            ;
         }
     }
 
@@ -438,8 +437,8 @@ export class ChatController {
 				return;
 			const friends = await this.userService.getFriends(userId);
 			return friends;
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+            ;
 		}
 	}
 

@@ -26,10 +26,18 @@ export class RoomService {
 
 	async getAccessMask(channelId: number) {
 		try {
-			const mask = await this.prismaService.channel.findUnique({where: {id: channelId}, select: {accessMask: true}});
+			const mask = await this.prismaService.channel.findUnique({
+				where: {
+					id: channelId
+				},
+				select: {
+					accessMask: true
+				}
+			});
+			
 			return mask;
-		} catch (error) {
-			console.log(error.message);
+		} catch {
+			;
 		}
 	}
 
@@ -47,8 +55,8 @@ export class RoomService {
 				}
 			})
 			return users;
-		} catch(error) {
-			console.log(error);
+		} catch {
+			;
 		}
 	}
 
@@ -63,12 +71,10 @@ export class RoomService {
 			if (chanId == null)
 				return undefined;
 			return chanId.id;
-		}catch( error) {
+		} catch (error) {
 			if (error instanceof Prisma.PrismaClientUnknownRequestError) {
 				throw error;
 			}
-			else 
-				console.log(error.message);
 		}
 	}
 
@@ -96,10 +102,7 @@ export class RoomService {
 				}
 			});
 			return channel.id;
-		} catch (err) {
-			if (err instanceof MyError) {
-				console.log(err.message);
-			}
+		} catch {
 			throw new MyError("Could not create this channel, please try another combination");
 		}
 	}
@@ -167,7 +170,6 @@ export class RoomService {
 			}
 			else {
 				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', err.message))
-				console.log(err.message);
 				return;
 			}
 		}
@@ -177,9 +179,7 @@ export class RoomService {
         return this.prismaService.channel.findUnique({where:{id: id}, select: {name: true, id: true}});
     }
 
-
-
-	async isUserinRoom(userId: number, channelId: number) : Promise<any> {
+	async isUserinRoom(userId: number, channelId: number): Promise<any> {
 		try {
 			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select:{channelName: true, membershipState: true, permissionMask:true, channelId: true}});
 			return membership;
@@ -188,7 +188,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				console.log(err.message);
 				return;
 			}
 		}
@@ -203,7 +202,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				console.log(err.message);
 				return;
 			}
 		}
@@ -330,7 +328,6 @@ export class RoomService {
 			}
 			return {status: false, msg: "Couldn't be muted"};
 		} catch (err) {
-			console.log("couldn't mute");
 			throw new Error(err.message);
 		}
 	}
@@ -388,7 +385,6 @@ export class RoomService {
 			}
 		} catch (err) {
 			if (err instanceof MyError) {
-				console.log(err.message);
 				return {status: false, msg: err.message};
 			}
 			throw err
@@ -429,15 +425,12 @@ export class RoomService {
 			const channels = await this.prismaService.channelMembership.findMany({
 				where: {userId: userId},
 			});
+
 			return channels;
 		} catch (err) {
 			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
 				throw Error(err.message);
 			}
-			else {
-				console.log(err.message);
-				return;
 		}
 	}
-}
 }

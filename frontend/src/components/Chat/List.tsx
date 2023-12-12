@@ -92,7 +92,6 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
     const { SocketState } = useContext(SocketContext);
 
     const handleOptionClick = (option: string) => {
-        console.log(`Option ${option} clicked`);
     };
 
 

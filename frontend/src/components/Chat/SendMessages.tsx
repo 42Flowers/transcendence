@@ -23,13 +23,9 @@ const SendMessages: React.FC = () => {
             SocketState.socket?.emit("channelmessage", {channelId: currentChannel, message: message});
         else if (chanOrDm === "dm")
             SocketState.socket?.emit("privatemessage", {targetId: currentDm, message: message});
-        console.log("submitted message", message);
         setMessage("");
     };
 
-    console.log("chan", currentChannel);
-    console.log("dm", currentDm);
-  
     return (
         // <div style={{ display: "flex", flexDirection: "column", height: "100%", alignItems: "center", justifyContent: "center" }}>
         <>

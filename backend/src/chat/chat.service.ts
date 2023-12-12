@@ -67,13 +67,12 @@ export class ChatService {
 		try {
 			const channels = await this.roomService.getPublicRooms(event.userId);
 			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-			// console.log(channels, conversations);
 			if (channels != null)
 				channels.map(chan => event.client.join(chan.name));
 			if (conversations != null)
 				conversations.map(conv => event.client.join(conv.name));
-		} catch(error) {
-			console.log(error.message);
+		} catch {
+			;
 		}
 	}
 
@@ -84,13 +83,12 @@ export class ChatService {
 		try {
 			const channels = await this.roomService.getPublicRooms(event.userId);
 			const conversations = await this.conversationsService.getAllUserConversations(event.userId);
-			// console.log(channels, conversations);
 			if (channels != null)
 				channels.map(chan => event.client.leave(chan.name));
 			if (conversations != null)
 				conversations.map(conv => event.client.leave(conv.name));
-		} catch (error) {
-			console.log(error.message);
+		} catch {
+			;
 		}
 	}
 
@@ -144,7 +142,7 @@ export class ChatService {
 			if (event.message.length > 100)
 				throw new MyError("This message is too long");
 			const user = await this.usersService.getUserById(event.userId);
-			console.log(event.message, event.message.length);
+
 			if (user) {
 				if (event.targetId != user.id) {
 					const dest = await this.usersService.getUserById(event.targetId);
@@ -163,7 +161,6 @@ export class ChatService {
 							return;
 						}
 						let conversation = await this.conversationsService.conversationExists(user.id, dest.id);
-						console.log(conversation);
 						if (conversation == null) {
 							throw new MyError("This Conversation does not exist");
 						}
@@ -181,8 +178,8 @@ export class ChatService {
 			} else {
 				throw new Error("This user could not be found in the database");
 			}
-		}catch (error) {
-			console.log(error.message);
+		} catch {
+			;
 		}
 	}
 
@@ -219,8 +216,8 @@ export class ChatService {
 			} else {
 				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, "message", "Are you in a channel ?"));
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -238,8 +235,8 @@ export class ChatService {
 					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'channel', user.pseudo + " joined " + event.channelName));
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -265,8 +262,8 @@ export class ChatService {
 					throw new MyError("This channel does not exist");
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -297,8 +294,8 @@ export class ChatService {
 					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 	
@@ -329,8 +326,8 @@ export class ChatService {
 					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -361,8 +358,8 @@ export class ChatService {
 					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -393,8 +390,8 @@ export class ChatService {
 					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -425,8 +422,8 @@ export class ChatService {
 					throw new MyError("This user is not a member OR doesn't have necessary permissions")
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -459,8 +456,8 @@ export class ChatService {
 					throw new MyError("This channel does not exist");
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -493,8 +490,8 @@ export class ChatService {
 					throw new MyError("This channel does not exist");
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -504,23 +501,26 @@ export class ChatService {
 	) {
 		try {
 			const user = await this.usersService.getUserById(event.userId);
+			
 			if (user != null) {
 				const room = await this.roomService.roomExists(event.channelId);
+				
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+					
 					if (member && member.permissionMask === 4) {
-							const result = await this.roomService.addPwd(event.channelId, event.pwd);
-							if (result.status === false)
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-						} else {
-						console.log("pas owner");
+						const result = await this.roomService.addPwd(event.channelId, event.pwd);
+						
+						if (result.status === false) {
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+						}
 					}
 				} else {
 					throw new MyError("This channel does not exist");
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -530,23 +530,26 @@ export class ChatService {
 	) {
 		try {
 			const user = await this.usersService.getUserById(event.userId);
+			
 			if (user != null) {
 				const room = await this.roomService.roomExists(event.channelId);
+			
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+			
 					if (member && member.permissionMask === 4) {
-							const result = await this.roomService.rmPwd(event.channelId);
-							if (result.status === false)
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-						} else {
-						console.log("pas owner");
+						const result = await this.roomService.rmPwd(event.channelId);
+			
+						if (result.status === false) {
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+						}
 					}
 				} else {
 					throw new MyError("This channel does not exist");
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -558,21 +561,23 @@ export class ChatService {
 			const user = await this.usersService.getUserById(event.userId);
 			if (user != null) {
 				const room = await this.roomService.roomExists(event.channelId);
+
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				
 					if (member && member.permissionMask === 4 && member.membershipState !== 4) {
-							const result = await this.roomService.addPwd(event.channelId, event.pwd);
-							if (result.status === false)
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-						} else {
-						console.log("pas owner");
+						const result = await this.roomService.addPwd(event.channelId, event.pwd);
+				
+						if (result.status === false) {
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+						}
 					}
 				} else {
 					throw new MyError("This channel does not exist");
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -582,21 +587,24 @@ export class ChatService {
 	) {
 		try {
 			const user = await this.usersService.getUserById(event.userId);
+			
 			if (user != null) {
 				const room = await this.roomService.roomExists(event.channelId);
+				
 				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+			
 					if (member && member.permissionMask === 4) {
 						const result = await this.roomService.deleteRoom(event.channelId);
-						if (result.status === false)
+				
+						if (result.status === false) {
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
-					} else {
-						console.log("pas owner");
+						}
 					}
 				}
 			}
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 

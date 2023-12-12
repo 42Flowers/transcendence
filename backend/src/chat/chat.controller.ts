@@ -146,9 +146,9 @@ export class RemovePwdDto {
 }
 
 export class CreatePrivateChannelDTO {
-	@IsString()
-	@IsNotEmpty()
-	@Length(3, 10)
+	// @IsString()
+	// @IsNotEmpty()
+	// // @Length(3, 10)
     channelName: string;
 }
 
@@ -173,9 +173,11 @@ export class ChatController {
 
 	@Post('create-private-channel')
 	async handleCreateprivateChannel(
-		@Param() DTO: CreatePrivateChannelDTO,
+		@Body() DTO: CreatePrivateChannelDTO,
 		@Request() req: ExpressRequest
 	) {
+		console.log('La route arrrriiiiiive');
+		console.log("444", DTO.channelName);
 		const userId = Number(req.user.sub);
 		if (userId == undefined) {
 			return;

@@ -1,8 +1,7 @@
-import SocketContext from '../Socket/Context/Context';
-import React from 'react';
-import {  useEffect, useContext, useCallback, useState } from 'react';
-import "./GameWrapper.css"
+import React, { useCallback, useState } from 'react';
+import { useSocketEvent } from '../Socket/Context/Context';
 import Game from './Game';
+import "./GameWrapper.css";
 
 interface wrapperProps {
 	width: number,
@@ -20,20 +19,13 @@ interface playersData {
 }
 
 const GameWrapper: React.FC<wrapperProps> = (props) => {
-	const { SocketState } = useContext(SocketContext);
 	const [ playersData, setPlayersData ] = useState<playersData | null>(null);
 
 	const displayPlayerData = useCallback((data: playersData) => {
 		setPlayersData(data);
-	}, []);
+	}, [ setPlayersData ]);
 
-	useEffect(() => {
-		SocketState.socket?.on("playerData", displayPlayerData);
-		
-		return () => {
-			SocketState.socket?.off("playerData", displayPlayerData);
-		}
-	}, [SocketState.socket]);
+	useSocketEvent('playerData', displayPlayerData);
 
 	return (
 		<div className="game-wrapper">

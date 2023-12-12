@@ -8,7 +8,6 @@ import { Request as ExpressRequest } from 'express';
 import { ChatService } from './chat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { Prisma } from '@prisma/client';
 import { ChatMuteOnChannelEvent } from 'src/events/chat/muteOnChannel.event';
 import { ChatUnMuteOnChannelEvent } from 'src/events/chat/unMuteOnChannel.event';
 import { ChatBanFromChannelEvent } from 'src/events/chat/banFromChannel.event';

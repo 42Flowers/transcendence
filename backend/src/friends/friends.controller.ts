@@ -1,9 +1,12 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards, Request, Body } from '@nestjs/common';
 import { FriendsService } from './friends.service';
 import { CheckIntPipe } from 'src/profilePublic/profilePublic.pipe';
 import { NotFoundException } from '@nestjs/common';
+import { Request as ExpressRequest } from 'express';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('friends')
+@UseGuards(AuthGuard)
 export class FriendsController {
   constructor(private friendService: FriendsService) {}
 
@@ -22,104 +25,113 @@ export class FriendsController {
     }
   }
 
-  @Get(':userId')
-  async getFriendsList(@Param('userId', CheckIntPipe) userId: number) {
+  @Get()
+  async getFriendsList(
+    @Request() req: ExpressRequest,
+  ) {
+    const userId = Number(req.user.sub);
     try {
       return this.friendService.getFriendsList(userId);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
-  @Post(':userId/unblock/:friendId')
+  @Post('unblock')
   async unblockFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
+    @Request() req: ExpressRequest,
+    @Body() payload: { friendId: number},
   ) {
-    if (userId == friendId) {
+    const userId = Number(req.user.sub);
+    if (userId == payload.friendId) {
       // return null;
       return this.friendService.getFriendsList(userId);
     }
     try {
-      return this.friendService.unblockFriend(userId, friendId);
+      return this.friendService.unblockFriend(userId, payload.friendId);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
-  @Post(':userId/block/:friendId')
+  @Post('block')
   async blockFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
+    @Request() req: ExpressRequest,
+    @Body() payload: { friendId: number},
   ) {
-    if (userId == friendId) {
+    const userId = Number(req.user.sub);
+    if (userId == payload.friendId) {
       // return null;
       return this.friendService.getFriendsList(userId);
     }
     try {
-      return this.friendService.blockFriend(userId, friendId);
+      return this.friendService.blockFriend(userId, payload.friendId);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
-  @Post(':userId/delete/:friendId')
+  @Post('delete')
   async deleteFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
+    @Request() req: ExpressRequest,
+    @Body() payload: { friendId: number},
   ) {
-    if (userId == friendId) {
+    const userId = Number(req.user.sub);
+    if (userId == payload.friendId) {
       // return null;
       return this.friendService.getFriendsList(userId);
     }
     try {
-      return this.friendService.deleteFriend(userId, friendId);
+      return this.friendService.deleteFriend(userId, payload.friendId);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
-  @Post(':userId/cancel/:friendId')
+  @Post('cancel')
   async cancelFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
+    @Request() req: ExpressRequest,
+    @Body() payload: { friendId: number},
   ) {
-    if (userId == friendId) {
+    const userId = Number(req.user.sub);
+    if (userId == payload.friendId) {
       // return null;
       return this.friendService.getFriendsList(userId);
     }
     try {
-      return this.friendService.cancelFriend(userId, friendId);
+      return this.friendService.cancelFriend(userId, payload.friendId);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
-  @Post(':userId/accept/:friendId')
+  @Post('accept')
   async acceptFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
+    @Request() req: ExpressRequest,
+    @Body() payload: { friendId: number},
   ) {
-    if (userId == friendId) {
+    const userId = Number(req.user.sub);
+    if (userId == payload.friendId) {
       // return null;
       return this.friendService.getFriendsList(userId);
     }
-    if ((await this.isBlockByOne(userId, friendId)) == true) {
+    if ((await this.isBlockByOne(userId, payload.friendId)) == true) {
       // return null;
       return this.friendService.getFriendsList(userId);
     }
     try {
-      return this.friendService.acceptFriend(userId, friendId);
+      return this.friendService.acceptFriend(userId, payload.friendId);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
   }
-  @Post(':userId/decline/:friendId')
+  @Post('decline')
   async declineFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
+    @Request() req: ExpressRequest,
+    @Body() payload: { friendId: number},
   ) {
-    if (userId == friendId) {
+    const userId = Number(req.user.sub);
+    if (userId == payload.friendId) {
       // return null;
       return this.friendService.getFriendsList(userId);
     }
     try {
-      return this.friendService.declineFriend(userId, friendId);
+      return this.friendService.declineFriend(userId, payload.friendId);
     } catch (error) {
       throw new NotFoundException(error.message);
     }

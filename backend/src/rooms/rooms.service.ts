@@ -48,6 +48,9 @@ export class RoomService {
 					userId: {
 						not: userId
 					},
+					membershipState: {
+						not: 4,
+					},
 					channelId: channelId
 				},
 				select: {

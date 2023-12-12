@@ -23,6 +23,10 @@
     align-items: center;
 }
 
+.FriendItem-wrapper .input-box p {
+    margin-right: 10px;
+}
+
 .FriendItem-wrapper .input-box > *:not(:last-child) {
     margin-right: 20px;
 }

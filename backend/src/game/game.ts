@@ -77,6 +77,7 @@ export class Game {
     private lastCountDownTick: number;
     private readonly leftPlayer: User;
     private readonly rightPlayer: User;
+    private readonly creationTime: number;
 
     private leftPad: Paddle;
 	private rightPad: Paddle;
@@ -95,6 +96,7 @@ export class Game {
         this.gameState = GameState.Waiting;
         this.eventEmitter = eventEmitter;
         this.gameDuration = 0;
+        this.creationTime = Date.now();
     }
 
     private onSocketAttached(socket: Socket) {
@@ -186,6 +188,14 @@ export class Game {
     getRightPlayerUser() { return this.rightPlayer; }
     getLeftPlayerScore() { return this.leftPlayerScore; }
     getRightPlayerScore() { return this.rightPlayerScore; }
+    getCreationTime() { return this.creationTime; }
+
+    /**
+     * Returns true if the game has been waiting idle for more than 15 seconds
+     */
+    get isStale() {
+        return (this.rightPlayerSocket === undefined) && (Date.now() - this.creationTime) > 15000;
+    }
 
     updateCountdown() {
         this.emitToPlayers('countdown', this.countdown.toString());

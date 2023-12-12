@@ -8,7 +8,7 @@ import { joinChannel, addDm } from "../../api";
 import './Chat.css';
 
 const CreateJoin: React.FC = () => {
-    const { isDm } = useContext(ChatContext) as ChatContextType;
+    const { isDm, isPrivate, setIsPrivate } = useContext(ChatContext) as ChatContextType;
 
     const [channelName, setChannelName] = useState("");
     const [userName, setUserName] = useState("");
@@ -38,6 +38,17 @@ const CreateJoin: React.FC = () => {
 		setPassword('');
     };
 
+    const handleSubmitInvite = (event: React.FormEvent<HTMLFormElement>) => {
+        //
+        //  TO DO
+        //
+		// if (channelName.length < 3)
+		// 	return;
+        // event.preventDefault();
+        // inviteChannelMutation.mutate({ channelName });
+		// setChannelName('');
+    };
+
     const handleSubmitAdd = (event: React.FormEvent<HTMLFormElement>) => {
 		if (userName.length < 3)
 			return;
@@ -49,28 +60,50 @@ const CreateJoin: React.FC = () => {
     return (
         <div style={{height: "100%"}} className="CreateJoin">
             {!isDm ?
-                <form onSubmit={handleSubmitJoin} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                    <input
-                        type="text"
-                        value={channelName}
-                        onChange={(e) => setChannelName(e.target.value)}
-                        style={{ flex: "1 1 auto" }}
-                        placeholder="name"
-                        className="inputClass"
-						minLength={3}
-                        maxLength={10}
-                    />
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        style={{ flex: "1 1 auto" }}
-                        placeholder="password"
-                        className="inputClass"
-                        maxLength={20}
-                    />
-                    <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">JOIN</button>
-                </form>
+                !isPrivate
+                    ?
+                        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                            <button type="submit" style={{ flex: "1 1 auto" }} className="submitClassChangePrivate" onClick={() => { setIsPrivate(true); }}>Change to Private</button>
+                            <form onSubmit={handleSubmitJoin} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                                <input
+                                    type="text"
+                                    value={channelName}
+                                    onChange={(e) => setChannelName(e.target.value)}
+                                    style={{ flex: "1 1 auto" }}
+                                    placeholder="name"
+                                    className="inputClass"
+                                    minLength={3}
+                                    maxLength={10}
+                                />
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    style={{ flex: "1 1 auto" }}
+                                    placeholder="password"
+                                    className="inputClass"
+                                    maxLength={20}
+                                />
+                                <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">JOIN</button>
+                            </form>
+                        </div>
+                    :
+                        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                            <button type="submit" style={{ flex: "1 1 auto" }} className="submitClassChangePrivate" onClick={() => { setIsPrivate(false); }}>Change to Public</button>
+                            <form onSubmit={handleSubmitInvite} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                                <input
+                                    type="text"
+                                    value={channelName}
+                                    onChange={(e) => setChannelName(e.target.value)}
+                                    style={{ flex: "1 1 auto" }}
+                                    placeholder="name"
+                                    className="inputClass"
+                                    minLength={3}
+                                    maxLength={10}
+                                />
+                                <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">JOIN</button>
+                            </form>
+                    </div>
             :
                 <form onSubmit={handleSubmitAdd} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                     <input

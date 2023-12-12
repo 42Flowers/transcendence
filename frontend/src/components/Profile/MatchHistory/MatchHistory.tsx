@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 
 import { PerfectContext } from '../../../contexts/PerfectContext';
 import { PerfectContextType } from '../Profile';
@@ -48,30 +48,12 @@ type Status = {
 const MatchHistory: React.FC<MatchHistoryProps> = ({ userId, auth }) => {
     const [matchHistory, setMatchHistory] = useState<Game[]>([]);
     const { setPerfectWin, setPerfectLose } = useContext(PerfectContext) as PerfectContextType;
-    
-    useEffect(() => {
-        if (userId !== auth) {
-            fetch(`http://localhost:3000/api/profile/${userId}/matchhistory`)
-                .then(response => response.json())
-                .then((data: Game[]) => {
-                    setMatchHistory(data);
-                    data.map(game => {
-                        if ((game.game.score1 === 10 && game.game.score2 === 0) || (game.game.score1 === 0 && game.game.score2 === 10)) {
-                            if (Number(userId) === game.game.winnerId) {
-                                setPerfectWin(true);
-                            } else {
-                                setPerfectLose(true);
-                            }
-                        }
-                    });
-                })
-            }
-    }, [userId, auth]);
-
     const [statusList, setStatusList] = useState<Status>({});
-    const usersQuery = useQuery('available-users', fetchAvailableUsers, {
+
+
+    useQuery('available-users', fetchAvailableUsers, {
         onSuccess: (data) => {
-            data.map(([ id, pseudo, status ]) => {
+            data.map(() => {
                 const newStatusList: Status = {};
                 data.forEach(([id, pseudo, status]) => {
                     newStatusList[id] = status;
@@ -81,8 +63,7 @@ const MatchHistory: React.FC<MatchHistoryProps> = ({ userId, auth }) => {
         }
     });
 
-
-    const q = useQuery([ 'match history', userId ], fetchMatchHistory, {
+    useQuery([ 'match history', userId ], fetchMatchHistory, {
         enabled: userId === auth,
         onSuccess(data) {
             setMatchHistory(data);

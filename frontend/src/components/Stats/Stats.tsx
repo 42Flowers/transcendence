@@ -33,19 +33,7 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
     const [result, setResult] = useState<WinLoss | null>(null);
     const [streak, setGamesWonInARowFunc] = useState<number | null>(null);
 
-    useEffect(() => {
-        if (userId !== auth) {
-            fetch(`http://localhost:3000/api/profile/${userId}/stats`)
-                .then(response => response.json())
-                .then(data => {
-                    setResult(calculateWinsAndLosses(data));
-                    setGamesWonInARowFunc(gamesWonInARowFunc(data));
-                }
-            );
-        }
-    }, [userId, auth]);
-
-    const q = useQuery([ 'stats', userId ], fetchStats, {
+    useQuery([ 'stats', userId ], fetchStats, {
         enabled: userId === auth,
         onSuccess(data) {
             setResult(calculateWinsAndLosses(data));

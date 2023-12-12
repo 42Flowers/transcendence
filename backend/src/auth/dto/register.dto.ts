@@ -19,7 +19,7 @@ function Match(property: string, validationOptions?: ValidationOptions) {
     };
 }
 
-export class UserRegisterDto {
+export class UserRegisterDto { 
     @ApiProperty()
     @Length(3, 10)
     pseudo: string;

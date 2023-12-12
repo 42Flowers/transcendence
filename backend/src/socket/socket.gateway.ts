@@ -34,7 +34,7 @@ import { Game, GameMode } from "src/game/game";
 import { PrismaService } from "src/prisma/prisma.service";
 import { v4 as uuidv4 } from 'uuid';
 import { SocketService } from "./socket.service";
-import { IsAscii, IsNotEmpty, IsNumber, IsString, Max, MaxLength, Min, MinLength, ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator';
+import { IsAscii, IsNotEmpty, IsNumber, IsString, Max, MaxLength, Min, MinLength, ValidationArguments, ValidationOptions, registerDecorator, IsPositive } from 'class-validator';
 import { ChatSendMessageToConversationdEvent } from "src/events/chat/sendMessageToConversation.event";
 import { UserDeclineGameInvitation } from "src/events/user.decline.invitation.event";
 
@@ -78,6 +78,7 @@ export class PrivateMessageDTO {
 	@IsNotEmpty()
 	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
+	@IsPositive()
 	targetId: number
 
 	@IsString()
@@ -93,6 +94,7 @@ export class ChannelMessageDTO {
 	@IsNotEmpty()
 	@Max(Number.MAX_SAFE_INTEGER)
 	@Min(1)
+	@IsPositive()
 	channelId: number
 
 	@IsString()

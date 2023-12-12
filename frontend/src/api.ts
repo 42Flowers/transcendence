@@ -73,16 +73,10 @@ function authorizedGet<P = any>(url: string, config: AxiosRequestConfig = {}) {
     });
 }
 
-function wrapResponse<T>(resp: Promise<AxiosResponse<T>>): Promise<T> {
-    const artificialDelay = 1;
+async function wrapResponse<T>(resp: Promise<AxiosResponse<T>>): Promise<T> {
+    const awaitedResponse = await resp;
 
-    if (artificialDelay > 0) {
-        return new Promise((resolve, reject) => setTimeout(() => {
-            resp.then(e => resolve(e.data)).catch(err => reject(err));
-        }, artificialDelay));
-    }
-
-    return resp.then(e => e.data);
+    return awaitedResponse.data;
 }
 
 export const authorizeCode = (code: string) => wrapResponse(client.post<AuthorizeCodeResponse>('/api/v1/auth/authorize_code', { provider: 'ft', code }));

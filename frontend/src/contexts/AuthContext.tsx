@@ -1,6 +1,7 @@
 import React, { PropsWithChildren } from 'react';
 import { getAuthenticationToken } from '../storage';
 import { UserProfile, fetchUserProfile } from '../api';
+import { AxiosError } from 'axios';
 
 const HANDLERS = {
   INITIALIZE: 'INITIALIZE' as const,
@@ -149,8 +150,15 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
           payload: userProfile,
         });
         return ;
-      } catch {
-        
+      } catch (e) {
+        if (e instanceof AxiosError) {
+          if (e.response !== undefined) {
+            /**
+             * If we have a response but it failed that means our token is probably expired so delete it and restart the login process
+             */
+            localStorage.removeItem('token');
+          }
+        }
       }
     }
     dispatch({

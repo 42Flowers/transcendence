@@ -2,13 +2,14 @@ import filter from 'lodash/filter';
 import map from 'lodash/map';
 import React, { useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
-import { addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
+import { ChannelDescription, addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
-import SocketContext from '../Socket/Context/Context';
+import SocketContext, { useSocketEvent } from '../Socket/Context/Context';
+import { UserJoinedChannelPayload } from './Chat';
 
 type Props = {
     side: string
@@ -275,11 +276,19 @@ const MembersList: React.FC = () => {
 };
   
 const List: React.FC<Props> = ({ side }) => {
-    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask, setIsBanned } = useContext(ChatContext) as ChatContextType;
-    const auth = useAuthContext();
+    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask, setIsBanned, refresh } = useContext(ChatContext) as ChatContextType;
     const channels = useQuery(['channels-list'], fetchAvailableChannels);
-    // channels.membershipState (<- 4 (current user))
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
+    const auth = useAuthContext();
+
+    useSocketEvent<UserJoinedChannelPayload>('user.joined.channel', ({ userId }) => {
+        const queryKey = [ 'channels-list' ];
+
+        if (userId !== auth.user?.id)
+            return ;
+        
+        queryClient.refetchQueries(queryKey);
+    });
 
     // right // 1 not ban | 4 ban 
     // channel1

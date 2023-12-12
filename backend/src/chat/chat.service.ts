@@ -122,6 +122,7 @@ export class ChatService {
 				const convName = await this.conversationsService.getConversationName(user.id, target.id);
 				if (convName !== null && conversation !== null) {
 					this.socketService.joinConversation(user.id, target.id, convName.name);
+				this.eventEmitter.emit("chat.sendtoclient", new ChatSendToClientEvent(user.id, "add", "You can now talk with " + targetName))
 				}
 				else {
 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'error', "The server failed to create this conversation, please try again later"));
@@ -232,7 +233,7 @@ export class ChatService {
 				const join = await this.roomService.joinRoom(user.id, channelId, event.channelName, event.pwd);
 				if (join != undefined) {
 					this.socketService.joinChannel(user.id, event.channelName);
-					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'channel', user.pseudo + " joined " + event.channelName));
+					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'join', user.pseudo + " joined " + event.channelName));
 				}
 			}
 		} catch {
@@ -414,7 +415,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been kicked from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'kick', "You have been kicked from " + room.name));
 							return;
 						}
 					}

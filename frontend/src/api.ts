@@ -151,7 +151,15 @@ export type ChannelMembership = {
     avatar: string | null;
 };
 
-export const fetchAvailableChannels = () => wrapResponse(authorizedGet(`/api/chat/get-channels`));
+export type ChannelDescription = {
+    accessMask: number;
+    channelId: number;
+    channelName: string;
+    membershipState: number;
+    userPermissionMask: number;
+};
+
+export const fetchAvailableChannels = () => wrapResponse(authorizedGet<ChannelDescription[]>(`/api/chat/get-channels`));
 export const fetchAvailableDMs = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet<ChannelMessage[]>(`/api/chat/get-channelmessages/${channelId}`));
 export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet<PrivateMessage[]>(`/api/chat/get-privatemessages/${channelId}`));

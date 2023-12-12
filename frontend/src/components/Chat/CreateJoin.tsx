@@ -6,6 +6,7 @@ import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { useContext } from "react";
 import { joinChannel, addDm } from "../../api";
 import './Chat.css';
+import { queryClient } from "../../query-client";
 
 const CreateJoin: React.FC = () => {
     const { isDm } = useContext(ChatContext) as ChatContextType;
@@ -19,6 +20,9 @@ const CreateJoin: React.FC = () => {
         mutationFn: joinChannel,
         onError() {
             alert("Choose a more secured password or a valid channel name");
+        },
+        onSuccess() {
+            queryClient.refetchQueries([ 'channels-list' ]);
         }
     });
 

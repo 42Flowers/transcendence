@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Menu from "./Menu";
 import List from "./List";
 import CreateJoin from "./CreateJoin";
@@ -19,12 +19,12 @@ interface infoElem {
     msg: string
 }
 
-type UserLeftChannelPayload = {
+export type UserLeftChannelPayload = {
     channelId: number;
     userId: number;
 }
 
-type UserJoinedChannelPayload = {
+export type UserJoinedChannelPayload = {
     channelId: number;
     userId: number;
     avatar: string;
@@ -134,9 +134,6 @@ const Chat: React.FC = () => {
 
     const displayInfo = useCallback((msg: infoElem) => {
         alert(msg.msg);
-        if (msg.type === "ban") {
-            window.location.reload();
-        }
     }, []);
 
     useEffect(() => {

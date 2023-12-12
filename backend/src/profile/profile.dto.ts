@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { IsNotEmpty, IsString, IsInt, MinLength, MaxLength, IsNumber, Min, Max, IsPositive } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, MinLength, MaxLength, Min, Max, IsPositive } from 'class-validator';
 import { IsNoSpecialCharacters } from './profile.pipe';
 
 export class CreateUserAchievementDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
     achievementId: number;
 }
@@ -24,9 +24,9 @@ export class AvatarDto {
     @IsNotEmpty()
     filename: string;
 
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     userId: number;

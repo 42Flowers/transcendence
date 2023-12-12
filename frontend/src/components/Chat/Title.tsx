@@ -177,7 +177,8 @@ const Title: React.FC = () => {
                         { myPermissionMask === 4 
                             ?  (
                                 <div style={{ display: 'flex', justifyContent: 'center'}} className='channelPasswordHandle'>
-                                    {isPrivate
+                                    {/* {isPrivate */}
+                                    {currentAccessMask === 2
                                         ?
                                             <form onSubmit={handleInviteUser} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                                 <input

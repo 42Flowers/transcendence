@@ -20,6 +20,7 @@ const PseudoButton: React.FC<PseudoButtonProps> = ({ onChangePseudo, currentPseu
             <TextField
                 name="username"
                 label="Change pseudo"
+                autoComplete="off"
                 InputLabelProps={{
                     style: { 
                         color: '#7638C7', 

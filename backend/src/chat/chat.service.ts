@@ -109,12 +109,12 @@ export class ChatService {
 			const isblocked = await this.usersService.blockedByUser(user.id, target.id);
 			if (blocked != null)
 			{
-				const msg = target.pseudo + " is blocked";
+				const msg = targetName + " is blocked";
 				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
 				return;
 			}
 			else if (isblocked != null) {
-				const msg = target.pseudo + " has blocked you";
+				const msg = targetName + " has blocked you";
 				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
 				return;
 			}
@@ -153,12 +153,12 @@ export class ChatService {
 						const isblocked = await this.usersService.blockedByUser(user.id, dest.id);
 						if (blocked != null)
 						{
-							const msg = dest.name + " is blocked";
+							const msg = dest.pseudo + " is blocked";
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
 							return;
 						}
 						else if (isblocked != null) {
-							const msg = dest.name + " has blocked you";
+							const msg = dest.pseudo + " has blocked you";
 							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'blocked', msg));
 							return;
 						}
@@ -256,9 +256,9 @@ export class ChatService {
 					if (member !== undefined && member.membershipState !== 4) {
 						this.roomService.removeUserfromRoom(user.id, room.id);
 						this.socketService.leaveChannel(user.id, room.name);
-						this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.pseudo + " has left this channel"));
+						this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.pseudo + " has left " + room.name));
 					} else {
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave this channel"));
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave " + room.name));
 					}
 				} else {
 					throw new MyError("This channel does not exist");

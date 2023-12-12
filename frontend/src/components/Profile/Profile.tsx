@@ -64,7 +64,7 @@ const Profile: React.FC = () => {
             queryClient.setQueryData('profile', data);
         },
         onError(e: AxiosError) {
-            alert("Min 3 characters and maximum 32 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
+            alert("Min 3 characters and maximum 10 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
         }
     });
 

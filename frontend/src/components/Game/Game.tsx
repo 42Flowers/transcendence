@@ -80,8 +80,6 @@ function resetGame(width: number, height: number) {
 	gameEnd = false;
 	gameStart = true;
 
-	console.log('Game RESET !');
-
 	ball = {
 		speed: {x: 1, y: 1},
 		x: Math.round(width / 2),

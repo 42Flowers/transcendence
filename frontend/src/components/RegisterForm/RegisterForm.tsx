@@ -73,7 +73,6 @@ const RegisterForm: React.FC = () => {
 				if (response.status === 400) {
 					const data = response.data as object;
 
-					console.log(data);
 					if (undefined !== data) {
 						if ('realm' in data && typeof data['realm'] === 'string') {
 							/* To use this email we must login through another system */

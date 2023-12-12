@@ -152,7 +152,6 @@ export class SocketGateway implements
 	}
 
 	async handleConnection(client: Socket) {	
-		console.log(`Client connected: ${client.id}`);
 		client.join('server');
 		this.socketService.addSocket(client);
 		this.eventEmitter.emit('chat.socketjoinchannels', new ChatSocketJoinChannelsEvent(Number(client.user.sub), client))
@@ -165,8 +164,6 @@ export class SocketGateway implements
 		client.leave('server');
 		this.eventEmitter.emit('chat.socketleavechannels', new ChatSocketLeaveChannelsEvent(Number(client.user.sub), client));
 		this.socketService.removeSocket(client);
-		console.log(`Client disconnected: ${client.id}`);		
-		// this.socketService.removeSocket(token.id, client);
 	}
 
 	@OnEvent('chat.sendtoclient')
@@ -255,8 +252,8 @@ export class SocketGateway implements
 			if (userId == undefined)
 				return;
 			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(userId, data.targetId));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -270,8 +267,8 @@ export class SocketGateway implements
 			if (userId == undefined)
 				return;
 			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(userId, data.targetId));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -285,8 +282,8 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, dto.targetId, dto.message));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -300,8 +297,8 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, dto.channelId, dto.message));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -310,7 +307,6 @@ export class SocketGateway implements
 	chatHandshake(
 		@ConnectedSocket() client: Socket
 	) {
-		console.log("Received Handshake");
 		return {}
 	}
 
@@ -338,8 +334,8 @@ export class SocketGateway implements
 			return;
 		try {
 				this.eventEmitter.emit('game.cancelSearch', new GameCancelSearchEvent(socket));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -352,8 +348,8 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('game.keyUp', new GameKeyUpEvent(socket, key));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -366,8 +362,8 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('game.keyDown', new GameKeyDownEvent(socket, key));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -381,8 +377,8 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, data));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 	
@@ -396,8 +392,8 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, data));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 
@@ -410,8 +406,8 @@ export class SocketGateway implements
 			return;
 		try {
 			this.eventEmitter.emit('game.joinInvite', new GameJoinInvite(socket));
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+			;
 		}
 	}
 

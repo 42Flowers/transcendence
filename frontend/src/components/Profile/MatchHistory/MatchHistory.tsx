@@ -98,7 +98,6 @@ const MatchHistory: React.FC<MatchHistoryProps> = ({ userId, auth }) => {
         },
     });
 
-    console.log(matchHistory.length);
     return (
         <div className="matchHistory">
             <h2 className='title-mh'>Match History</h2>

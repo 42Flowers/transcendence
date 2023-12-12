@@ -34,7 +34,6 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
 
     const handlePlay = (event) => {
         event.preventDefault();
-        console.log("targetId", userId);
         SocketState.socket?.emit("inviteNormal", userId);
     };
 

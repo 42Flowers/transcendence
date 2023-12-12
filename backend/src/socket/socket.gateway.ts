@@ -72,15 +72,6 @@ export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions)
 	};
 }
 
-/* ==== GAME DTO ==== */
-export class GameInvitationDTO {
-	@IsNumber()
-	@IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
-	@Min(1)
-	targetId: number
-};
-
 /* ==== CHAT DTO ==== */
 export class PrivateMessageDTO {
 	@IsNumber()
@@ -382,14 +373,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage("inviteNormal")
 	onInviteNormal(
-		@MessageBody() data: GameInvitationDTO,
+		@MessageBody() data: number,
 		@ConnectedSocket() socket: Socket,
 	)
 	{
 		if (!socket)
 			return;
 		try {
-			this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, data.targetId));
+			this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, data));
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -397,14 +388,14 @@ export class SocketGateway implements
 	
 	@SubscribeMessage("inviteSpecial")
 	onInviteSpecial(
-		@MessageBody() data: GameInvitationDTO,
+		@MessageBody() data: number,
 		@ConnectedSocket() socket: Socket,
 	)
 	{
 		if (!socket)
 			return;
 		try {
-			this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, data.targetId));
+			this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, data));
 		} catch (err) {
 			console.log(err.message);
 		}

@@ -51,7 +51,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
 }
 
 const Title: React.FC = () => {
-    const { chanOrDm, currentChannel, setCurrentChannel, currentChannelName, setCurrentChannelName, myPermissionMask, currentAccessMask, setCurrentAccessMask, currentDm, setCurrentDm, currentAvatar, setCurrentAvatar, } = useContext(ChatContext);
+    const { chanOrDm, isPrivate, currentChannel, setCurrentChannel, currentChannelName, setCurrentChannelName, myPermissionMask, currentAccessMask, setCurrentAccessMask, currentDm, setCurrentDm, currentAvatar, setCurrentAvatar, } = useContext(ChatContext);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
 
     const [addPassword, setAddPassword] = useState("");
@@ -104,6 +104,15 @@ const Title: React.FC = () => {
         }
     });
 
+    const addUserToChannel = useMutation({
+        // TO DO
+        // INVITE USER
+        // mutationFn: addPwd,
+        // onError() {
+        //     alert("Cannot add user");
+        // }
+    });
+
     const addPasswordMutation = useMutation({
         mutationFn: addPwd,
         onError() {
@@ -135,6 +144,13 @@ const Title: React.FC = () => {
         deleteMutation.mutate({ channelId: currentChannel });
     };
 
+    const handleInviteUser = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        // TO DO
+        // INVITE USER
+        // addUserToChannel.mutate({targetId: })
+    };
+
     const handleAddPassword = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         addPasswordMutation.mutate({ channelId: currentChannel, pwd: addPassword });
@@ -161,39 +177,55 @@ const Title: React.FC = () => {
                     <>
                         <p style={titleStyle}>{currentChannelName}</p>
                         { myPermissionMask === 4 
-                            ?
+                            ?  (
                                 <div style={{ display: 'flex', justifyContent: 'center'}} className='channelPasswordHandle'>
-                                    { currentAccessMask === 1 
+                                    {isPrivate
                                         ?
-                                            <form onSubmit={handleAddPassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                                            <form onSubmit={handleInviteUser} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                                 <input
                                                     type="text"
-                                                    placeholder="add a password"
+                                                    placeholder="add a user"
                                                     value={addPassword}
                                                     onChange={(e) => setAddPassword(e.target.value)}
                                                     style={{ flex: "1 1 auto" }}
                                                     className='channelPasswordInput'
-													minLength={3}
+                                                    minLength={3}
                                                 />
-                                                <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButton' >Add password</button>
+                                                <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButton' >Invite</button>
                                             </form>
                                         :
-                                            <>
-                                                <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="new password"
-                                                        value={changePassword}
-                                                        onChange={(e) => setChangePassword(e.target.value)}
-                                                        style={{ flex: "1 1 auto" }}
-                                                        className='channelPasswordInputBis'
-                                                    />
-                                                    <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButtonBis' >Change password</button>
-                                                </form>
-                                                <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword} className='channelPasswordButtonBisEnd' >Remove Password</button>
-                                            </>
-                                    }
+                                            (currentAccessMask === 1 
+                                                ?
+                                                    <form onSubmit={handleAddPassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="add a password"
+                                                            value={addPassword}
+                                                            onChange={(e) => setAddPassword(e.target.value)}
+                                                            style={{ flex: "1 1 auto" }}
+                                                            className='channelPasswordInput'
+                                                            minLength={3}
+                                                        />
+                                                        <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButton' >Add password</button>
+                                                    </form>
+                                                :
+                                                    <>
+                                                        <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="new password"
+                                                                value={changePassword}
+                                                                onChange={(e) => setChangePassword(e.target.value)}
+                                                                style={{ flex: "1 1 auto" }}
+                                                                className='channelPasswordInputBis'
+                                                            />
+                                                            <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButtonBis' >Change password</button>
+                                                        </form>
+                                                        <button style={{ flex: "1 1 auto" }} onClick={handleDeletePassword} className='channelPasswordButtonBisEnd' >Remove Password</button>
+                                                    </>)
+                                            }
                                 </div>
+                                )
                             :
                                 null
                         }

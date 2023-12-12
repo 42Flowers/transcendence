@@ -247,7 +247,6 @@ export class ChatController {
         @Body() quitDto: QuitDto,
         @Request() req : ExpressRequest
     ) {
-          console.log("Hello2");
 		  const userId = Number(req.user.sub);
 		  if (userId == undefined)
 			  return;
@@ -365,14 +364,11 @@ export class ChatController {
 
 	@Post('kick-user')
 	async handleKick(
-        @Body() actionsDto: ActionsDto,
+        @Body() { channelId, targetId }: ActionsDto,
 		@Request() req: ExpressRequest
 	) {
-        const userId = Number(req.user.sub);
-        if (userId == undefined)
-            return;
-			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-			// this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
+        const userId = req.user.id;
+        this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(userId, channelId, targetId));
 	}
 
 	@Post('add-admin')

@@ -1,8 +1,10 @@
+import { ReactElement, useContext } from 'react';
 import default_avatar from '../../assets/images/default_avatar.png';
 import AvatarOthers from '../AvatarOthers/AvatarOthers';
 import MainButton from '../MainButton/MainButton';
 import { UserAvatar } from '../UserAvatar';
 import './FriendItem.css';
+import SocketContext from '../Socket/Context/Context';
 
 const SENDER = 0;
 const RECEIVER = 1;
@@ -28,6 +30,7 @@ interface Props {
 }
 
 const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friendId, parentRerender}) => {
+	const { SocketState } = useContext(SocketContext);
 
 	const handleUnblock = () => {
 		fetch(`http://localhost:3000/api/friends/${userId}/unblock/${friendId}`, {
@@ -119,6 +122,10 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 		});
 	}
 
+	const handlePlay = (event) => {
+		SocketState.socket?.emit("inviteNormal", friendId);
+	}
+
     if(status === FRIENDS)
 	{
 		return (
@@ -131,7 +138,7 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>
-							<MainButton buttonName='Play' />
+							<MainButton buttonName='Play' onClick={handlePlay} />
 							{/* <MainButton buttonName='MSG' /> */}
 							<MainButton buttonName='Block' onClick={() => handleBlock()} />
 							<MainButton buttonName='Delete' onClick={() => handleDelete()} />

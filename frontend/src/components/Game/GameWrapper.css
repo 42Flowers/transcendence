@@ -8,3 +8,8 @@
 	justify-content: space-between;
 	padding-top: 3em;
 }
+
+.game-div {
+	justify-content: center;
+	align-items: center;
+}

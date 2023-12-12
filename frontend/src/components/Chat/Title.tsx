@@ -1,6 +1,6 @@
 import filter from 'lodash/filter';
 import map from 'lodash/map';
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
 import { addPwd, changePwd, deleteM, deletePwd, fetchAvailableDMs, quit } from "../../api";
 import { ChatContext } from "../../contexts/ChatContext";
@@ -9,6 +9,7 @@ import { queryClient } from "../../query-client";
 import { useAuthContext } from '../../contexts/AuthContext';
 import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
+import SocketContext from '../Socket/Context/Context';
 
 type DisplayProps = {
     myId: number
@@ -21,7 +22,8 @@ type DisplayProps = {
     memberShipState?: number
 }
 
-const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {    
+const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {
+    const { SocketState } = useContext(SocketContext);
     const buttonStyle: React.CSSProperties = {
         width: "30%",
         height: "100%",
@@ -31,10 +33,11 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
     };
 
     const handlePlay = (event) => {
-        // event.preventDefault();
-        // deletePasswordMutation.mutate({ channelId: currentChannel });
+        event.preventDefault();
+        console.log("targetId", userId);
+        SocketState.socket?.emit("inviteNormal", userId);
     };
-    
+
     return (
         <div className='titleDMChildChild'>
             <div className="avatarCursorPointer">

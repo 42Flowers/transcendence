@@ -174,7 +174,7 @@ export type UnBanUserPayload = {
 }
 
 export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel`, payload));
-//export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
+export const createPrivateChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-private-channel/`, payload));
 export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation`, payload));
 export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel`, payload));
 export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel`, payload));

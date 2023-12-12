@@ -167,7 +167,7 @@ export class RoomService {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
 			if (name.length > 10)
 				throw new MyError("A channel name can only be 10 characters long");
-			let password = null;
+			const password = null;
 			const channel = await this.prismaService.channel.create({
 				data: {
 					name: name,
@@ -176,7 +176,26 @@ export class RoomService {
 					accessMask: 2
 				}
 			});
-			return channel.id;
+			if (channel != null ) {
+				const member = await this.prismaService.channelMembership.create({
+					data: {
+						user: {
+							connect: {
+								id: userId,
+							},
+						},
+						channel : {
+							connect: {
+								id: channel.id
+							}
+						},
+						channelName: channel.name,
+						permissionMask: 4
+					}
+				});
+				return member;
+			}
+			return null;
 		} catch {
 			throw new MyError("Could not create this channel, please try another combination");
 		}

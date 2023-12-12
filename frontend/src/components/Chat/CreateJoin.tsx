@@ -4,7 +4,7 @@ import { useMutation } from "react-query";
 
 import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { useContext } from "react";
-import { joinChannel, addDm } from "../../api";
+import { joinChannel, addDm, createPrivateChannel } from "../../api";
 import './Chat.css';
 
 const CreateJoin: React.FC = () => {
@@ -29,6 +29,13 @@ const CreateJoin: React.FC = () => {
         }
     });
 
+    const createPrivateChannelMutation = useMutation({
+        mutationFn: createPrivateChannel,
+        onError() {
+            alert("Choose a valid channel name")
+        }
+    })
+
     const handleSubmitJoin = (event: React.FormEvent<HTMLFormElement>) => {
 		if (channelName.length < 3)
 			return;
@@ -42,11 +49,11 @@ const CreateJoin: React.FC = () => {
         //
         //  TO DO
         //
-		// if (channelName.length < 3)
-		// 	return;
-        // event.preventDefault();
-        // inviteChannelMutation.mutate({ channelName });
-		// setChannelName('');
+		if (channelName.length < 3)
+			return;
+        event.preventDefault();
+        createPrivateChannelMutation.mutate({ channelName });
+		setChannelName('');
     };
 
     const handleSubmitAdd = (event: React.FormEvent<HTMLFormElement>) => {
@@ -63,7 +70,9 @@ const CreateJoin: React.FC = () => {
                 !isPrivate
                     ?
                         <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                            <button type="submit" style={{ flex: "1 1 auto" }} className="submitClassChangePrivate" onClick={() => { setIsPrivate(true); }}>Change to Private</button>
+                            <form onSubmit={handleSubmitInvite} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                                <button type="submit" style={{ flex: "1 1 auto" }} className="submitClassChangePrivate" onClick={() => { setIsPrivate(true); }}>Change to Private</button>
+                            </form>
                             <form onSubmit={handleSubmitJoin} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                 <input
                                     type="text"
@@ -89,7 +98,9 @@ const CreateJoin: React.FC = () => {
                         </div>
                     :
                         <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                            <button type="submit" style={{ flex: "1 1 auto" }} className="submitClassChangePrivate" onClick={() => { setIsPrivate(false); }}>Change to Public</button>
+                            <form onSubmit={handleSubmitInvite} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                                <button type="submit" style={{ flex: "1 1 auto" }} className="submitClassChangePrivate" onClick={() => { setIsPrivate(false); }}>Change to Public</button>
+                            </form>
                             <form onSubmit={handleSubmitInvite} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                 <input
                                     type="text"

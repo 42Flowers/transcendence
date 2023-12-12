@@ -2,6 +2,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ChangePseudoDto, CreateUserAchievementDto } from './profile.dto';
+import { AvatarUpdatedEvent } from 'src/events/avatar-updated.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 export class ChangeIsPopupShown {
     isShown: boolean
@@ -10,7 +12,8 @@ export class ChangeIsPopupShown {
 
 @Injectable()
 export class ProfileService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService,
+        private readonly eventEmitter: EventEmitter2) {}
     
     async getProfileInfos(userId: number): Promise<any> {
         const currentUser = await this.prisma.user.findUnique({
@@ -72,6 +75,10 @@ export class ProfileService {
                 
             }
         });
+        this.eventEmitter.emit('avatar.updated', new AvatarUpdatedEvent(
+            userId,
+            updatedUser.avatar
+        ));
         return { "avatar": updatedUser.avatar };
     }
 

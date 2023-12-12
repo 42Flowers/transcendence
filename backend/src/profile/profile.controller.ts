@@ -85,11 +85,6 @@ export class ProfileController {
             }
             try {
                 const avatarData = await this.profileService.addAvatar(avatar.filename, userId);
-            
-                this.eventEmitter.emit('avatar.updated', new AvatarUpdatedEvent(
-                    userId,
-                    avatarData.avatar
-                ));
 
                 return avatarData;
             } catch {

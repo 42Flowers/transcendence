@@ -97,6 +97,9 @@ export type PatchUserProfile = Partial<Exclude<UserProfile, 'id' | 'avatar'>>;
 export const patchUserProfile = (profile: UserID, data: PatchUserProfile) =>
     wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
 
+export const completeRegister = (formData: FormData) =>
+    wrapResponse(authorizedPost<UserProfile>('/api/v1/users/complete-profile', formData));
+
 /* ==== PROFILE ==== */
 export type LadderEntry = {
     id: number;

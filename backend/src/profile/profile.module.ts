@@ -12,5 +12,6 @@ import { ProfileService } from "./profile.service";
     imports: [
         AchievementsModule,
     ],
+    exports: [ ProfileService ]
 })
 export class ProfileModule {}

@@ -24,7 +24,8 @@ import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
-import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, MinLength, Length } from 'class-validator';
+import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, MinLength, Length, IsPositive } from 'class-validator';
+import { CheckIntPipeChat } from './chat.pipe'
 
 
 interface Message {
@@ -59,6 +60,7 @@ export class QuitDto {
     @IsNotEmpty()
 	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
+	@IsPositive()
     channelId: number;
 }
 
@@ -73,6 +75,7 @@ export class DeleteChannelDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(1)
+	@IsPositive()
 	@Max(Number.MAX_SAFE_INTEGER)
     channelId: number
 }
@@ -82,12 +85,14 @@ export class ActionsDto {
     @IsNotEmpty()
     @Min(1)
 	@Max(Number.MAX_SAFE_INTEGER)
+	@IsPositive()
     channelId: number
 
     @IsNumber()
     @IsNotEmpty()
 	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
+	@IsPositive()
     targetId: number
 }
 
@@ -96,6 +101,7 @@ export class ManagePwdDto {
     @IsNotEmpty()
 	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
+	@IsPositive()
     channelId: number
 
     @IsString()
@@ -109,6 +115,7 @@ export class RemovePwdDto {
     @IsNotEmpty()
 	@Max(Number.MAX_SAFE_INTEGER)
     @Min(1)
+	@IsPositive()
     channelId: number
 }
 
@@ -176,7 +183,7 @@ export class ChatController {
     @Get('get-channelmessages/:channelId')
     async getChannelContext(
         @Request() req: ExpressRequest,
-		@Param('channelId', CheckIntPipe) channelId: number,
+		@Param('channelId', CheckIntPipeChat) channelId: number,
     ) {
         try {
 			const userId = Number(req.user.sub);
@@ -202,7 +209,7 @@ export class ChatController {
     @Get('get-channelmembers/:channelId')
     async getChannelMembers(
         @Request() req: ExpressRequest,
-        @Param('channelId', CheckIntPipe) channelId: number,
+        @Param('channelId', CheckIntPipeChat) channelId: number,
     ) {
         try {
             const userId = Number(req.user.sub);
@@ -232,6 +239,7 @@ export class ChatController {
         @Request() req : ExpressRequest
     ) {
         try {
+			console.log(joinChannelDto);
 			const userId = Number(req.user.sub);
 			if (userId == undefined)
 				return;
@@ -421,6 +429,7 @@ export class ChatController {
         @Body() removePwdDto: RemovePwdDto,
 		@Request() req : ExpressRequest
 	) {
+		console.log(removePwdDto.channelId);
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;

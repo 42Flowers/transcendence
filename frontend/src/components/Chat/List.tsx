@@ -9,7 +9,7 @@ import { queryClient } from "../../query-client";
 import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
 import SocketContext, { useSocketEvent } from '../Socket/Context/Context';
-import { UserJoinedChannelPayload } from './Chat';
+import { UserJoinedChannelPayload, UserLeftChannelPayload } from './Chat';
 
 type Props = {
     side: string
@@ -276,19 +276,34 @@ const MembersList: React.FC = () => {
 };
   
 const List: React.FC<Props> = ({ side }) => {
-    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask, setIsBanned, refresh } = useContext(ChatContext) as ChatContextType;
+    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask, setIsBanned, setMyPermissionMask } = useContext(ChatContext) as ChatContextType;
     const channels = useQuery(['channels-list'], fetchAvailableChannels);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
     const auth = useAuthContext();
 
-    useSocketEvent<UserJoinedChannelPayload>('user.joined.channel', ({ userId }) => {
-        const queryKey = [ 'channels-list' ];
+    const ctx = useContext(ChatContext);
 
+    console.log('Current channel id : ' + currentChannel);
+
+    /* Sent when kicked out of the channel */
+    useSocketEvent<UserLeftChannelPayload>('user.left.channel', ({ userId, channelId }) => {
         if (userId !== auth.user?.id)
             return ;
         
-        queryClient.refetchQueries(queryKey);
-    });
+        if (currentChannel === channelId) {
+            ctx.setCurrentChannel(0);
+            ctx.setCurrentChannelName('');
+            ctx.setCurrentAccessMask(1);
+            ctx.setMyPermissionMask(0);
+        }
+
+        if (queryClient.getQueryData([ 'channels-list' ]) !== undefined) {
+            /* Remove the channel from the list */
+            queryClient.setQueryData<ChannelDescription[]>([ 'channels-list' ], channels =>
+                filter(channels, channel => channel.channelId !== channelId)
+            );
+        }
+    }, [ ctx ]);
 
     // right // 1 not ban | 4 ban 
     // channel1

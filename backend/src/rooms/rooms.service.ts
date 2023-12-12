@@ -4,7 +4,7 @@ import { MessagesService } from 'src/messages/messages.service';
 import { SocketService } from 'src/socket/socket.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Prisma } from '@prisma/client';
+import { Channel, ChannelMembership, Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { MyError } from 'src/errors/errors';
 import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
@@ -78,15 +78,17 @@ export class RoomService {
 		}
 	}
 
-	async getChannelId(name: string) {
-		try{
-			const chanId = await this.prismaService.channel.findUnique({where: {
-				name
-			},
-			select: {
-				id: true
-			}});
-			if (chanId == null)
+	async getChannelId(name: string): Promise<number | undefined> {
+		try {
+			const chanId = await this.prismaService.channel.findUnique({
+				where: {
+					name,
+				},
+				select: {
+					id: true,
+				}
+			});
+			if (chanId === null)
 				return undefined;
 			return chanId.id;
 		} catch (error) {
@@ -94,6 +96,7 @@ export class RoomService {
 				throw error;
 			}
 		}
+		return undefined;
 	}
 
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
@@ -125,7 +128,7 @@ export class RoomService {
 		}
 	}
 
-	async joinRoom(userId: number, channelId : number, roomname: string, pwd: string): Promise<any> {
+	async joinRoom(userId: number, channelId: number | undefined, roomname: string, pwd: string): Promise<ChannelMembership | undefined> {
 		try {
 			if (channelId === undefined) {
 				const channel = await this.createRoom(roomname, userId, pwd);
@@ -214,6 +217,7 @@ export class RoomService {
 	async removeUserfromRoom(userId: number, channelId: number): Promise<any> {
 		try {
 			const membership = await this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: userId, channelId: channelId}}});
+			this.eventEmitter.emit('user.left.channel', new UserLeftChannelEvent(channelId, userId));
 			return membership;
 		} catch (err) {
 			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -239,16 +243,21 @@ export class RoomService {
 	async getUsersfromRoom(channelId: number) : Promise<any> {
 		try {
 			const users = await this.prismaService.channelMembership.findMany({
-				where: {channelId: channelId},
+				where: {
+					channelId,
+				},
 				select: {
 					userId: true,
 					membershipState:true,
-					user: {select: {
-						pseudo:true, 
-						avatar: true
-					}},
+					user: {
+						select: {
+							pseudo:true, 
+							avatar: true
+						}
+					},
 				},
-				});
+			});
+
 			return users;
 		} catch (err) { throw new Error(err.message) }
 	}
@@ -421,12 +430,18 @@ export class RoomService {
 		} catch (err) {throw err}
 	}
 
-	async deleteRoom(channelId: number) : Promise<any> {
+	async deleteRoom(channelId: number): Promise<any> {
 		try {
 			const channel = await this.prismaService.channel.findUnique({where: {id: channelId}, select: {name: true}});
 			const users = await this.getUsersfromRoom(channelId);
-			users.map((user) => {
-				this.socketService.leaveChannel(user.user.id, channel.name);
+			users.forEach(user => {
+				this.socketService.leaveChannel(user.userId, channel.name);
+
+				/* Manually send the message to every user, kicking them out of the defunct channel */
+				this.socketService.emitToUserSockets(user.userId, 'user.left.channel', {
+                    channelId,
+                    userId: user.userId,
+                });
 			});
 			await this.clearUsersfromRoom(channelId);
 			await this.messageService.clearAllMessages(channelId);

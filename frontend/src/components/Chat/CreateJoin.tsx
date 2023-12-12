@@ -4,9 +4,10 @@ import { useMutation } from "react-query";
 
 import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { useContext } from "react";
-import { joinChannel, addDm } from "../../api";
+import { joinChannel, addDm, ChannelDescription } from "../../api";
 import './Chat.css';
 import { queryClient } from "../../query-client";
+import filter from "lodash/filter";
 
 const CreateJoin: React.FC = () => {
     const { isDm } = useContext(ChatContext) as ChatContextType;
@@ -15,14 +16,18 @@ const CreateJoin: React.FC = () => {
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
 
-
     const joinChannelMutation = useMutation({
         mutationFn: joinChannel,
         onError() {
             alert("Choose a more secured password or a valid channel name");
         },
-        onSuccess() {
-            queryClient.refetchQueries([ 'channels-list' ]);
+        onSuccess(channelDescription) {
+            if (queryClient.getQueryData([ 'channels-list' ]) !== undefined) {
+                queryClient.setQueryData<ChannelDescription[]>([ 'channels-list' ], channels => [
+                    ...(filter(channels, c => c.channelId !== channelDescription.channelId)),
+                    channelDescription,
+                ]);
+            }
         }
     });
 

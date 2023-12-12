@@ -222,18 +222,22 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.joinchannel')
-	async joinRoom(
-		event: ChatJoinChannelEvent
-	) {
+	async joinRoom(userId: number, channelName: string, pwd: string) {
 		try {
-			const channelId = await this.roomService.getChannelId(event.channelName);
-			const user = await this.usersService.getUserById(event.userId);
+			const channelId = await this.roomService.getChannelId(channelName);
+			const user = await this.usersService.getUserById(userId);
 			if (user != null) {
-				const join = await this.roomService.joinRoom(user.id, channelId, event.channelName, event.pwd);
-				if (join != undefined) {
-					this.socketService.joinChannel(user.id, event.channelName);
-					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'join', user.pseudo + " joined " + event.channelName));
+				const join = await this.roomService.joinRoom(user.id, channelId, channelName, pwd);
+				if (join !== undefined) {
+					this.socketService.joinChannel(user.id, channelName);
+					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'join', user.pseudo + " joined " + channelName));
+					return {
+						channelName,
+						channelId: join.channelId,
+						userPermissionMask: join.permissionMask,
+						membershipState: join.membershipState,
+						accessMask: (await this.roomService.getAccessMask(join.channelId)),
+					};
 				}
 			}
 		} catch {
@@ -249,7 +253,7 @@ export class ChatService {
 			const user = await this.usersService.getUserById(event.userId);
 			if (user != null) {
 				const room = await this.roomService.roomExists(event.channelId);
-				if (room != null ){
+				if (room != null) {
 					const member = user.channelMemberships.find(channel => channel.channelId === room.id);
 					if (member !== undefined && member.membershipState !== 4) {
 						this.roomService.removeUserfromRoom(user.id, room.id);
@@ -582,24 +586,21 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.delete')
-	async deleteChannel(
-		event: ChatDeleteChannelEvent
-	) {
+	async deleteChannel(userId: number, channelId: number) {
 		try {
-			const user = await this.usersService.getUserById(event.userId);
+			const user = await this.usersService.getUserById(userId);
 			
-			if (user != null) {
-				const room = await this.roomService.roomExists(event.channelId);
+			if (user !== null) {
+				const room = await this.roomService.roomExists(channelId);
 				
-				if (room != null) {
-					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+				if (room !== null) {
+					const member = user.channelMemberships.find(channel => channel.channelId === channelId);
 			
 					if (member && member.permissionMask === 4) {
-						const result = await this.roomService.deleteRoom(event.channelId);
+						const result = await this.roomService.deleteRoom(channelId);
 				
 						if (result.status === false) {
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'error', result.msg));
 						}
 					}
 				}

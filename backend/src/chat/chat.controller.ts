@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Post, Body, Get, UseGuards, Request, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Param, NotFoundException, HttpStatus, HttpCode } from '@nestjs/common';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { UsersService } from 'src/users_chat/users_chat.service';
@@ -25,6 +25,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
 import { IsString, IsInt, IsNotEmpty, Min, Max, MaxLength, MinLength, Length, IsPositive } from 'class-validator';
 import { CheckIntPipeChat } from './chat.pipe'
+import { HttpStatusCode } from 'axios';
 
 
 interface Message {
@@ -172,8 +173,10 @@ export class ChatController {
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
             const chans = [];
             const state = await Promise.all(rooms.map(room => this.roomService.getMembershipState(room.channelId, userId)));
+
             rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask, membershipState: state[index].membershipState}));
-			return chans;
+			
+            return chans;
         } catch {
             ;
         }
@@ -232,17 +235,17 @@ export class ChatController {
         }
     }
 
-
     @Post('join-channel')
     async joinChannel(
-        @Body() joinChannelDto: JoinChannelDto,
+        @Body() { channelName, password }: JoinChannelDto,
         @Request() req : ExpressRequest
     ) {
+        const userId = req.user.id;
+
         try {
-			const userId = Number(req.user.sub);
-			if (userId == undefined)
-				return;
-            this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(userId, joinChannelDto.channelName, joinChannelDto.password));
+            const channelData = await this.chatService.joinRoom(userId, channelName, password);
+        
+            return channelData;
         } catch {
             ;
         }
@@ -450,13 +453,13 @@ export class ChatController {
 	}
 
     @Post('delete-channel') //TODO les DTO
+    @HttpCode(HttpStatus.NO_CONTENT)
     async handleDeleteRoom(
         @Body() deleteDto: DeleteChannelDto,
         @Request() req: ExpressRequest
     ) {
-        const userId = Number(req.user.sub);
-        if (userId == undefined)
-            return;
-        this.eventEmitter.emit('chat.delete', new ChatDeleteChannelEvent(userId, deleteDto.channelId));
+        const userId = req.user.id;
+
+        this.chatService.deleteChannel(userId, deleteDto.channelId);
     }
 }

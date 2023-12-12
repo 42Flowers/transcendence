@@ -73,44 +73,44 @@ export function IsNoSpecialCharactersChat(validationOptions?: ValidationOptions)
 }
 
 /* ==== CHAT DTO ==== */
-export class PrivateMessageDTO {
-	@IsInt()
-	@IsNotEmpty()
-	@Max(1000000)
-	@Min(1)
-	@IsPositive()
-	targetId: number
+// export class PrivateMessageDTO {
+// 	@IsInt()
+// 	@IsNotEmpty()
+// 	@Max(1000000)
+// 	@Min(1)
+// 	@IsPositive()
+// 	targetId: number
 
-	@IsString()
-	@IsNotEmpty()
-	@MaxLength(100)
-	@MinLength(1)
-	@IsAscii()
-	message: string
-};
+// 	@IsString()
+// 	@IsNotEmpty()
+// 	@MaxLength(100)
+// 	@MinLength(1)
+// 	@IsAscii()
+// 	message: string
+// };
 
-export class ChannelMessageDTO {
-	@IsInt()
-	@IsNotEmpty()
-	@Max(1000000)
-	@Min(1)
-	@IsPositive()
-	channelId: number
+// export class ChannelMessageDTO {
+// 	@IsInt()
+// 	@IsNotEmpty()
+// 	@Max(1000000)
+// 	@Min(1)
+// 	@IsPositive()
+// 	channelId: number
 
-	@IsString()
-	@IsNotEmpty()
-	@MaxLength(10)
-	@MinLength(3)
-	// @IsNoSpecialCharactersChat()
-	channelName: string
+// 	@IsString()
+// 	@IsNotEmpty()
+// 	@MaxLength(10)
+// 	@MinLength(3)
+// 	// @IsNoSpecialCharactersChat()
+// 	channelName: string
 
-	@IsString()
-	@IsNotEmpty()
-	@MaxLength(100)
-	@MinLength(1)
-	@IsAscii()
-	message: string
-};
+// 	@IsString()
+// 	@IsNotEmpty()
+// 	@MaxLength(100)
+// 	@MinLength(1)
+// 	@IsAscii()
+// 	message: string
+// };
 
 @Injectable()
 @WebSocketGateway({
@@ -144,6 +144,23 @@ export class SocketGateway implements
 	validateId(id: number) {
 		console.log("TESTED ID: ", id);
 		if (id == null || id == undefined || id < 1 || id > 1000000 || !Number.isInteger(id))
+			return false;
+
+		return true;
+	}
+
+	validateMessage(msg: string) {
+		console.log("TESTED MESSAGE: ", msg);
+
+
+		function isASCII(str: string): boolean {
+			return /^[\x00-\x7F]*$/.test(str);
+		}
+		function hasNonWhitespace(str: string): boolean {
+			return str.trim() !== "";
+		}
+
+		if (msg == null || msg == undefined || msg.length > 100 || msg.length < 1 || !isASCII(msg) || !hasNonWhitespace(msg))
 			return false;
 
 		return true;
@@ -255,12 +272,12 @@ export class SocketGateway implements
 
 	@SubscribeMessage('blockuser')
 	handleBlockUser(
-		@MessageBody() data: {targetId: number},
+		@MessageBody() data: { targetId: number },
 		@ConnectedSocket() client: Socket 
 	) {
 		try {
 			const userId = Number(client.user.sub);
-			if (client == null || client == undefined)
+			if (client == null || client == undefined || !this.validateId(data.targetId))
 				return;
 			this.eventEmitter.emit('chat.blockuser', new ChatUserBlockEvent(userId, data.targetId));
 		} catch {
@@ -270,12 +287,12 @@ export class SocketGateway implements
 
 	@SubscribeMessage('unblockuser')
 	handleUnBlockUser(
-		@MessageBody() data: {targetId: number},
+		@MessageBody() data: { targetId: number },
 		@ConnectedSocket() client: Socket
 	) {
 		try {
 			const userId = Number(client.user.sub);
-			if (client == null || client == undefined)
+			if (client == null || client == undefined || !this.validateId(data.targetId))
 				return;
 			this.eventEmitter.emit('chat.unblockuser', new ChatUserUnBlockEvent(userId, data.targetId));
 		} catch {
@@ -285,14 +302,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage('privatemessage')
 	handlePrivateMessage(
-		@MessageBody() dto: PrivateMessageDTO,
+		@MessageBody() data : { targetId: number, message: string },
 		@ConnectedSocket() client : Socket 
 	) {
 		try {
 			const userId = Number(client.user.sub);
-			if (client == null || client == undefined)
+			if (client == null || client == undefined || !this.validateId(data.targetId) || !this.validateMessage(data.message))
 				return;
-			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, dto.targetId, dto.message));
+			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, data.targetId, data.message));
 		} catch {
 			;
 		}
@@ -300,14 +317,14 @@ export class SocketGateway implements
 
 	@SubscribeMessage('channelmessage')
 	handleChannelMessage(
-		@MessageBody() dto : ChannelMessageDTO,
+		@MessageBody() data : { channelId: number, message: string },
 		@ConnectedSocket() client : Socket 
 	) {
 		try {
-			if (client == null || client == undefined)
-			return;
+			if (client == null || client == undefined || !this.validateId(data.channelId) || !this.validateMessage(data.message))
+				return;
 			const userId = Number(client.user.sub);
-			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, dto.channelId, dto.message));
+			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, data.channelId, data.message));
 		} catch {
 			;
 		}

@@ -127,7 +127,7 @@ function useAnimationFrame(cb: () => void, deps: React.DependencyList = []) {
 //////////////////////////////
 //           GAME           //
 //////////////////////////////
-const Game: React.FC<gameProps> = (props) => {
+const Game: React.FC<gameProps> = ({ specialMode, ...props }) => {
 	const { SocketState } = useContext(SocketContext);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const ctx = canvasRef.current?.getContext('2d');
@@ -280,7 +280,7 @@ const Game: React.FC<gameProps> = (props) => {
 	useSocketEvent('updateGame', updateGame);
 
 	useEffect(() => {
-		if (props.specialMode) {
+		if (specialMode) {
 			SocketState.socket?.on("shield", activateShield);
 			SocketState.socket?.on("dangerousBall", activateBall);
 			return () => {

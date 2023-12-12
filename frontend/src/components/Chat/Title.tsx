@@ -51,7 +51,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
 }
 
 const Title: React.FC = () => {
-    const { chanOrDm, currentChannel, setCurrentChannel, currentChannelName, setCurrentChannelName, myPermissionMask, currentAccessMask, setCurrentAccessMask, currentDm, setCurrentDm, currentAvatar, setCurrentAvatar, } = useContext(ChatContext);
+    const { chanOrDm, currentChannel, setCurrentChannel, currentChannelName, setCurrentChannelName, myPermissionMask, currentAccessMask, setCurrentAccessMask, currentDm, setCurrentDm, currentAvatar, setCurrentAvatar, isBanned} = useContext(ChatContext);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
 
     const [addPassword, setAddPassword] = useState("");
@@ -152,7 +152,7 @@ const Title: React.FC = () => {
         deletePasswordMutation.mutate({ channelId: currentChannel });
     };
 
-
+    
 
     return (
         <div style={{ display: "flex", flexDirection: "row", height: "100%" }} className="titleClass">
@@ -200,8 +200,11 @@ const Title: React.FC = () => {
                         { myPermissionMask === 4 
                             ?
                                 <button style={buttonStyle} className="buttonClassPurple" onClick={handleDelete}>Delete Channel</button>
-                            :
-                                <button style={buttonStyle} className="buttonClassPurple" onClick={handleQuit}>Quit Channel</button>
+                            : 
+                                isBanned ?
+                                        null
+                                    :
+                                        <button style={buttonStyle} className="buttonClassPurple" onClick={handleQuit}>Quit Channel</button>
                         }
                     </>
                 :

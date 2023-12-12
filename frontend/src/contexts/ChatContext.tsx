@@ -19,6 +19,8 @@ export interface ChatContextType {
   setMyPermissionMask: (myPermissionMask: number) => void;
   currentAccessMask: number 
   setCurrentAccessMask: (currentAccessMask: number) => void;
+  isBanned: boolean 
+  setIsBanned: (isBanned: boolean ) => void;
 }
 
 
@@ -34,9 +36,10 @@ export const ChatProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [currentChannelName, setCurrentChannelName] = useState('');
   const [myPermissionMask, setMyPermissionMask] = useState(0);
   const [currentAccessMask, setCurrentAccessMask] = useState(1);
+  const [isBanned, setIsBanned] = useState(false);
 
   return (
-    <ChatContext.Provider value={{ chanOrDm, setChanOrDm, usersOrBanned, setUsersOrBanned, isDm, setIsDm, currentChannel, setCurrentChannel, currentDm, setCurrentDm, currentAvatar, setCurrentAvatar, currentChannelName, setCurrentChannelName, myPermissionMask, setMyPermissionMask, currentAccessMask, setCurrentAccessMask }}>
+    <ChatContext.Provider value={{ chanOrDm, setChanOrDm, usersOrBanned, setUsersOrBanned, isDm, setIsDm, currentChannel, setCurrentChannel, currentDm, setCurrentDm, currentAvatar, setCurrentAvatar, currentChannelName, setCurrentChannelName, myPermissionMask, setMyPermissionMask, currentAccessMask, setCurrentAccessMask, isBanned, setIsBanned }}>
       {children}
     </ChatContext.Provider>
   );

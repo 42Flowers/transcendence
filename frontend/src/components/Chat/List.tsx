@@ -27,6 +27,7 @@ interface Channel {
     channelName: string;
     userPermissionMask: number;
     accessMask: number;
+    membershipState: number;
 }
 
 interface ChannelMember {
@@ -274,10 +275,10 @@ const MembersList: React.FC = () => {
 };
   
 const List: React.FC<Props> = ({ side }) => {
-    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask } = useContext(ChatContext) as ChatContextType;
+    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask, setIsBanned } = useContext(ChatContext) as ChatContextType;
     const auth = useAuthContext();
-
     const channels = useQuery(['channels-list'], fetchAvailableChannels);
+    // channels.membershipState (<- 4 (current user))
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
 
     // right // 1 not ban | 4 ban 
@@ -291,6 +292,10 @@ const List: React.FC<Props> = ({ side }) => {
                         <div className="listClass">
                             {channels.isFetched && map(channels.data, (channel: Channel) => (
                                 <div key={channel.channelId} onClick={() => {
+                                    if (channel.membershipState === 4) {
+                                        console.log("top");
+                                        setIsBanned(true);
+                                    }
                                     setCurrentChannel(channel.channelId)
                                     setCurrentChannelName(channel.channelName)
                                     setCurrentAccessMask(channel.accessMask)

@@ -134,6 +134,9 @@ const Chat: React.FC = () => {
 
     const displayInfo = useCallback((msg: infoElem) => {
         alert(msg.msg);
+        if (msg.type === "ban") {
+            window.location.reload();
+        }
     }, []);
 
     useEffect(() => {

@@ -239,7 +239,6 @@ export class ChatController {
         @Request() req : ExpressRequest
     ) {
         try {
-			console.log(joinChannelDto);
 			const userId = Number(req.user.sub);
 			if (userId == undefined)
 				return;
@@ -429,7 +428,6 @@ export class ChatController {
         @Body() removePwdDto: RemovePwdDto,
 		@Request() req : ExpressRequest
 	) {
-		console.log(removePwdDto.channelId);
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;

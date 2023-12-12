@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { PipeTransform, Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
 
 @Injectable()
 export class CheckIntPipeChat implements PipeTransform {

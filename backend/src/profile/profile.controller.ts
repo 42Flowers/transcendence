@@ -12,6 +12,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { AvatarUpdatedEvent } from 'src/events/avatar-updated.event';
 import { AvatarDto } from './profile.dto';
 import { ProfileService } from './profile.service';
+import { CheckIntPipe } from './profile.pipe';
 
 @Controller('profile')
 @UseGuards(AuthGuard)
@@ -122,8 +123,8 @@ export class ProfileController {
 
     @Get('/:id/achievements')
     async getAchievements(
-        @Param('id', ParseIntPipe) userId: number): Promise<any> {
-        
+        @Param('id', CheckIntPipe) userId: number): Promise<any> {
+
         try {
             const achievements = await this.achievementsService.listAchievements(userId);
 

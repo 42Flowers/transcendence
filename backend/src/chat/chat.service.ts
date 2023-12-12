@@ -350,7 +350,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been banned from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'ban', "You have been banned from " + room.name));
 							return;
 						}
 					}
@@ -382,7 +382,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You have been unbanned from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'ban', "You have been unbanned from " + room.name));
 							return;
 						}
 					}

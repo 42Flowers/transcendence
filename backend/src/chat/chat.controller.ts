@@ -171,7 +171,8 @@ export class ChatController {
             const rooms = await this.roomService.getPublicRooms(userId);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
             const chans = [];
-            rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask}));
+            const state = await Promise.all(rooms.map(room => this.roomService.getMembershipState(room.channelId, userId)));
+            rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask, membershipState: state[index].membershipState}));
 			return chans;
         } catch {
             ;

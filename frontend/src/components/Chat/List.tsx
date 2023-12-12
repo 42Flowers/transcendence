@@ -8,6 +8,7 @@ import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
+import SocketContext from '../Socket/Context/Context';
 
 type Props = {
     side: string
@@ -88,9 +89,9 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onOptionClick, functions, 
 const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, userPermissionMask, myPermissionMask, currentChannel, memberShipState}) => {
     const [options, setOptions] = useState<string[]>([]);
     const { chanOrDm } = useContext(ChatContext) as ChatContextType;
+    const { SocketState } = useContext(SocketContext);
 
     const handleOptionClick = (option: string) => {
-        console.log(`Option ${option} clicked`);
     };
 
 
@@ -210,7 +211,7 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
             removeAdminMutation.mutate({ channelId: currentChannel, targetId: userId });
         },
         'Play': () => {
-            // TODO: send invitation to play
+            SocketState.socket?.emit("inviteNormal", userId);
         },
     };
     

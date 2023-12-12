@@ -11,20 +11,6 @@ import Ladder from "./Ladder/Ladder";
 import MatchHistory from "./MatchHistory/MatchHistory";
 import './Profile.css';
 
-export interface LeaderContextType {
-    smallLeader: boolean
-    setSmallLeader: (smallLeader: boolean) => void;
-    greatLeader: boolean
-    setGreatLeader: (greatLeader: boolean) => void;
-}
-
-export interface PerfectContextType {
-    perfectWin: boolean
-    setPerfectWin: (perfectWin: boolean) => void;
-    perfectLose: boolean
-    setPerfectLose: (perfectLose: boolean) => void;
-}
-
 const ProfilePublic: React.FC = () => {
 
     const { targetId } = useParams();
@@ -44,7 +30,7 @@ const ProfilePublic: React.FC = () => {
             {
                 (auth.user?.id === targetId) && <FriendChoiceButtons userId={Number(auth.user?.id)} friendId={Number(targetId)} />
             }
-            <Ladder auth={Number(auth.user?.id)} />
+            <Ladder />
             <Stats userId={Number(targetId)} auth={Number(auth.user?.id)} />
             <MatchHistory userId={Number(targetId)} auth={Number(auth.user?.id)} />
             <Achievements userId={Number(targetId)} />

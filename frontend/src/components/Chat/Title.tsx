@@ -1,6 +1,6 @@
 import filter from 'lodash/filter';
 import map from 'lodash/map';
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
 import { addPwd, changePwd, deleteM, deletePwd, fetchAvailableDMs, quit } from "../../api";
 import { ChatContext } from "../../contexts/ChatContext";
@@ -9,6 +9,7 @@ import { queryClient } from "../../query-client";
 import { useAuthContext } from '../../contexts/AuthContext';
 import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
+import SocketContext from '../Socket/Context/Context';
 
 type DisplayProps = {
     myId: number
@@ -21,7 +22,8 @@ type DisplayProps = {
     memberShipState?: number
 }
 
-const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {    
+const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {
+    const { SocketState } = useContext(SocketContext);
     const buttonStyle: React.CSSProperties = {
         width: "30%",
         height: "100%",
@@ -31,10 +33,10 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
     };
 
     const handlePlay = (event) => {
-        // event.preventDefault();
-        // deletePasswordMutation.mutate({ channelId: currentChannel });
+        event.preventDefault();
+        SocketState.socket?.emit("inviteNormal", userId);
     };
-    
+
     return (
         <div className='titleDMChildChild'>
             <div className="avatarCursorPointer">
@@ -136,11 +138,13 @@ const Title: React.FC = () => {
     const handleAddPassword = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         addPasswordMutation.mutate({ channelId: currentChannel, pwd: addPassword });
+        setAddPassword('');
     };
 
     const handleChangePassword = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         changePasswordMutation.mutate({ channelId: currentChannel, pwd: changePassword });
+        setChangePassword('');
     };
 
     const handleDeletePassword = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -169,6 +173,7 @@ const Title: React.FC = () => {
                                                     onChange={(e) => setAddPassword(e.target.value)}
                                                     style={{ flex: "1 1 auto" }}
                                                     className='channelPasswordInput'
+													minLength={3}
                                                 />
                                                 <button type="submit" style={{ flex: "1 1 auto" }} className='channelPasswordButton' >Add password</button>
                                             </form>

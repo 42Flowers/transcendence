@@ -16,8 +16,6 @@ const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
 		/**Connect to the web socket */
 		socket.connect()
 		/*Save the socket  in context*/
-		console.log({current: socket.id});
-		console.log('sympa', socket);
 		SocketState.socket = socket;
 		// SocketDispatch({type: 'update_socket', payload: socket.id });
 		/**Start the event listeners */
@@ -53,12 +51,8 @@ const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
 	};
 
 	const SendHandshake = () => {
-		// console.log(SocketState.socket?.connect);
-		console.info('Sending handshake to server...');
 		socket.emit('handshake', () => {
-			console.log('User handshake message received');
 			setLoading(false);
-			// console.log('la', SocketState.socket);
 		});
 
 	};

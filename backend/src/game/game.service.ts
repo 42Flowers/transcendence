@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { Interval } from '@nestjs/schedule';
+import { Cron, Interval } from '@nestjs/schedule';
 import { Socket } from 'socket.io';
 import { GameEndedEvent } from 'src/events/game-ended.event';
 import { GameKeyDownEvent } from 'src/events/game/keyDown.event';
@@ -116,7 +116,6 @@ export class GameService {
 
 		for (let i = 0; i < this.friendsGameList.length; ++i) {
 			if (this.friendsGameList[i] === game) {
-				console.log('Friend game found', i);
 				this.friendsGameList.splice(i, 1);
 				gameFound = true;
 				break ;
@@ -126,7 +125,6 @@ export class GameService {
 		if (!gameFound) {
 			for (let i = 0; i < this.randomGameList.length; ++i) {
 				if (this.randomGameList[i] === game) {
-					console.log('Random game found', i);
 					this.randomGameList.splice(i, 1);
 					gameFound = true;
 					break ;
@@ -146,7 +144,20 @@ export class GameService {
 
 	@OnEvent('game.ended')
 	handleGameEnded({ game }: GameEndedEvent) {
-		console.log('Game ended');
 		this.deleteGame(game);
+	}
+
+	@Interval(1000)
+	deleteStaleGames() {
+		for (let i = 0; i < this.friendsGameList.length; ) {
+			const game = this.friendsGameList[i];
+
+			if (game.isStale) {
+				console.log('Deleted stale game');
+				this.deleteGame(game);
+			} else {
+				++i;
+			}
+		}
 	}
 }

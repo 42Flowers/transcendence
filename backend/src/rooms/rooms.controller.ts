@@ -19,7 +19,6 @@ export class RoomController {
 	getUsers(
 		@Body('room') data: {name: string, id: number}
 	) {
-		console.log(this.roomService.getUsersfromRoom(data.id))
 		return this.roomService.getUsersfromRoom(data.id);
 	}
 	

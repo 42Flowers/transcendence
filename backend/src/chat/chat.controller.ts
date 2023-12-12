@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Post, Body, Get, UseGuards, Request, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, Param, NotFoundException } from '@nestjs/common';
 import { ConversationsService } from 'src/conversations/conversations.service';
 import { MessagesService } from 'src/messages/messages.service';
 import { UsersService } from 'src/users_chat/users_chat.service';
@@ -8,7 +8,6 @@ import { Request as ExpressRequest } from 'express';
 import { ChatService } from './chat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { Prisma } from '@prisma/client';
 import { ChatMuteOnChannelEvent } from 'src/events/chat/muteOnChannel.event';
 import { ChatUnMuteOnChannelEvent } from 'src/events/chat/unMuteOnChannel.event';
 import { ChatBanFromChannelEvent } from 'src/events/chat/banFromChannel.event';
@@ -149,8 +148,8 @@ export class ChatController {
 				}
 			});
 			return blockedUsers;
-		} catch(err) {
-                console.log(err.message);
+		} catch {
+            ;
 		}
 	}
 
@@ -163,13 +162,12 @@ export class ChatController {
 			if (userId == undefined)
 				return;
             const rooms = await this.roomService.getPublicRooms(userId);
-			console.log(rooms);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
             const chans = [];
             rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask}));
 			return chans;
-        } catch (err) {
-                console.log(err.message);
+        } catch {
+            ;
         }
     }
 
@@ -194,8 +192,8 @@ export class ChatController {
                 return messages;
             }
             return null;
-        } catch (err) {
-            console.log(err.message);
+        } catch {
+            ;
         }
     }
 
@@ -221,8 +219,8 @@ export class ChatController {
                 return users;
             }
             return null;
-        } catch (error) {
-            console.log(error.message);
+        } catch {
+            ;
         }
     }
 
@@ -237,8 +235,8 @@ export class ChatController {
 			if (userId == undefined)
 				return;
             this.eventEmitter.emit('chat.joinchannel', new ChatJoinChannelEvent(userId, joinChannelDto.channelName, joinChannelDto.password));
-        } catch (err) {
-			console.log(err.message);
+        } catch {
+            ;
         }
     }
 
@@ -247,7 +245,6 @@ export class ChatController {
         @Body() quitDto: QuitDto,
         @Request() req : ExpressRequest
     ) {
-          console.log("Hello2");
 		  const userId = Number(req.user.sub);
 		  if (userId == undefined)
 			  return;
@@ -274,8 +271,8 @@ export class ChatController {
                 convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo, avatar: userNames[index].avatar});
             });
             return convs;
-        } catch (err) {
-            console.log(err.message);
+        } catch {
+            ;
         }
     }
 
@@ -290,8 +287,8 @@ export class ChatController {
 				return;
             const conversation = await this.chatService.createConversation(userId, targetDto.targetName);
             return conversation;
-        } catch(error) {
-            console.log(error.message);
+        } catch {
+            ;
         }
     }
 
@@ -310,9 +307,9 @@ export class ChatController {
                 conversations.map((msg, index) => messages.push({authorId: msg.authorId, authorName: authorNames[index].pseudo, content: msg.content, createdAt: msg.createdAt, id: msg.id}));
                 return messages;
             }
-            return "nope";
-        } catch (err) {
-            console.log(err.message);
+            throw new NotFoundException();
+        } catch {
+            ;
         }
     }
 
@@ -365,14 +362,11 @@ export class ChatController {
 
 	@Post('kick-user')
 	async handleKick(
-        @Body() actionsDto: ActionsDto,
+        @Body() { channelId, targetId }: ActionsDto,
 		@Request() req: ExpressRequest
 	) {
-        const userId = Number(req.user.sub);
-        if (userId == undefined)
-            return;
-			this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-			// this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(Number(req.user.sub), "coucou", 2, 2));
+        const userId = req.user.id;
+        this.eventEmitter.emit('chat.kick', new ChatKickFromChannelEvent(userId, channelId, targetId));
 	}
 
 	@Post('add-admin')
@@ -442,8 +436,8 @@ export class ChatController {
 				return;
 			const friends = await this.userService.getFriends(userId);
 			return friends;
-		} catch (err) {
-			console.log(err.message);
+		} catch {
+            ;
 		}
 	}
 

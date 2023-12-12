@@ -8,6 +8,8 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { MyError } from 'src/errors/errors';
 import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
+import { UserLeftChannelEvent } from 'src/events/channels/user-left-channel.event';
+import { UserJoinedChannelEvent } from 'src/events/channels/user-joined-channel.event';
 
 @Injectable()
 export class RoomService {
@@ -24,10 +26,18 @@ export class RoomService {
 
 	async getAccessMask(channelId: number) {
 		try {
-			const mask = await this.prismaService.channel.findUnique({where: {id: channelId}, select: {accessMask: true}});
+			const mask = await this.prismaService.channel.findUnique({
+				where: {
+					id: channelId
+				},
+				select: {
+					accessMask: true
+				}
+			});
+			
 			return mask;
-		} catch (error) {
-			console.log(error.message);
+		} catch {
+			;
 		}
 	}
 
@@ -45,8 +55,8 @@ export class RoomService {
 				}
 			})
 			return users;
-		} catch(error) {
-			console.log(error);
+		} catch {
+			;
 		}
 	}
 
@@ -61,12 +71,10 @@ export class RoomService {
 			if (chanId == null)
 				return undefined;
 			return chanId.id;
-		}catch( error) {
+		} catch (error) {
 			if (error instanceof Prisma.PrismaClientUnknownRequestError) {
 				throw error;
 			}
-			else 
-				console.log(error.message);
 		}
 	}
 
@@ -79,10 +87,12 @@ export class RoomService {
 				if (pwd.length < 3 || pwd.length >= 20)
 					throw new MyError("A channel password has to be between 3 and 20 characters");
 			}
-				let accessMask = 1;
-			if (pwd != '' && pwd != null)
+			let accessMask = 1;
+			let password = null;
+			if (pwd != '' && pwd != null) {
 				accessMask = 4;
-			const password = await bcrypt.hash(pwd, 10);
+				password = await bcrypt.hash(pwd, 10);
+			}
 			const channel = await this.prismaService.channel.create({
 				data: {
 					name: name,
@@ -92,10 +102,7 @@ export class RoomService {
 				}
 			});
 			return channel.id;
-		} catch (err) {
-			if (err instanceof MyError) {
-				console.log(err.message);
-			}
+		} catch {
 			throw new MyError("Could not create this channel, please try another combination");
 		}
 	}
@@ -121,7 +128,6 @@ export class RoomService {
 				const channel = await this.getRoom(channelId);
 				if (channel !== null) {
 					if (channel.accessMask == 4) {
-						console.log(pwd, channel, 'PASSWORD CHECK');
 						if (!await bcrypt.compare(pwd, channel.password))
 							throw new MyError("This channel is password protected");
 					}
@@ -131,21 +137,22 @@ export class RoomService {
 				}
 				try {
 					const channelMembership = await this.prismaService.channelMembership.create({
-					data: {
-						user : {
-							connect: {
-								id: userId,
+						data: {
+							user : {
+								connect: {
+									id: userId,
+								},
 							},
-						},
-						channel: {
-							connect : {
-								id: channelId,
+							channel: {
+								connect : {
+									id: channelId,
+								},
 							},
-						},
-						channelName: roomname,
-						permissionMask: 1
+							channelName: roomname,
+							permissionMask: 1
 						}
 					});
+					this.eventEmitter.emit('user.joined.channel', new UserJoinedChannelEvent(channelId, userId));
 					return channelMembership;
 				} catch (error) {
 					if (error instanceof Prisma.PrismaClientUnknownRequestError) {
@@ -163,7 +170,6 @@ export class RoomService {
 			}
 			else {
 				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', err.message))
-				console.log(err.message);
 				return;
 			}
 		}
@@ -173,9 +179,7 @@ export class RoomService {
         return this.prismaService.channel.findUnique({where:{id: id}, select: {name: true, id: true}});
     }
 
-
-
-	async isUserinRoom(userId: number, channelId: number) : Promise<any> {
+	async isUserinRoom(userId: number, channelId: number): Promise<any> {
 		try {
 			const membership = await this.prismaService.channelMembership.findUnique({where: {userId_channelId: {userId: userId, channelId: channelId}}, select:{channelName: true, membershipState: true, permissionMask:true, channelId: true}});
 			return membership;
@@ -184,7 +188,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				console.log(err.message);
 				return;
 			}
 		}
@@ -199,7 +202,6 @@ export class RoomService {
 				throw Error(err.message);
 			}
 			else {
-				console.log(err.message);
 				return;
 			}
 		}
@@ -249,11 +251,24 @@ export class RoomService {
 		} catch (err) {throw new MyError(err.message) }
 	}
 
-
+	/**
+	 * Forcefully deletes a channel membership
+	 * @param targetId 
+	 * @param channelId 
+	 * @returns 
+	 */
 	async kickUser(targetId: number, channelId: number) : Promise<any> {
 		try {
-			const membership = await  this.prismaService.channelMembership.delete({where: {userId_channelId: {userId: targetId, channelId: channelId}}});
-			if (membership != null) {
+			const membership = await this.prismaService.channelMembership.delete({
+				where: {
+					userId_channelId: {
+						userId: targetId,
+						channelId: channelId
+					}
+				}
+			});
+			if (membership !== null) {
+				this.eventEmitter.emit('user.left.channel', new UserLeftChannelEvent(channelId, targetId));
 				return {status: true};
 			}
 			else {
@@ -313,7 +328,6 @@ export class RoomService {
 			}
 			return {status: false, msg: "Couldn't be muted"};
 		} catch (err) {
-			console.log("couldn't mute");
 			throw new Error(err.message);
 		}
 	}
@@ -359,10 +373,11 @@ export class RoomService {
 
 	async addPwd(channelId: number, pwd: string) : Promise<any> {
 		try {
-			if (pwd.length > 20) {
+			if (pwd.length > 20 ||pwd.length < 3) {
 				throw new MyError("A channel password has to be under 20 characters");
 			}
-			const chan = await this.prismaService.channel.update({where: {id: channelId}, data: {password: pwd, accessMask: 4}});
+			const password = await bcrypt.hash(pwd, 10);
+			const chan = await this.prismaService.channel.update({where: {id: channelId}, data: {password: password, accessMask: 4}});
 			if (chan != null) {
 				return {status: true};
 			} else {
@@ -370,7 +385,6 @@ export class RoomService {
 			}
 		} catch (err) {
 			if (err instanceof MyError) {
-				console.log(err.message);
 				return {status: false, msg: err.message};
 			}
 			throw err
@@ -411,15 +425,12 @@ export class RoomService {
 			const channels = await this.prismaService.channelMembership.findMany({
 				where: {userId: userId},
 			});
+
 			return channels;
 		} catch (err) {
 			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
 				throw Error(err.message);
 			}
-			else {
-				console.log(err.message);
-				return;
 		}
 	}
-}
 }

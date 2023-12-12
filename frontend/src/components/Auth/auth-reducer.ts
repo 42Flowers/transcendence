@@ -78,8 +78,6 @@ function patchState<T>(state: T, patch: Partial<T>): T {
 export function authReducer(state: IAuthState, action: IAuthAction): IAuthState {
     const { type } = action;
 
-    console.log(action);
-    
     if ('INITIALIZE' === type) {
         const { code } = action as IInitializeAction;
 

@@ -63,8 +63,6 @@ const OAuthPanel: React.FC<OAuthPanelProps> = ({ state, dispatch }) => {
     const authRequest = useAuthRequest(code || '', data => {
         const { ticket, token, mfa } = data;
 
-        console.log(data);
-
         if ('ticket' in data) {
             dispatch(setTicketAction(ticket, mfa));
         } else if ('token' in data) {

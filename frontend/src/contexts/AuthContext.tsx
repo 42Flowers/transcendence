@@ -130,7 +130,6 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
     if (state.refreshRequested) {
       initialized.current = false;
       dispatch({ type: 'REFRESH_ACK' });
-      console.log('Refresh requested');
     }
   }, [ state ]);
 

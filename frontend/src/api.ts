@@ -97,6 +97,9 @@ export type PatchUserProfile = Partial<Exclude<UserProfile, 'id' | 'avatar'>>;
 export const patchUserProfile = (profile: UserID, data: PatchUserProfile) =>
     wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
 
+export const completeRegister = (formData: FormData) =>
+    wrapResponse(authorizedPost<UserProfile>('/api/v1/users/complete-profile', formData));
+
 /* ==== PROFILE ==== */
 export type PublicUserProfile = {
     id: number;
@@ -107,7 +110,23 @@ export type PublicUserProfile = {
 
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
 export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<PublicUserProfile>(`/api/profile/${targetId}`));
-export const fetchLadder = () => wrapResponse(authorizedGet('/api/profile/ladder'));
+
+export type LadderEntry = {
+    id: number;
+    pseudo: string;
+    avatar: string | null;
+    gameParticipation: {
+        opponentId: number;
+        userId: number;
+        gameId: number;
+        game: {
+            winnerId: number;
+            looserId: number;
+        };
+    }[];
+}
+
+export const fetchLadder = () => wrapResponse(authorizedGet<LadderEntry[]>('/api/profile/ladder'));
 export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
 export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats'));
 export const fetchAddAchievementToUser = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-achievement-to-user', payload));
@@ -160,11 +179,11 @@ export type UnBanUserPayload = {
     targetId: number;
 }
 
-export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel/`, payload));
+export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel`, payload));
 //export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
-export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation/`, payload));
-export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel/`, payload));
-export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel/`, payload));
+export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation`, payload));
+export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel`, payload));
+export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel`, payload));
 export const mute = (payload: any) => wrapResponse(authorizedPost(`api/chat/mute-user`, payload));
 export const unmute = (payload: any) => wrapResponse(authorizedPost(`api/chat/unmute-user`, payload));
 export const ban = (payload: BanUserPayload) => wrapResponse(authorizedPost(`api/chat/ban-user`, payload));
@@ -194,6 +213,15 @@ export const addUser = (userId: number, friendId: number) => wrapResponse(author
 export const fetchIsBlocked = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isBlocked: boolean; }>(`/api/profile/${userId}/isBlockWith/${friendId}`));
 export const blockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/block/${friendId}`, ''));
 export const unblockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/unblock/${friendId}`, ''));
+
+// FRIEND PAGE FROM FETCH TO QUERY
+export const fetchFriendsList = () => wrapResponse(authorizedGet('/api/friends'));
+export const unblockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/unblock`, payload));
+export const blockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/unblock`, payload));
+export const deleteFriendMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/delete`, payload));
+export const cancelFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/cancel`, payload));
+export const declineFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/decline`, payload));
+export const acceptFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/accept`, payload));
 
 /* ==== MFA ==== */
 export const generateSecretKey = () => wrapResponse(authorizedPost('/api/v1/auth/mfa/generate', ''));

@@ -1,8 +1,11 @@
-import default_avatar from '../../assets/images/default_avatar.png';
-import AvatarOthers from '../AvatarOthers/AvatarOthers';
+import { useContext } from 'react';
 import MainButton from '../MainButton/MainButton';
 import { UserAvatar } from '../UserAvatar';
 import './FriendItem.css';
+import SocketContext from '../Socket/Context/Context';
+import { useMutation } from 'react-query';
+import { acceptFriendInvitation, blockUserMutation, cancelFriendInvitation, declineFriendInvitation, deleteFriendMutation, unblockUserMutation } from '../../api';
+import { queryClient } from '../../query-client';
 
 const SENDER = 0;
 const RECEIVER = 1;
@@ -10,113 +13,102 @@ const FRIENDS = 2;
 const BLOCKED = 3;
 //0 sender   /1 receiver  /2 accepted /3 blocked
 
-interface FriendElem {
-	status: number,
-	friend: {
-		id: number,
-		pseudo: string,
-	}
-}
-
 interface Props {
-	userId: number;
 	friendName: string;
 	status: number;
 	avatar: string;
 	friendId: number;
-	parentRerender: (data: FriendElem[] | null) => void;
 }
 
-const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friendId, parentRerender}) => {
+const FriendItem: React.FC<Props> = ({avatar, friendName, status, friendId }) => {
+	const { SocketState } = useContext(SocketContext);
+
+	const unblockFriend = useMutation({
+        mutationFn: unblockUserMutation,
+		onSuccess() {
+			queryClient.refetchQueries('friendpage-friendlist');
+		},
+        onError() {
+            alert("Cannot unblock this person");
+        }
+    });
+
+	const blockFriend = useMutation({
+        mutationFn: blockUserMutation,
+		onSuccess() {
+			queryClient.refetchQueries('friendpage-friendlist');
+		},
+        onError() {
+            alert("Cannot block this person");
+        }
+    });
+
+	const deleteFriend = useMutation({
+        mutationFn: deleteFriendMutation,
+		onSuccess() {
+			queryClient.refetchQueries('friendpage-friendlist');
+		},
+        onError() {
+            alert("Cannot delete this person from your friends");
+        }
+    });
+
+	const cancelFriendInvite = useMutation({
+        mutationFn: cancelFriendInvitation,
+		onSuccess() {
+			queryClient.refetchQueries('friendpage-friendlist');
+		},
+        onError() {
+            alert("Cannot cancel the invitation you sent");
+        }
+    });
+
+	const declineFriendInvite = useMutation({
+        mutationFn: declineFriendInvitation,
+		onSuccess() {
+			queryClient.refetchQueries('friendpage-friendlist');
+		},
+        onError() {
+            alert("Cannot decline this invitation");
+        }
+    });
+
+	const acceptFriendInvite = useMutation({
+        mutationFn: acceptFriendInvitation,
+		onSuccess() {
+			queryClient.refetchQueries('friendpage-friendlist');
+		},
+        onError() {
+            alert("Cannot accept this invitation");
+        }
+    });
 
 	const handleUnblock = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/unblock/${friendId}`, {
-			method: 'POST',
-		})
-		.then(response => response.json())
-		.then(data => parentRerender(data))
-		.catch((error) => {
-			console.error('Error:', error);
-		});
+		unblockFriend.mutate({ friendId: friendId });
 	}
 
 	const handleBlock = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/block/${friendId}`, {
-			method: 'POST',
-		})
-		.then(response => response.json())
-		.then(data => parentRerender(data))
-		.catch((error) => {
-			console.error('Error:', error);
-		});
+		blockFriend.mutate({ friendId: friendId });
 	}
 
 	const handleDelete = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/delete/${friendId}`, {
-			method: 'POST',
-		})
-		.then(response => response.json())
-		.then(data => parentRerender(data))
-		.catch((error) => {
-			console.error('Error:', error);
-		});
+		deleteFriend.mutate({ friendId: friendId })
 	}
 
 	const handleCancel = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/cancel/${friendId}`, {
-			method: 'POST',
-		})
-		.then(response => response.json())
-		.then(data => parentRerender(data))
-		.catch((error) => {
-			console.error('Error:', error);
-		});
+		cancelFriendInvite.mutate({ friendId: friendId });
 	}
-
-
-	// const handleAccept = () => {
-	// 	fetch(`http://localhost:3000/api/friends/${userId}/accept/${friendId}`, {
-	// 		method: 'POST',
-	// 	})
-	// 	.then(response => response.json())
-	// 	.then(data => parentRerender(data))
-	// 	.catch((error) => {
-	// 		console.error('Error:', error);
-	// 	});
-	// }
-	const handleAccept = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/accept/${friendId}`, {
-			method: 'POST',
-		})
-		.then(response => {
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
-			}
-			return response.text();
-		})
-		.then(data => {
-			if (data) {
-				return JSON.parse(data);
-			} else {
-				return {};
-			}
-		})
-		.then(data => parentRerender(data))
-		.catch((error) => {
-			console.error('Error:', error);
-		});
-	}
-	
 
 	const handleDecline = () => {
-		fetch(`http://localhost:3000/api/friends/${userId}/decline/${friendId}`, {
-			method: 'POST',
-		})
-		.then(response => response.json())
-		.then(data => parentRerender(data))
-		.catch((error) => {
-			console.error('Error:', error);
-		});
+		declineFriendInvite.mutate({ friendId: friendId });
+	}
+
+	const handleAccept = () => {
+		acceptFriendInvite.mutate({ friendId: friendId })
+	}
+
+	const handlePlay = () => {
+		SocketState.socket?.emit("inviteNormal", friendId);
 	}
 
     if(status === FRIENDS)
@@ -131,8 +123,7 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 						<p>{friendName}</p>
 					</div>
 					<div className='buttons'>
-							<MainButton buttonName='Play' />
-							{/* <MainButton buttonName='MSG' /> */}
+							<MainButton buttonName='Play' onClick={handlePlay} />
 							<MainButton buttonName='Block' onClick={() => handleBlock()} />
 							<MainButton buttonName='Delete' onClick={() => handleDelete()} />
 					</div>
@@ -153,7 +144,6 @@ const FriendItem: React.FC<Props> = ({userId, avatar, friendName, status, friend
 					</div>
 					<div className='buttons'>
 						<MainButton buttonName='Unblock' onClick={() => handleUnblock()} />
-						{/* <MainButton buttonName='Delete' onClick={() => handleDelete()} /> */}
 					</div>
 				</div>
 			</div>

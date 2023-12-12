@@ -4,7 +4,7 @@ import { useSnackbar } from 'notistack';
 import React from 'react';
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { useMutation } from 'react-query';
-import { PatchUserProfile, patchUserProfile } from '../../api';
+import { PatchUserProfile, completeRegister, patchUserProfile } from '../../api';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { Form, FormValidator } from '../Form/Form';
 import { Input } from '../Form/Input';
@@ -12,6 +12,7 @@ import MainButton from '../MainButton/MainButton';
 import './IntraRegisterForm.scss';
 import { withAuthGuard } from '../../hocs/AuthGuard';
 import { useNavigate } from 'react-router-dom';
+import ChangeAvatar from '../Profile/ChangeAvatar/ChangeAvatar';
 
 const intraRegisterFormValidator: FormValidator = {
 	username(value: string) {
@@ -29,6 +30,7 @@ const IntraRegisterForm: React.FC = () => {
 	const { enqueueSnackbar } = useSnackbar();
 	const [ formErrors, setFormErrors ] = React.useState<object>({});
 	const { isAuthenticated, user, signIn } = useAuthContext();
+	const [ avatar, setAvatar ] = React.useState<File>();
 	const navigate = useNavigate();
 
 	React.useEffect(() => {
@@ -37,10 +39,8 @@ const IntraRegisterForm: React.FC = () => {
 		}
 	}, [ user ]);
 
-	const patchProfileMutation = useMutation({
-		mutationFn(data: PatchUserProfile) {
-			return patchUserProfile('@me', data);
-		},
+	const completeRegisterMutation = useMutation({
+		mutationFn: completeRegister,
 		onSuccess(data) {
 			enqueueSnackbar({
 				message: `Nice to meet you, ${data.pseudo} !`,
@@ -65,9 +65,23 @@ const IntraRegisterForm: React.FC = () => {
 		},
 	});
 
-	const handleOnSubmit = React.useCallback((data: any) => {
-		patchProfileMutation.mutate(data);
-	}, []);
+	const handleOnSubmit = React.useCallback((data: Record<string, string>) => {
+		const formData = new FormData();
+
+		for (const k in data) {
+			formData.append(k, data[k]);
+		}
+
+		if (avatar) {
+			formData.append('avatar', avatar!);
+
+			completeRegisterMutation.mutate(formData);
+		}
+	}, [ avatar ]);
+
+	const handleChangeAvatar = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setAvatar(e.currentTarget.files?.[0]);
+	}, [ setAvatar ]);
 
 	return (
 		<Stack direction="row" justifyContent="center">
@@ -88,6 +102,7 @@ const IntraRegisterForm: React.FC = () => {
 						type="text"
 						required
 					/>
+					<ChangeAvatar handleUploadAvatar={handleChangeAvatar} />
 					{/* <Avatar
 						alt="Avatar"
 						src={default_avatar}
@@ -114,7 +129,7 @@ const IntraRegisterForm: React.FC = () => {
 						id="fileInput"
 						style={{ display: 'none' }}
 					/> */}
-					<MainButton buttonName="Register" loading={patchProfileMutation.isLoading} />
+					<MainButton buttonName="Register" loading={completeRegisterMutation.isLoading} />
 				</Form>
 			</div>
 		</Stack>

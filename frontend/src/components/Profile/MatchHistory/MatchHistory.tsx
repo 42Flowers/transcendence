@@ -101,53 +101,58 @@ const MatchHistory: React.FC<MatchHistoryProps> = ({ userId, auth }) => {
     return (
         <div className="matchHistory">
             <h2 className='title-mh'>Match History</h2>
-            <TableContainer id="table-container-mh">
-                <Table id="table-mh" aria-label="simple table">
-                    <TableBody 
-                        id="table-body-mh"
-                    >
-                        {matchHistory?.map((row) => (
-                            <TableRow
-                                key={row.game.id}
-                                sx={{ 
-                                    '&:last-child td, &:last-child th': { border: 0 },
-                                    display: 'table',
-                                    width: '100%',
-                                    tableLayout: 'fixed',
-                                    backgroundColor: row.game.winnerId === Number(userId) ? '#85DE89' : '#DE8585'
-                                }}
-                            >
-                                <TableCell id="cell-scored-mh">
-                                    {row.game.score1}
-                                </TableCell>
-                                <TableCell id="cell-dash-mh">
-                                    -
-                                </TableCell>
-                                <TableCell id="cell-conceded-mh">
-                                    {row.game.score2}
-                                </TableCell>
-                                <TableCell id="cell-pseudo-mh">
-                                    {row.opponent.pseudo}
-                                </TableCell>
-                                <TableCell id="cell-status-mh">
-                                    <div className='cell-status-div-mh'>
-                                        {row.opponent.avatar ?
-                                            <AvatarOthers status={statusList[row.opponent.id]} avatar={`http://localhost:3000/static/${row.opponent.avatar}`} userId={row.opponent.id} />
-                                            :
-                                            <AvatarOthers status={statusList[row.opponent.id]} avatar={default_avatar} userId={row.opponent.id} />
-                                        }
-                                    </div>
-                                </TableCell>
-                                <TableCell id="cell-date-mh">
-                                    <div className='cell-date-div-mh'>
-                                        {row.game.createdAt}
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            {matchHistory.length 
+                ?
+                <TableContainer id="table-container-mh">
+                    <Table id="table-mh" aria-label="simple table">
+                        <TableBody 
+                            id="table-body-mh"
+                        >
+                            {matchHistory?.map((row) => (
+                                <TableRow
+                                    key={row.game.id}
+                                    sx={{ 
+                                        '&:last-child td, &:last-child th': { border: 0 },
+                                        display: 'table',
+                                        width: '100%',
+                                        tableLayout: 'fixed',
+                                        backgroundColor: row.game.winnerId === Number(userId) ? '#85DE89' : '#DE8585'
+                                    }}
+                                >
+                                    <TableCell id="cell-scored-mh">
+                                        {row.game.score1}
+                                    </TableCell>
+                                    <TableCell id="cell-dash-mh">
+                                        -
+                                    </TableCell>
+                                    <TableCell id="cell-conceded-mh">
+                                        {row.game.score2}
+                                    </TableCell>
+                                    <TableCell id="cell-pseudo-mh">
+                                        {row.opponent.pseudo}
+                                    </TableCell>
+                                    <TableCell id="cell-status-mh">
+                                        <div className='cell-status-div-mh'>
+                                            {row.opponent.avatar ?
+                                                <AvatarOthers status={statusList[row.opponent.id]} avatar={`http://localhost:3000/static/${row.opponent.avatar}`} userId={row.opponent.id} />
+                                                :
+                                                <AvatarOthers status={statusList[row.opponent.id]} avatar={default_avatar} userId={row.opponent.id} />
+                                            }
+                                        </div>
+                                    </TableCell>
+                                    <TableCell id="cell-date-mh">
+                                        <div className='cell-date-div-mh'>
+                                            {row.game.createdAt}
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            :
+                null
+            }
         </div>
     )
 };

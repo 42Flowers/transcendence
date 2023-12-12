@@ -20,7 +20,7 @@ export class CheckIntPipe implements PipeTransform {
         if (intValue.toString() !== value) {
             throw new BadRequestException('Validation failed: parameter must be an integer');
         }
-        if (intValue > Number.MAX_SAFE_INTEGER) {
+        if (intValue > 1000000) {
             throw new BadRequestException('Validation failed: parameter exceeds maximum limit');
         }
         if (intValue < 1) {

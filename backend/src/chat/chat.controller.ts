@@ -23,7 +23,7 @@ import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
-import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, MinLength, Length, IsPositive } from 'class-validator';
+import { IsString, IsInt, IsNotEmpty, Min, Max, MaxLength, MinLength, Length, IsPositive } from 'class-validator';
 import { CheckIntPipeChat } from './chat.pipe'
 
 
@@ -55,9 +55,9 @@ export class JoinChannelDto {
 }
 
 export class QuitDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     channelId: number;
@@ -71,34 +71,34 @@ export class TargetDto {
 }
 
 export class DeleteChannelDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
     @Min(1)
 	@IsPositive()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     channelId: number
 }
 
 export class ActionsDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
     @Min(1)
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
 	@IsPositive()
     channelId: number
 
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     targetId: number
 }
 
 export class ManagePwdDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     channelId: number
@@ -110,9 +110,9 @@ export class ManagePwdDto {
 }
 
 export class RemovePwdDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     channelId: number

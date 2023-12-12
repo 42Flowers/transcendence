@@ -142,7 +142,6 @@ export class SocketGateway implements
 	}
 
 	validateId(id: number) {
-		console.log("TESTED ID: ", id);
 		if (id == null || id == undefined || id < 1 || id > 1000000 || !Number.isInteger(id))
 			return false;
 
@@ -150,9 +149,6 @@ export class SocketGateway implements
 	}
 
 	validateMessage(msg: string) {
-		console.log("TESTED MESSAGE: ", msg);
-
-
 		function isASCII(str: string): boolean {
 			return /^[\x00-\x7F]*$/.test(str);
 		}

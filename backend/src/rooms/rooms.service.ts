@@ -176,7 +176,26 @@ export class RoomService {
 					accessMask: 2
 				}
 			});
-			return channel.id;
+			if (channel != null) {
+				const member = await this.prismaService.channelMembership.create({
+					data: {
+						channel: {
+							connect: {
+								id: channel.id
+							},
+						},
+						user: {
+							connect: {
+								id: userId,
+							},
+						},
+						channelName: name,
+						permissionMask: 4,
+					}
+				});
+				return member;
+			}
+			return null;
 		} catch {
 			throw new MyError("Could not create this channel, please try another combination");
 		}
@@ -185,7 +204,7 @@ export class RoomService {
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
-			if (name.length > 10)
+			if (name.length > 10 ||)
 				throw new MyError("A channel name can only be 10 characters long");
 			if (pwd != '' && pwd != null) {
 				if (pwd.length < 3 || pwd.length >= 20)
@@ -219,8 +238,16 @@ export class RoomService {
 					const channelMembership = await this.prismaService.channelMembership.create({
 						data: {
 							channelName: roomname,
-							userId: userId,
-							channelId: channel,
+							user : {
+								connect: {
+									id: userId
+								}
+							},
+							channel: {
+								connect: {
+									id : channel
+								}
+							},
 							permissionMask: 4
 						}
 					});

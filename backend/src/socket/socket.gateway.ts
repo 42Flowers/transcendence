@@ -410,7 +410,8 @@ export class SocketGateway implements
 	)
 	{
 		try {
-			if (socket == null || socket == undefined || !this.validateId(data)) {
+			const userId = Number(socket.user.sub);
+			if (socket == null || socket == undefined || !this.validateId(data) || userId == data) {
 				return;
 			}
 			this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, data));
@@ -426,7 +427,8 @@ export class SocketGateway implements
 	)
 	{
 		try {
-			if (socket == null || socket == undefined || !this.validateId(data))
+			const userId = Number(socket.user.sub);
+			if (socket == null || socket == undefined || !this.validateId(data) || userId == data)
 				return;
 			this.eventEmitter.emit('game.inviteToSpecial', new GameInviteToSpecial(socket, data));
 		} catch {

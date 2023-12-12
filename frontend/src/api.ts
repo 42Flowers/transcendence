@@ -54,8 +54,9 @@ function injectAuthorizationHeader(headers: RawAxiosRequestHeaders = {}): RawAxi
 
 function authorizedPost<P = any>(url: string, data: any, config: AxiosRequestConfig = {}) {
     return client.post<P>(url, data, {
-        localStorage.removeItem('token');
-      }
+        ...config,
+        headers: injectAuthorizationHeader(config.headers ?? {}),
+    });
 }
 
 function authorizedPatch<P = any>(url: string, data: any, config: AxiosRequestConfig = {}) {

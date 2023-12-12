@@ -28,7 +28,7 @@ const ProfilePublic: React.FC = () => {
                 userId={profileInfos.data.id} />
             <p>{profileInfos.data.pseudo}</p>
             {
-                (auth.user?.id === targetId) && <FriendChoiceButtons userId={Number(auth.user?.id)} friendId={Number(targetId)} />
+                (auth.user?.id !== targetId) && <FriendChoiceButtons userId={Number(auth.user?.id)} friendId={Number(targetId)} />
             }
             <Ladder />
             <Stats userId={Number(targetId)} auth={Number(auth.user?.id)} />

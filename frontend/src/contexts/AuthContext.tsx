@@ -1,6 +1,8 @@
 import React, { PropsWithChildren } from 'react';
 import { getAuthenticationToken } from '../storage';
 import { UserProfile, fetchUserProfile } from '../api';
+import { AxiosError } from 'axios';
+import { useSnackbar } from 'notistack';
 
 const HANDLERS = {
   INITIALIZE: 'INITIALIZE' as const,
@@ -125,6 +127,7 @@ export const AuthContext = React.createContext<AuthContextData>(undefined as any
 export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [ state, dispatch ] = React.useReducer(reducer, initialState);
   const initialized = React.useRef<boolean>(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   React.useEffect(() => {
     if (state.refreshRequested) {
@@ -149,8 +152,26 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
           payload: userProfile,
         });
         return ;
-      } catch {
-        
+      } catch (e) {
+        if (e instanceof AxiosError) {
+          if (e.response !== undefined) {
+            if (401 === e.response.status) {
+              enqueueSnackbar({
+                variant: 'warning',
+                message: 'Your session has expired, you need to login again',
+                anchorOrigin: {
+                  vertical: 'top',
+                  horizontal: 'center',
+                },
+              });
+            }
+
+            /**
+             * If we have a response but it failed that means our token is probably expired so delete it and restart the login process
+             */
+            localStorage.removeItem('token');
+          }
+        }
       }
     }
     dispatch({

@@ -1,19 +1,18 @@
 import { Global, Module } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
+import { randomBytes } from 'node:crypto';
 
 @Global()
 @Module({
     imports: [
         JwtModule.registerAsync({ 
-            useFactory: (config: ConfigService) => ({
-                secret: config.getOrThrow<string>('JWT_SECRET'),
+            useFactory: () => ({
+                secret: randomBytes(32).toString('hex'),
                 global: true,
                 signOptions: {
-    
+                    
                 },
             }),
-            inject: [ ConfigService ],
         }),
     ],
     exports: [ JwtModule ],

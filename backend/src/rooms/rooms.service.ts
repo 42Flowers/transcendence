@@ -165,13 +165,17 @@ export class RoomService {
 	async createPrivateRoom(name: string, userId: number) : Promise<any> {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
-			if (name.length > 10)
+			if (name.length > 10 || name.length < 3)
 				throw new MyError("A channel name can only be 10 characters long");
 			let password = null;
 			const channel = await this.prismaService.channel.create({
 				data: {
 					name: name,
-					ownerId: user.id,
+					owner: {
+						connect: {
+							id: user.id
+						}
+					},
 					password: password,
 					accessMask: 2
 				}
@@ -204,7 +208,7 @@ export class RoomService {
 	async createRoom(name: string, userId: number, pwd: string): Promise<any> {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
-			if (name.length > 10 ||)
+			if (name.length > 10 || name.length < 3)
 				throw new MyError("A channel name can only be 10 characters long");
 			if (pwd != '' && pwd != null) {
 				if (pwd.length < 3 || pwd.length >= 20)

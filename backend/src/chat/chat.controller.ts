@@ -25,6 +25,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
 import { IsString, IsInt, IsNotEmpty, Min, Max, MaxLength, MinLength, Length, IsPositive } from 'class-validator';
 import { CheckIntPipeChat } from './chat.pipe'
+import { ChatAddInviteEvent } from 'src/events/chat/addInvite.event';
+import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event';
+import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
+import { ChatCreatePrivateChannelEvent } from 'src/events/chat/createPrivateChannel.event';
 
 
 interface Message {
@@ -109,6 +113,29 @@ export class ManagePwdDto {
     pwd: string
 }
 
+export class ManageInviteDTO {
+    @IsInt()
+    @IsNotEmpty()
+	@Max(1000000)
+    @Min(1)
+	@IsPositive()
+	channelId: number
+}
+
+export class InviteInChannelDTO {
+	@IsInt()
+    @IsNotEmpty()
+	@Max(1000000)
+    @Min(1)
+	@IsPositive()
+	channelId: number
+
+	@IsString()
+	@IsNotEmpty()
+	@Length(3, 10)
+    targetName: string;
+}
+
 export class RemovePwdDto {
     @IsInt()
     @IsNotEmpty()
@@ -116,6 +143,13 @@ export class RemovePwdDto {
     @Min(1)
 	@IsPositive()
     channelId: number
+}
+
+export class CreatePrivateChannelDTO {
+	@IsString()
+	@IsNotEmpty()
+	@Length(3, 10)
+    channelName: string;
 }
 
 /**
@@ -137,6 +171,52 @@ export class ChatController {
         private readonly prismaService: PrismaService
         ) {}
 
+	@Post('create-private-channel')
+	async handleCreateprivateChannel(
+		@Param() DTO: CreatePrivateChannelDTO,
+		@Request() req: ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined) {
+			return;
+		}
+		this.eventEmitter.emit("chat.createprivatechannel", new ChatCreatePrivateChannelEvent(userId, DTO.channelName));
+	}
+
+	@Post('invite-user')
+	async handleInvite(
+		@Param() inviteDTO: InviteInChannelDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined) {
+			return;
+		}
+		this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(userId, inviteDTO.channelId, inviteDTO.targetName));
+
+	}
+
+	@Post('add-invite')
+	async handleAddInvite(
+		@Param() inviteDTO : ManageInviteDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined)
+			return;
+		this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(userId, inviteDTO.channelId));
+	}
+
+	@Post('rm-invite')
+	async handleRemoveInvite(
+		@Param() inviteDTO: ManageInviteDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined)
+			return;
+		this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(userId, inviteDTO.channelId));
+	}
 
 	@Get('get-blocked-users')
 	async getBlockedUsers(

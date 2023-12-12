@@ -166,11 +166,6 @@ const RegisterForm: React.FC = () => {
 						minLength={3}
 						required
 						/>
-					<Stack direction="row" justifyContent="flex-start">
-						<div className="remember-forgot">
-							<input type="checkbox"/>I agree to the terms & conditions
-						</div>
-					</Stack>
 					<MainButton buttonName="Register" loading={registerMutation.isLoading} />
 					<p className="or">or</p>
 					<MainButton buttonName="42 Account" as="a" href={authorizeUrl} />

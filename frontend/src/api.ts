@@ -205,6 +205,15 @@ export const fetchIsBlocked = (userId: number, friendId: number) => wrapResponse
 export const blockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/block/${friendId}`, ''));
 export const unblockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/unblock/${friendId}`, ''));
 
+// FRIEND PAGE FROM FETCH TO QUERY
+export const fetchFriendsList = () => wrapResponse(authorizedGet('/api/friends'));
+export const unblockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/unblock`, payload));
+export const blockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/unblock`, payload));
+export const deleteFriendMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/delete`, payload));
+export const cancelFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/cancel`, payload));
+export const declineFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/decline`, payload));
+export const acceptFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/accept`, payload));
+
 /* ==== MFA ==== */
 export const generateSecretKey = () => wrapResponse(authorizedPost('/api/v1/auth/mfa/generate', ''));
 export const updateMfaState = (state: boolean, code: string) => wrapResponse(authorizedPatch('/api/v1/auth/mfa', { state, code }));

@@ -1,18 +1,18 @@
 import filter from 'lodash/filter';
 import map from 'lodash/map';
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useMutation, useQuery } from "react-query";
 import { addPwd, changePwd, deleteM, deletePwd, fetchAvailableDMs, inviteUser, quit } from "../../api";
 import { ChatContext } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 
 import { useAuthContext } from '../../contexts/AuthContext';
+import SocketContext from '../Socket/Context/Context';
 import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
-import SocketContext from '../Socket/Context/Context';
 
 type DisplayProps = {
-    myId: number
+    myId: number | undefined
     userId: number
     userName: string
     avatar: string | null
@@ -51,7 +51,17 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
 }
 
 const Title: React.FC = () => {
-    const { chanOrDm, isPrivate, currentChannel, setCurrentChannel, currentChannelName, setCurrentChannelName, myPermissionMask, currentAccessMask, setCurrentAccessMask, currentDm, setCurrentDm, currentAvatar, setCurrentAvatar, } = useContext(ChatContext);
+    const {
+        chanOrDm,
+        currentChannel, setCurrentChannel,
+        currentChannelName, setCurrentChannelName,
+        myPermissionMask,
+        currentAccessMask, setCurrentAccessMask,
+        currentDm, setCurrentDm,
+        currentAvatar, setCurrentAvatar,
+        isBanned,
+        isPrivate,
+    } = useContext(ChatContext);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
 
     const [addPassword, setAddPassword] = useState("");
@@ -231,8 +241,11 @@ const Title: React.FC = () => {
                         { myPermissionMask === 4 
                             ?
                                 <button style={buttonStyle} className="buttonClassPurple" onClick={handleDelete}>Delete Channel</button>
-                            :
-                                <button style={buttonStyle} className="buttonClassPurple" onClick={handleQuit}>Quit Channel</button>
+                            : 
+                                isBanned ?
+                                        null
+                                    :
+                                        <button style={buttonStyle} className="buttonClassPurple" onClick={handleQuit}>Quit Channel</button>
                         }
                     </>
                 :
@@ -246,7 +259,7 @@ const Title: React.FC = () => {
                                                 setCurrentDm(dm.targetId)
                                                 setCurrentAvatar(dm.avatar)
                                             }}>
-                                                <DisplayUser myId={auth.user.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
+                                                <DisplayUser myId={auth.user?.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
                                             </div>
                                         :
                                             null

@@ -47,7 +47,7 @@ const Form: React.FC<FormProps> = ({ children, validator, errors, onSubmit }) =>
                 onSubmit(rawFormData);
             }
         }
-    }, [ validator ]);
+    }, [ validator, onSubmit ]);
 
     return (
         <FormContext.Provider value={{ ...formState, errors: { ...(formState.errors ?? {}), ...(errors ?? {}) } }}>

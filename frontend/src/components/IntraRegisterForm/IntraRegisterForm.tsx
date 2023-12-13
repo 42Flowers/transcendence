@@ -13,6 +13,8 @@ import { Input } from '../Form/Input';
 import MainButton from '../MainButton/MainButton';
 import { ChangeAvatar } from '../Profile/ChangeAvatar/ChangeAvatar';
 import './IntraRegisterForm.scss';
+import toString from 'lodash/toString';
+import get from 'lodash/get';
 
 const intraRegisterFormValidator: FormValidator = {
 	username(value: string) {
@@ -55,7 +57,7 @@ const IntraRegisterForm: React.FC = () => {
 		},
 		onError(error: AxiosError) {
 			enqueueSnackbar({
-				message: `${error.message}`,
+				message: `${toString(get(error, 'response.data.message', get(error.message, 'message', 'Error')))}`,
 				variant: 'error',
 				anchorOrigin: {
 					horizontal: 'center',

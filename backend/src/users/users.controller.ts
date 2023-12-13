@@ -1,23 +1,26 @@
-import { Body, Controller, Get, HttpException, NotFoundException, Param, ParseIntPipe, Patch, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
-import { BadRequestException, Body, Controller, Get, HttpStatus, NotFoundException, Param, ParseFilePipeBuilder, ParseIntPipe, Patch, Post, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+/* eslint-disable prettier/prettier */
+import { Body, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, ParseIntPipe, Patch, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe, ParseFilePipeBuilder, Post,} from "@nestjs/common";
 import { Request as ExpressRequest } from 'express';
-import { AuthGuard } from "src/auth/auth.guard";
 import { UsersService } from "./users.service";
-import { IsEmail, IsOptional, IsString, Length, MinLength, MaxLength, IsNotEmpty } from "class-validator";
-import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decorator";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { IsEmail, IsOptional, Length } from "class-validator";
-import { Request as ExpressRequest } from 'express';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Length,
+  MinLength,
+  MaxLength,
+  IsNotEmpty,
+} from 'class-validator';
+import { AllowIncompleteProfile } from 'src/auth/allow-incomplete-profile.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 import sizeOf from 'image-size';
-import { ISizeCalculationResult } from "image-size/dist/types/interface";
-import { diskStorage } from "multer";
-import { unlink, unlinkSync } from "node:fs";
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import { diskStorage } from 'multer';
+import { unlink, unlinkSync } from 'node:fs';
 import * as path from 'node:path';
-import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decorator";
-import { AuthGuard } from "src/auth/auth.guard";
-import { ProfileService } from "src/profile/profile.service";
-import { UsersService } from "./users.service";
-import { IsNoSpecialCharacters } from "src/profile/profile.pipe";
+import { AuthGuard } from 'src/auth/auth.guard';
+import { ProfileService } from 'src/profile/profile.service';
+import { IsNoSpecialCharacters } from 'src/profile/profile.pipe';
 
 export class PatchProfileDto {
     @IsOptional()

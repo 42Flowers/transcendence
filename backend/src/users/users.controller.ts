@@ -14,6 +14,7 @@ import {
 import { AllowIncompleteProfile } from 'src/auth/allow-incomplete-profile.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import sizeOf from 'image-size';
+import { CheckIntPipe } from "src/profile/profile.pipe";
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import { diskStorage } from 'multer';
 import { unlink, unlinkSync } from 'node:fs';
@@ -25,11 +26,10 @@ import { IsNoSpecialCharacters } from 'src/profile/profile.pipe';
 export class PatchProfileDto {
     @IsOptional()
     @IsString()
+    @Length(3, 10)
     @IsNoSpecialCharacters()
-    @MinLength(3)
-    @MaxLength(10)
     pseudo: string;
-
+    
     @IsOptional()
     @IsEmail()
     @IsString()
@@ -38,9 +38,8 @@ export class PatchProfileDto {
 
 export class CompleteProfileDto {
     @IsString()
+    @Length(3, 10)
     @IsNoSpecialCharacters()
-    @MinLength(3)
-    @MaxLength(10)
     pseudo: string;
 }
 
@@ -70,7 +69,7 @@ export class UsersController {
     @Get('/:id')
     async retrieveUserProfile(
         @Request() req: ExpressRequest,
-        @Param('id', ParseIntPipe) paramId: number) {
+        @Param('id', CheckIntPipe) paramId: number) {
         
         const userProfile = await this.usersService.retrieveUserProfile(paramId);
 

@@ -14,6 +14,11 @@ export class StatusController {
 	async getFriendsStatus(
 		@Request() req: ExpressRequest
 	) {
+		/*
+		// TODO
+		//
+		// Mettre un try / catch ?
+		*/
 		const { id: userId } = req.user;
 		const statuses = await this.socketService.getUserStatus(userId);
 

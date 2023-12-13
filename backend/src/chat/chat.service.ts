@@ -350,6 +350,7 @@ export class ChatService {
 			const user = await this.usersService.getUserById(userId);
 			if (user != null) {
 				const join = await this.roomService.joinRoom(user.id, channelId, channelName, pwd);
+				console.log("JOIN ", join);
 				if (join !== undefined) {
 					this.socketService.joinChannel(user.id, channelName);
 					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'join', user.pseudo + " joined " + channelName));
@@ -360,6 +361,9 @@ export class ChatService {
 						membershipState: join.membershipState,
 						accessMask: (await this.roomService.getAccessMask(join.channelId)),
 					};
+				}
+				else {
+					return null;
 				}
 			}
 		} catch {

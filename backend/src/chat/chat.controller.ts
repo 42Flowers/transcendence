@@ -317,7 +317,9 @@ export class ChatController {
 
         try {
             const channelData = await this.chatService.joinRoom(userId, channelName, password);
-        
+
+            if (channelData == null || channelData == undefined)
+                throw Error;
             return channelData;
         } catch (e) {
             throw new ForbiddenException(e.message);

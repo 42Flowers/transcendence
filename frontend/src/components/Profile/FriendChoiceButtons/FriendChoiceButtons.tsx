@@ -1,15 +1,15 @@
 import MainButton from '../../MainButton/MainButton';
 import './FriendChoiceButtons.css';
 import { useMutation, useQuery } from 'react-query';
-import { addUser, blockUser, fetchIsBlocked, fetchIsFriended, unblockUser } from '../../../api';
+import { UserID, addUser, blockUser, fetchIsBlocked, fetchIsFriended, unblockUser } from '../../../api';
 import { queryClient } from '../../../query-client';
 
 interface Props {
-	userId: number;
+	userId: UserID;
 	friendId: number;
 }
 
-const FriendChoiceButtons: React.FC<Props> = ({userId, friendId}) => {
+const FriendChoiceButtons: React.FC<Props> = ({ userId, friendId }) => {
 
 	const isFriendedKey = [ userId, 'is_friended_with', friendId ];
 	const isBlockedKey = [ userId, 'has_blocked', friendId ];

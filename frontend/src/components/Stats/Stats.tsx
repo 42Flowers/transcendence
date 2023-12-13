@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 // import { GiWingedSword } from "react-icons/gi";
 // import { BsStars } from "react-icons/bs";
 import './Stats.css';
-import { fetchStats } from '../../api';
+import { UserID, fetchStats } from '../../api';
 import { useQuery } from 'react-query';
 
 interface StatsProps {
-	userId: number;
-    auth: number;
+	userId: UserID;
 }
 
 interface WinLoss {
@@ -29,24 +28,11 @@ interface Stats {
     }
 }
 
-const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
+const Stats: React.FC<StatsProps> = ({ userId }) => {
     const [result, setResult] = useState<WinLoss | null>(null);
     const [streak, setGamesWonInARowFunc] = useState<number | null>(null);
 
-    useEffect(() => {
-        if (userId !== auth) {
-            fetch(`/api/profile/${userId}/stats`)
-                .then(response => response.json())
-                .then(data => {
-                    setResult(calculateWinsAndLosses(data));
-                    setGamesWonInARowFunc(gamesWonInARowFunc(data));
-                }
-            );
-        }
-    }, [userId, auth]);
-
-    const q = useQuery([ 'stats', userId ], fetchStats, {
-        enabled: userId === auth,
+    useQuery([ 'stats', userId ], () => fetchStats(userId), {
         onSuccess(data) {
             setResult(calculateWinsAndLosses(data));
             setGamesWonInARowFunc(gamesWonInARowFunc(data));

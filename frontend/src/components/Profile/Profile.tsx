@@ -118,8 +118,8 @@ const Profile: React.FC = () => {
                     <Switch2FA />
                 </div>
                 <Ladder />
-                <Stats userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
-                <MatchHistory userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
+                <Stats userId={'@me'} />
+                <MatchHistory userId={'@me'} />
                 <Achievements userId={'@me'} />
             </div>
         </>

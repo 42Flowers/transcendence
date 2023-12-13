@@ -153,7 +153,6 @@ const Title: React.FC = () => {
     };
 
     const handleInviteUser = (event: React.MouseEvent<HTMLButtonElement>) => {
-		console.log(event);
         event.preventDefault();
 		if (invitedUser.length < 3)
 			return;

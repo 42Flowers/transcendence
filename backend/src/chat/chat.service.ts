@@ -112,6 +112,7 @@ export class ChatService {
 								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', "Server error, please retry later"));
 								return;
 							}
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(target.id, "join", "You have been invited in " + room.name));
 						}
 					}
 				} else {
@@ -374,7 +375,7 @@ export class ChatService {
 					if (member !== undefined && member.membershipState !== 4) {
 						this.roomService.removeUserfromRoom(user.id, room.id);
 						this.socketService.leaveChannel(user.id, room.name);
-						this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'channel', user.pseudo + " has left " + room.name));
+						this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(room.name, 'exit', user.pseudo + " has left " + room.name));
 					} else {
 						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'channel', "You are not in this room OR you are the owner and cannot leave " + room.name));
 						return;

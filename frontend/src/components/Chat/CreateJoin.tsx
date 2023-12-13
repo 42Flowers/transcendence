@@ -49,14 +49,11 @@ const CreateJoin: React.FC = () => {
     const handleSubmitInvite = (event: React.FormEvent<HTMLFormElement>) => {
         //
         //  TODO:
-        //
+		//
         event.preventDefault();
-        console.log("111");
 		if (privateName.length < 3)
 			return;
-        console.log("222");
 		createPrivateChannelMutation.mutate({ channelName: privateName });
-		console.log("333", privateName);
 		setPrivateName('');
     };
 

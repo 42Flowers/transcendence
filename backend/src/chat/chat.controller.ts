@@ -176,8 +176,6 @@ export class ChatController {
 		@Body() DTO: CreatePrivateChannelDTO,
 		@Request() req: ExpressRequest
 	) {
-		console.log('La route arrrriiiiiive');
-		console.log("444", DTO.channelName);
 		const userId = Number(req.user.sub);
 		if (userId == undefined) {
 			return;
@@ -190,7 +188,6 @@ export class ChatController {
 		@Body() inviteDTO: InviteInChannelDTO,
 		@Request() req : ExpressRequest
 	) {
-		console.log(inviteDTO.targetName);
 		const userId = Number(req.user.sub);
 		if (userId == undefined) {
 			return;

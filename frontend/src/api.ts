@@ -86,21 +86,32 @@ export const registerUser = (payload: any) => wrapResponse(client.post('/api/v1/
 
 export const fetchUserProfile = (profile: number | '@me') => wrapResponse(authorizedGet<UserProfile>(`/api/v1/users/${profile}`));
 
-export type PatchUserProfile = Partial<Exclude<UserProfile, 'id' | 'avatar'>>;
+export type PatchUserProfile = Partial<Omit<UserProfile, 'id' | 'avatar'>> & { avatar?: File };
 
 export const patchUserProfile = (profile: UserID, data: PatchUserProfile) =>
-    wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
-
-export const completeRegister = (formData: FormData) =>
-    wrapResponse(authorizedPost<UserProfile>('/api/v1/users/complete-profile', formData));
+    wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, objectToFormData(data)));
 
 /* ==== PROFILE ==== */
 export type PublicUserProfile = {
     id: number;
     pseudo: string;
     avatar: string | null;
-
 };
+
+function objectToFormData(o: Record<string, Blob | string | number>): FormData {
+    const formData = new FormData();
+
+    for (const key in o) {
+        const v = o[key];
+
+        if (v instanceof Blob)
+            formData.append(key, v);
+        else
+            formData.append(key, v.toString());
+    }
+
+    return formData;
+}
 
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
 export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<PublicUserProfile>(`/api/profile/${targetId}`));

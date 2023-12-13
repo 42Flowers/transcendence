@@ -1,3 +1,4 @@
+import { Body, Controller, Get, HttpException, NotFoundException, Param, ParseIntPipe, Patch, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { BadRequestException, Body, Controller, Get, HttpStatus, NotFoundException, Param, ParseFilePipeBuilder, ParseIntPipe, Patch, Post, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { Request as ExpressRequest } from 'express';
 import { AuthGuard } from "src/auth/auth.guard";
@@ -5,9 +6,17 @@ import { UsersService } from "./users.service";
 import { IsEmail, IsOptional, IsString, Length, MinLength, MaxLength, IsNotEmpty } from "class-validator";
 import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { IsEmail, IsOptional, Length } from "class-validator";
+import { Request as ExpressRequest } from 'express';
 import sizeOf from 'image-size';
-import { ProfileService } from "src/profile/profile.service";
+import { ISizeCalculationResult } from "image-size/dist/types/interface";
 import { diskStorage } from "multer";
+import { unlink, unlinkSync } from "node:fs";
+import * as path from 'node:path';
+import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decorator";
+import { AuthGuard } from "src/auth/auth.guard";
+import { ProfileService } from "src/profile/profile.service";
+import { UsersService } from "./users.service";
 import { IsNoSpecialCharacters } from "src/profile/profile.pipe";
 
 export class PatchProfileDto {
@@ -68,10 +77,55 @@ export class UsersController {
         return userProfile;
     }
 
+
+    private asyncSizeOf(input: string): Promise<ISizeCalculationResult> {
+        return new Promise((resolve, reject) => {
+            sizeOf(input, (err, r) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(r);
+            });
+        });
+    }
+
     @Patch('/@me')
+    @UseInterceptors(FileInterceptor('avatar', {
+        limits: {
+            fieldSize: 1048576, /* 1 Mb */
+        },
+        storage: diskStorage({
+            destination: path.join(process.cwd(), 'uploads'),
+            filename(req, file, callback) {
+                let ext = '.png';
+
+                if (file.mimetype === 'image/png')
+                    ext = '.png';
+                else if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg')
+                    ext = '.jpg';
+
+                const newFilename = `${req.user.id}_${Date.now()}${ext}`;
+
+                callback(null, newFilename);
+            },
+        }),
+        fileFilter(_req, file, callback) {
+            const acceptedMimeTypes = [
+                'image/png',
+                'image/jpg',
+                'image/jpeg',
+            ];
+
+            if (!acceptedMimeTypes.includes(file.mimetype))
+                return callback(null, false);
+
+            callback(null, true);
+        },
+    }))
     @AllowIncompleteProfile()
     async patchSelfProfile(
         @Request() req: ExpressRequest,
+        @UploadedFile() avatar: Express.Multer.File,
         @Body() body: PatchProfileDto
     ) {
         /* TODO test username for special characters */
@@ -83,58 +137,39 @@ export class UsersController {
             throw new NotFoundException();
         }
 
-        return userProfile;
-    }
-
-    @Post('/complete-profile')
-    @AllowIncompleteProfile()
-    @UseInterceptors(FileInterceptor('avatar', {
-        storage: diskStorage({
-            destination: './uploads',
-            filename: (req: ExpressRequest, file, callback) => {
-                const extension = file.originalname.split(".").at(-1);
-                const newFileName = `${req.user.id}_${Date.now()}.${extension}`;
-
-                callback(null, newFileName);
-            }
-        }),
-    }))
-    async completeProfile(
-        @Request() req: ExpressRequest,
-        @Body() body: CompleteProfileDto,
-        @UploadedFile(new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-            fileType: /^(image\/jpeg|image\/png)$/
-        })
-        .addMaxSizeValidator({
-            maxSize: 1000042
-        })
-        .build({
-            errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),
-    ) avatar: Express.Multer.File) {
-
-        const userId = req.user.id;
-
-        if (!avatar) {
-            throw new BadRequestException("Avatar is not an image");
-        } else {
-            // Check image dimensions
-            const dimensions = sizeOf(avatar.path);
-            if (dimensions.width > 1000 || dimensions.height > 1000) {
-                throw new BadRequestException('Invalid image dimensions');
-            }
+        if (avatar) {
             try {
-                await this.usersService.patchUserProfile(userId, {
-                    pseudo: body.pseudo,
+                const { width, height } = await this.asyncSizeOf(avatar.path);
+
+                console.log(width, height);
+
+                if (width >= 1000 || height >= 1000) {
+                    throw new UnprocessableEntityException('File too big !');
+                }
+
+                const avatarData = await this.profileService.addAvatar(avatar.filename, userId);
+
+                if (userProfile.avatar) {
+                    const oldAvatarPath = path.join(process.cwd(), 'uploads', userProfile.avatar);
+
+                    /* Fails silently */
+                    try { unlinkSync(oldAvatarPath); } catch { }
+                }
+
+                userProfile.avatar = avatarData.avatar;
+            } catch (e) {
+                console.log(e);
+                unlink(avatar.path, () => {
+                    /* Ignore the error */
                 });
-                await this.profileService.addAvatar(avatar.filename, userId);
-            
-                /** TODO mdrrr un peu too much non ? */
-                return await this.profileService.getProfileInfos(userId);
-            } catch {
+                if (e instanceof HttpException) {
+                    throw e;   
+                }
                 throw new UnprocessableEntityException();
             }
         }
+
+        return userProfile;
     }
 }
 

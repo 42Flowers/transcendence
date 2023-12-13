@@ -219,7 +219,7 @@ export const unblockUser = (userId: number, friendId: number) => wrapResponse(au
 // FRIEND PAGE FROM FETCH TO QUERY
 export const fetchFriendsList = () => wrapResponse(authorizedGet('/api/friends'));
 export const unblockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/unblock`, payload));
-export const blockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/unblock`, payload));
+export const blockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/block`, payload));
 export const deleteFriendMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/delete`, payload));
 export const cancelFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/cancel`, payload));
 export const declineFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/decline`, payload));

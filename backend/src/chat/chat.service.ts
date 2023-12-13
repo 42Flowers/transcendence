@@ -15,7 +15,6 @@ import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
 import { ChatJoinChannelEvent } from 'src/events/chat/joinChannel.event';
 import { ChatExitChannelEvent } from 'src/events/chat/exitChannel.event';
-import { ChatUserUnBlockEvent } from 'src/events/chat/userUnBlock.event';
 import { ChatAddPasswordEvent } from 'src/events/chat/addPassword.event';
 import {EventEmitter2, OnEvent} from '@nestjs/event-emitter';
 import { MessagesService } from '../messages/messages.service'
@@ -140,10 +139,10 @@ export class ChatService {
 		event : ChatPrivateMessageEvent
 	) {
 		try {
-			if (event.message.length > 100)
-				throw new MyError("This message is too long");
+			event.message = event.message.trim();
+			if (event.message.length > 100 || event.message.length < 1)
+				throw new MyError("Please write a message that contains between 1 and a 100 characters");
 			const user = await this.usersService.getUserById(event.userId);
-
 			if (user) {
 				if (event.targetId != user.id) {
 					const dest = await this.usersService.getUserById(event.targetId);
@@ -189,8 +188,9 @@ export class ChatService {
 		event: ChatChannelMessageEvent
 	) {
 		try {
-			if (event.message.length > 100)
-				throw new MyError("This message is too long");
+			event.message = event.message.trim();
+			if (event.message.length > 100 || event.message.length < 1)
+				throw new MyError("Please write a message that contains between 1 and a 100 characters");
 			const user = await this.usersService.getUserById(event.userId);
 			if (user != undefined && event.channelId != null) {
 				const room = await this.roomService.getRoom(event.channelId);

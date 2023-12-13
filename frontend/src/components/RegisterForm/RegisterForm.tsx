@@ -16,6 +16,8 @@ import { useSnackbar } from 'notistack';
 import { AxiosError } from 'axios';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { getIntranetAuthorizeUrl } from '../../ft';
+import toString from 'lodash/toString';
+import get from 'lodash/get';
 
 const registerFormValidator: FormValidator = {
 	username(value: string) {
@@ -100,7 +102,7 @@ const RegisterForm: React.FC = () => {
 			}
 
 			enqueueSnackbar({
-				message: `Could not register : ${error.message}`,
+				message: `Could not register : ${toString(get(error, 'response.data.message', get(error.message, 'message', 'Error')))}`,
 				variant: 'error',
 				anchorOrigin: {
 					horizontal: 'center',

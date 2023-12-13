@@ -5,6 +5,7 @@ import Avatar from '@mui/material/Avatar';
 // import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { Box } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 interface Props {
     status: string;
@@ -19,6 +20,7 @@ const AvatarOthers: React.FC<Props> = ({ status, avatar, userId }) => {
     }
     const navigate = useNavigate();
     const theme = useTheme();
+    const auth = useAuthContext();
 
     const statusInfo = (): StatusResult => {
         if (status === 'online') {
@@ -28,8 +30,10 @@ const AvatarOthers: React.FC<Props> = ({ status, avatar, userId }) => {
         } else if (status === 'ingame') {
             return { statusColor: '#ff8000', statusImage: null, };
         }
-        else {
+        else if (auth) {
             return { statusColor: '#0000ff', statusImage: null, };
+        } else {
+            return 
         }
     }
 

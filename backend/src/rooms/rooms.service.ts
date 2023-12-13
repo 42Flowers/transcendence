@@ -277,7 +277,6 @@ export class RoomService {
 				if (channel !== null) {
 					if (channel.accessMask != 1) {
 						if (channel.accessMask == 2) {
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', roomname + " can only be accessed on invite"));
 							throw new MyError("This channel is invite only");
 						}
 						else if (!await bcrypt.compare(pwd, channel.password))

@@ -1,5 +1,4 @@
-import React, { useContext } from "react";
-import { AvatarContext } from "../../contexts/AvatarContext";
+import React from "react";
 
 import Stats from "../Stats/Stats";
 import Achievements from "./Achievements/Achievements";
@@ -11,19 +10,13 @@ import Switch2FA from "./Switch2FA/Switch2FA";
 import AvatarEdit from 'react-avatar-edit';
 
 import { useMutation, useQuery } from "react-query";
-import { Achievement, PatchUserProfile, fetchAddAvatar, fetchProfile, patchUserProfile } from "../../api";
+import { Achievement, PatchUserProfile, fetchUserProfile, patchUserProfile } from "../../api";
 import { useAuthContext } from "../../contexts/AuthContext";
 import './Profile.css';
 
 import { Button } from "@mui/material";
-import { AxiosError } from 'axios';
 import { enqueueSnackbar } from "notistack";
 import { queryClient } from "../../query-client";
-
-export interface AvatarContextType {
-    avatar: string;
-    setAvatar: (avatar: string) => void;
-}
 
 export interface PerfectContextType {
     perfectWin: boolean
@@ -39,37 +32,15 @@ type Achievements = {
 const Profile: React.FC = () => {
     const auth = useAuthContext();
 
-    const userProfileQuery = useQuery('profile', fetchProfile, {
-        onSuccess(data) {
-            if (data.avatar !== null) {
-                setAvatar(`http://localhost:3000/static/${data.avatar}`);
-            }
-        },
-    });
-
-    const { avatar, setAvatar } = useContext(AvatarContext) as AvatarContextType;
+    const userProfileQuery = useQuery('@me', () => fetchUserProfile('@me'));
 
     const patchProfileMutation = useMutation({
         mutationFn: (data: PatchUserProfile) => patchUserProfile('@me', data),
         onSuccess(data) {
-            queryClient.setQueryData('profile', data);
+            queryClient.setQueryData('@me', data);
         },
         onError() {
             alert("Min 3 characters and maximum 10 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
-        }
-    });
-
-    const uploadAvatarMutation = useMutation({
-        mutationFn: fetchAddAvatar,
-        onError(e: AxiosError) {
-            if (e.response?.status === 422) {
-                alert('Only jpg, jpeg, png file. Maximum dimension 1000x1000. Maximum size 1000042 bytes');
-            } else {
-                alert(e.message);
-            }
-        },
-        onSuccess(data) {
-            setAvatar(`http://localhost:3000/static/${data.avatar}`)
         }
     });
 

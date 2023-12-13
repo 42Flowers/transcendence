@@ -35,7 +35,7 @@ const Stats: React.FC<StatsProps> = ({ userId, auth }) => {
 
     useEffect(() => {
         if (userId !== auth) {
-            fetch(`http://localhost:3000/api/profile/${userId}/stats`)
+            fetch(`/api/profile/${userId}/stats`)
                 .then(response => response.json())
                 .then(data => {
                     setResult(calculateWinsAndLosses(data));

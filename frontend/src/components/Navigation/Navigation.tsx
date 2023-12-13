@@ -71,6 +71,9 @@ const Navigation: React.FC = () => {
     };
 
     const id: string | undefined = isOpen ? "menu-popover" : undefined;
+
+    const avatarSource = avatar ? `/static/${avatar}` : default_avatar;
+
     return (
         <>
             <div className="overlay" style={{ display: popup ? 'block': 'none' }}></div>
@@ -80,7 +83,7 @@ const Navigation: React.FC = () => {
                     PONG
                 </Link>
                 <div ref={avatarRef}>
-                    <Avatar aria-describedby={id} alt="Avatar" onClick={handleAvatarClick} src={avatar || default_avatar} style={{margin: '5px 10px'}}/>
+                    <Avatar aria-describedby={id} alt="Avatar" onClick={handleAvatarClick} src={avatarSource} style={{margin: '5px 10px'}}/>
                 </div>
             </Stack>
 

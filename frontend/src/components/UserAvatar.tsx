@@ -26,7 +26,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ userId, avatar }) => {
     return (
         <AvatarOthers
             status={availability}
-            avatar={avatar ? `http://localhost:3000/static/${avatar}` : default_avatar}
+            avatar={avatar ? `/static/${avatar}` : default_avatar}
             userId={userId} />
     );
 };

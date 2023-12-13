@@ -12,7 +12,6 @@ import { GameModule } from './game/game.module';
 import { GlobalJwtModule } from './jwt/global-jwt.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfileModule } from './profile/profile.module';
-import { ProfilePublicModule } from './profilePublic/profilePublic.module';
 import { SocketModule } from './socket/socket.module';
 import { TestModule } from './users/users.module';
 import { StatusModule } from './status/status.module';
@@ -35,7 +34,6 @@ import { StatusModule } from './status/status.module';
     SocketModule,
   	ChatModule,
     ProfileModule,
-    ProfilePublicModule,
     FriendsModule,
     TestModule,
     AchievementsModule,

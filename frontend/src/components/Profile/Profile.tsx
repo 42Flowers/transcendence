@@ -91,7 +91,9 @@ const Profile: React.FC = () => {
     return (
         <>
             <div className="Profile" onError={e => alert(e)}>
-                <ChangeAvatar onCrop={avatarPreview => setAvatarPreview(avatarPreview)} />
+                <ChangeAvatar
+                    onCrop={avatarPreview => setAvatarPreview(avatarPreview)}
+                    onClose={() => setAvatarPreview(undefined)} />
 
                 &nbsp;
                 

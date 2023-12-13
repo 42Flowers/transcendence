@@ -568,4 +568,23 @@ export class RoomService {
 			}
 		}
 	}
+
+	async getPublicRoomsWhereNotBanned(userId: number) : Promise<any> {
+		try {
+			const channels = await this.prismaService.channelMembership.findMany({
+				where: {
+					userId: userId,
+					membershipState: {
+						not: 4
+					}
+				},
+			});
+
+			return channels;
+		} catch (err) {
+			if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+				throw Error(err.message);
+			}
+		}
+	}
 }

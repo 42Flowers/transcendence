@@ -1,16 +1,15 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ChannelMembership, Prisma } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import { MyError } from 'src/errors/errors';
+import { UserJoinedChannelEvent } from 'src/events/channels/user-joined-channel.event';
+import { UserLeftChannelEvent } from 'src/events/channels/user-left-channel.event';
+import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
 import { MessagesService } from 'src/messages/messages.service';
 import { SocketService } from 'src/socket/socket.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Channel, ChannelMembership, Prisma } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
-import { MyError } from 'src/errors/errors';
-import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
-import { UserLeftChannelEvent } from 'src/events/channels/user-left-channel.event';
-import { UserJoinedChannelEvent } from 'src/events/channels/user-joined-channel.event';
-import { channel } from 'node:diagnostics_channel';
 
 @Injectable()
 export class RoomService {
@@ -424,30 +423,69 @@ export class RoomService {
 		} catch(err) {throw new Error(err.message)}
 	}
 
+	async updateMemberPermissionMask(channelId: number, userId: number, permissionMask: number): Promise<boolean> {
+		try {
+			const membership = await this.prismaService.channelMembership.update({
+				where: {
+					userId_channelId: {
+						userId,
+						channelId,
+					},
+				},
+				data: {
+					permissionMask,
+				},
+			});
+
+			const membershipUpdated = (null !== membership);
+			
+			if (membershipUpdated) {
+				this.dispatchEventToChannelMembers(channelId, 'member.update.privileges', {
+					channelId,
+					userId,
+					permissionMask,
+				});
+			}
+
+			return membershipUpdated;
+		} catch {
+			;
+		}
+		return false;
+	}
+
 	async addAdmin(userId: number, channelId: number): Promise<any> {
 		try {
-			const membership =  await this.prismaService.channelMembership.update({
-				where: { userId_channelId: {userId: userId, channelId: channelId}},
-				data: {permissionMask: 2}
-			});
-			if (membership != null) {
-				return {status: true};
+			if (await this.updateMemberPermissionMask(channelId, userId, 2)) {
+				return {
+					status: true
+				};
 			} else {
-				return {status: false, msg: "Could't add admin"};
+				return {
+					status: false,
+					msg: "Could't add admin"
+				};
 			}
-		} catch (err) {throw new Error(err.message)}
+		} catch (err) {
+			throw new Error(err.message);
+		}
 	}
 
 	async rmAdmin(userId: number, channelId: number) : Promise<any> {
 		try {
-			const membership =  await this.prismaService.channelMembership.update({where: {userId_channelId: {userId: userId, channelId: channelId}},
-			data: {permissionMask: 1}});
-			if (membership != null) {
-				return {status: true};
+			if (await this.updateMemberPermissionMask(channelId, userId, 1)) {
+				return {
+					status: true
+				};
 			} else {
-				return {status: false, msg: "Couldn't remove admin"};
+				return {
+					status: false,
+					msg: "Couldn't remove admin"
+				};
 			}
-		} catch (err) {throw new Error(err.message)}
+		} catch (err) {
+			throw new Error(err.message);
+		}
 	}
 
 	async addPwd(channelId: number, pwd: string) : Promise<any> {

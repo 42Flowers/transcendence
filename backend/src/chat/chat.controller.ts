@@ -381,26 +381,24 @@ export class ChatController {
 
 	@Post('add-admin')
 	async handleAddAdmin(
-        @Body() actionsDto: ActionsDto,
+        @Body() { channelId, targetId }: ActionsDto,
 		@Request() req: ExpressRequest
 	) {
-        const userId = Number(req.user.sub);
-        if (userId == undefined)
-            return;
-        this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-        // this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
-	}
+        const userId = req.user.id;
+        const resp = await this.chatService.addAdmin(userId, channelId, targetId);
+	
+        return resp;
+    }
 
 	@Post('rm-admin')
 	async handleRemoveAdmin(
-        @Body() actionsDto: ActionsDto,
-		    @Request() req : ExpressRequest
+        @Body() { channelId, targetId }: ActionsDto,
+        @Request() req : ExpressRequest
 	) {
-        const userId = Number(req.user.sub);
-        if (userId == undefined)
-            return;
-			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
+        const userId = req.user.id;
+        const resp = await this.chatService.removeAdmin(userId, channelId, targetId);
+
+        return resp;
 	}
 
 	@Post('change-pwd')

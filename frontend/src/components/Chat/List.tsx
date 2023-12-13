@@ -1,4 +1,5 @@
 import filter from 'lodash/filter';
+import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import React, { useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
@@ -6,11 +7,10 @@ import { ChannelDescription, ChannelMembership, addAdmin, ban, fetchAvailableCha
 import { useAuthContext } from "../../contexts/AuthContext";
 import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
-import { UserAvatar } from "../UserAvatar";
-import './Chat.css';
 import SocketContext, { useSocketEvent } from '../Socket/Context/Context';
-import { UserJoinedChannelPayload, UserLeftChannelPayload } from './Chat';
-import forEach from 'lodash/forEach';
+import { UserAvatar } from "../UserAvatar";
+import { UserLeftChannelPayload } from './Chat';
+import './Chat.css';
 
 type Props = {
     side: string
@@ -99,17 +99,30 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
 
     useEffect(() => {
+        const options: string[] = [];
+
         if (myPermissionMask !== undefined && userPermissionMask !== undefined && myPermissionMask > userPermissionMask) {
-            if (memberShipState === 1) {
-                setOptions(['Mute', 'Kick', 'Ban', 'Add Admin', 'Play']);
-            } else if (memberShipState === 2) {
-                setOptions(['Unmute', 'Kick', 'Ban', 'Add Admin', 'Play']);
-            } else if (memberShipState === 4) {
-                setOptions(['Unban', 'Play']);
+            if (memberShipState === 4) {
+                options.push('Unban');
+            } else {
+                if (memberShipState === 1) {
+                    options.push('Mute');
+                } else if (memberShipState === 2) {
+                    options.push('Unmute');
+                }
+                options.push('Kick', 'Ban');
+
+                if (2 === userPermissionMask) {
+                    options.push('Remove Admin');
+                } else {
+                    options.push('Add Admin');
+                }
             }
-        } else {
-            setOptions(['Play']);
         }
+
+        options.push('Play');
+        setOptions(options);
+
     }, [myPermissionMask, userPermissionMask, memberShipState]);
 
     const muteMutation = useMutation({
@@ -241,14 +254,16 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 const MembersList: React.FC = () => {
     const { currentChannel, usersOrBanned, myPermissionMask, setMyPermissionMask } = useContext(ChatContext);
     const auth = useAuthContext();
-    const allMembers = useQuery(['channel-members', currentChannel], () => fetchChannelMembers(currentChannel), {
-        onSuccess(data) {
-            forEach(data, ({ userId, permissionMask }) => {
-                if (userId === auth.user?.id)
-                    setMyPermissionMask(permissionMask);
-            });
-        }
-    });
+    const allMembers = useQuery(['channel-members', currentChannel], () => fetchChannelMembers(currentChannel));
+    const channelsList = useQuery(['channels-list' ], () => fetchAvailableChannels);
+
+    React.useEffect(() => {
+        forEach(channelsList.data, ({ channelId, userPermissionMask }) => {
+            if (channelId === currentChannel) {
+                setMyPermissionMask(userPermissionMask);
+            }
+        });
+    }, [ channelsList, setMyPermissionMask, currentChannel ]);
 
     /* Sent when a channel member privileges has been updated (banned, unban) */
     useSocketEvent<MembershipUpdatePayload>('member.update.state', ({ channelId, membershipState: newMembershipState, userId: targetId }) => {

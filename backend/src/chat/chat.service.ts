@@ -426,26 +426,23 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.addadmin')
-	async addAdmin(
-		event: ChatAddAdminToChannelEvent
-	) {
+	async addAdmin(userId: number, channelId: number, targetId: number) {
 		try {
-			const user = await this.usersService.getUserById(event.userId);
-			const target = await this.usersService.getUserById(event.targetId);
+			const user = await this.usersService.getUserById(userId);
+			const target = await this.usersService.getUserById(targetId);
 			if (user != null && target != null) {
-				const room = await this.roomService.roomExists(event.channelId);
+				const room = await this.roomService.roomExists(channelId);
 				if (room != null) {
-					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+					const member = user.channelMemberships.find(channel => channel.channelId === channelId);
 					if (member && member.permissionMask >= 2 && member.membershipState !== 4) {
-						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
+						const targetmember = target.channelMemberships.find(channel => channel.channelId === channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
-							const result = await this.roomService.addAdmin(event.targetId, event.channelId);
+							const result = await this.roomService.addAdmin(targetId, channelId);
 							if (result.status === false) {
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You are now admin on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(targetId, 'channel', "You are now admin on " + room.name));
 							return;
 						}
 					} else {
@@ -460,26 +457,23 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.rmadmin')
-	async removeAdmin(
-		event: ChatRemoveAdminFromChannelEvent
-	) {
+	async removeAdmin(userId: number, channelId: number, targetId: number) {
 		try {
-			const user = await this.usersService.getUserById(event.userId);
-			const target = await this.usersService.getUserById(event.targetId);
+			const user = await this.usersService.getUserById(userId);
+			const target = await this.usersService.getUserById(targetId);
 			if (user != null && target != null) {
-				const room = await this.roomService.roomExists(event.channelId);
+				const room = await this.roomService.roomExists(channelId);
 				if (room != null) {
-					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+					const member = user.channelMemberships.find(channel => channel.channelId === channelId);
 					if (member && member.permissionMask === 4) {
-						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
+						const targetmember = target.channelMemberships.find(channel => channel.channelId === channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && (targetmember.membershipState !== 4)) {
-							const result = await this.roomService.rmAdmin(event.targetId, event.channelId);
+							const result = await this.roomService.rmAdmin(targetId, channelId);
 							if (result.status === false) {
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'channel', "You are no longer admin on " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(targetId, 'channel', "You are no longer admin on " + room.name));
 							return;
 						}
 					} else {

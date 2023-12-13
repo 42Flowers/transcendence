@@ -2,13 +2,11 @@ FROM node:18
 
 WORKDIR /build
 
-RUN npm i -g pnpm
-
 COPY package.json .
 
-COPY pnpm-lock.yaml .
+COPY yarn.lock .
 
-RUN pnpm i --frozen-lockfile
+RUN yarn install --frozen-lockfile --non-interactive
 
 COPY . .
 

@@ -54,7 +54,7 @@ export const SocketContext = createContext<ISocketContextProps>({
  * @param ev The event to listen to
  * @param cb The callback function called when an event arrives, data contains the event payload sent from the backend.
  */
-export function useSocketEvent<T = any>(ev: string, cb: (data: T) => void) {
+export function useSocketEvent<T = any>(ev: string, cb: (data: T) => void, deps: React.DependencyList = []) {
 	const { SocketState: { socket } } = React.useContext(SocketContext);
 
 	React.useEffect(() => {
@@ -65,7 +65,7 @@ export function useSocketEvent<T = any>(ev: string, cb: (data: T) => void) {
 				socket.off(ev, cb);
 			}
 		}
-	}, [ socket ]);
+	}, [ socket, ...deps ]);
 }
 
 export const SocketContextConsumer = SocketContext.Consumer;

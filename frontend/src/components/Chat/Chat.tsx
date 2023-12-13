@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Menu from "./Menu";
 import List from "./List";
 import CreateJoin from "./CreateJoin";
@@ -11,29 +11,39 @@ import { useContext } from "react";
 
 import SocketContext, { useSocketEvent } from "../Socket/Context/Context";
 import { queryClient } from "../../query-client";
-import { ChannelMembership } from "../../api";
+import { ChannelDescription, ChannelMembership } from "../../api";
 import filter from 'lodash/filter';
+import map from 'lodash/map';
+import { useAuthContext } from "../../contexts/AuthContext";
 
 interface infoElem {
     type: string,
     msg: string
 }
 
-type UserLeftChannelPayload = {
+export type UserLeftChannelPayload = {
     channelId: number;
     userId: number;
 }
 
-type UserJoinedChannelPayload = {
+export type UserJoinedChannelPayload = {
     channelId: number;
     userId: number;
     avatar: string;
     pseudo: string;
 }
 
+export type UpdateMemberPrivilegesPayload = {
+    channelId: number;
+    userId: number;
+    permissionMask: number;
+};
+
 const Chat: React.FC = () => {
     const { isDm } = useContext(ChatContext) as ChatContextType;
     const { SocketState } = useContext(SocketContext);
+    const auth = useAuthContext();
+    const currentUserId = auth.user?.id;
 
     useSocketEvent<UserLeftChannelPayload>('user.left.channel', ({ channelId, userId }) => {
         const queryKey = [ 'channel-members', channelId ];
@@ -44,6 +54,29 @@ const Chat: React.FC = () => {
                 filter(members, ({ userId: memberId }) => memberId !== userId));
         }
     });
+
+    useSocketEvent<UpdateMemberPrivilegesPayload>('member.update.privileges', ({ channelId: updatedChannelId, permissionMask: newPermissionMask, userId: targetId }) => {
+        if (targetId === currentUserId) {
+            if (queryClient.getQueryData([ 'channels-list' ]) !== undefined) {
+                queryClient.setQueryData<ChannelDescription[]>([ 'channels-list'], channels => map(channels, ({ channelId, userPermissionMask, ...rest }) => ({
+                    channelId,
+                    userPermissionMask: (channelId === updatedChannelId) ? newPermissionMask : userPermissionMask,
+                    ...rest,
+                })));
+            }
+        } else {
+            const queryKey = [ 'channel-members', updatedChannelId ];
+    
+            /* If the channel is loaded */
+            if (queryClient.getQueryData(queryKey) !== undefined) {
+                queryClient.setQueryData<ChannelMembership[]>(queryKey, members => map(members, ({ userId, permissionMask, ...rest }) => ({
+                    userId,
+                    permissionMask: (userId === targetId) ? newPermissionMask : permissionMask,
+                    ...rest,
+                })));
+            }
+        }
+    }, [ currentUserId ]);
 
     useSocketEvent<UserJoinedChannelPayload>('user.joined.channel', ({ channelId, userId, avatar, pseudo }) => {
         const queryKey = [ 'channel-members', channelId ];

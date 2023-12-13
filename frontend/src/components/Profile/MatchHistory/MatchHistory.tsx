@@ -1,25 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState, useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import { PerfectContext } from '../../../contexts/PerfectContext';
 import { PerfectContextType } from '../Profile';
-import { fetchAvailableUsers } from '../../../api';
 
-import default_avatar from "../../../assets/images/default_avatar.png";
 
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
+import {
+    Table,
+    TableBody,
+    TableCell,
     TableContainer,
-    TableRow 
+    TableRow
 } from '@mui/material';
 
 import './MatchHistory.css';
 
-import AvatarOthers from '../../AvatarOthers/AvatarOthers';
-import { fetchMatchHistory } from '../../../api';
 import { useQuery } from 'react-query';
+import { fetchMatchHistory } from '../../../api';
+import { UserAvatar } from '../../UserAvatar';
 
 interface Game {
     game: {
@@ -67,20 +65,6 @@ const MatchHistory: React.FC<MatchHistoryProps> = ({ userId, auth }) => {
                 })
             }
     }, [userId, auth]);
-
-    const [statusList, setStatusList] = useState<Status>({});
-    const usersQuery = useQuery('available-users', fetchAvailableUsers, {
-        onSuccess: (data) => {
-            data.map(([ id, pseudo, status ]) => {
-                const newStatusList: Status = {};
-                data.forEach(([id, pseudo, status]) => {
-                    newStatusList[id] = status;
-                });
-                setStatusList(newStatusList);
-            });
-        }
-    });
-
 
     const q = useQuery([ 'match history', userId ], fetchMatchHistory, {
         enabled: userId === auth,
@@ -133,11 +117,7 @@ const MatchHistory: React.FC<MatchHistoryProps> = ({ userId, auth }) => {
                                     </TableCell>
                                     <TableCell id="cell-status-mh">
                                         <div className='cell-status-div-mh'>
-                                            {row.opponent.avatar ?
-                                                <AvatarOthers status={statusList[row.opponent.id]} avatar={`http://localhost:3000/static/${row.opponent.avatar}`} userId={row.opponent.id} />
-                                                :
-                                                <AvatarOthers status={statusList[row.opponent.id]} avatar={default_avatar} userId={row.opponent.id} />
-                                            }
+                                            <UserAvatar userId={row.opponent.id} avatar={row.opponent.avatar} />
                                         </div>
                                     </TableCell>
                                     <TableCell id="cell-date-mh">

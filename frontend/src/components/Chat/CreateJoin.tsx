@@ -1,10 +1,11 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useMutation } from "react-query";
 
-import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
+import filter from "lodash/filter";
 import { useContext } from "react";
-import { joinChannel, addDm, createPrivateChannel } from "../../api";
+import { ChannelDescription, addDm, createPrivateChannel, joinChannel } from "../../api";
+import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
+import { queryClient } from "../../query-client";
 import './Chat.css';
 
 const CreateJoin: React.FC = () => {
@@ -15,11 +16,18 @@ const CreateJoin: React.FC = () => {
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
 
-
     const joinChannelMutation = useMutation({
         mutationFn: joinChannel,
         onError() {
             alert("Choose a more secured password or a valid channel name");
+        },
+        onSuccess(channelDescription) {
+            if (queryClient.getQueryData([ 'channels-list' ]) !== undefined) {
+                queryClient.setQueryData<ChannelDescription[]>([ 'channels-list' ], channels => [
+                    ...(filter(channels, c => c.channelId !== channelDescription.channelId)),
+                    channelDescription,
+                ]);
+            }
         }
     });
 

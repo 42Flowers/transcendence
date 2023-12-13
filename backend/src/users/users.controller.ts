@@ -1,4 +1,10 @@
 import { Body, Controller, Get, HttpException, NotFoundException, Param, ParseIntPipe, Patch, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, HttpStatus, NotFoundException, Param, ParseFilePipeBuilder, ParseIntPipe, Patch, Post, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Request as ExpressRequest } from 'express';
+import { AuthGuard } from "src/auth/auth.guard";
+import { UsersService } from "./users.service";
+import { IsEmail, IsOptional, IsString, Length, MinLength, MaxLength, IsNotEmpty } from "class-validator";
+import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { IsEmail, IsOptional, Length } from "class-validator";
 import { Request as ExpressRequest } from 'express';
@@ -11,19 +17,27 @@ import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decora
 import { AuthGuard } from "src/auth/auth.guard";
 import { ProfileService } from "src/profile/profile.service";
 import { UsersService } from "./users.service";
+import { IsNoSpecialCharacters } from "src/profile/profile.pipe";
 
 export class PatchProfileDto {
     @IsOptional()
-    @Length(3, 10)
+    @IsString()
+    @IsNoSpecialCharacters()
+    @MinLength(3)
+    @MaxLength(10)
     pseudo: string;
 
     @IsOptional()
     @IsEmail()
+    @IsString()
     email: string;
 }
 
 export class CompleteProfileDto {
-    @Length(3, 10)
+    @IsString()
+    @IsNoSpecialCharacters()
+    @MinLength(3)
+    @MaxLength(10)
     pseudo: string;
 }
 
@@ -158,3 +172,4 @@ export class UsersController {
         return userProfile;
     }
 }
+

@@ -162,7 +162,15 @@ export type ChannelMembership = {
     avatar: string | null;
 };
 
-export const fetchAvailableChannels = () => wrapResponse(authorizedGet(`/api/chat/get-channels`));
+export type ChannelDescription = {
+    accessMask: number;
+    channelId: number;
+    channelName: string;
+    membershipState: number;
+    userPermissionMask: number;
+};
+
+export const fetchAvailableChannels = () => wrapResponse(authorizedGet<ChannelDescription[]>(`/api/chat/get-channels`));
 export const fetchAvailableDMs = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet<ChannelMessage[]>(`/api/chat/get-channelmessages/${channelId}`));
 export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet<PrivateMessage[]>(`/api/chat/get-privatemessages/${channelId}`));
@@ -184,7 +192,8 @@ export type UnBanUserPayload = {
     targetId: number;
 }
 
-export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel`, payload));
+export const joinChannel = (payload: any) => wrapResponse(authorizedPost<ChannelDescription>('/api/chat/join-channel', payload));
+//export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
 export const createPrivateChannel = (payload :any) => wrapResponse(authorizedPost(`api/chat/create-private-channel`, payload));
 export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation`, payload));
 export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel`, payload));

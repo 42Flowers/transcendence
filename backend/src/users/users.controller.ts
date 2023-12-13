@@ -8,18 +8,21 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import sizeOf from 'image-size';
 import { ProfileService } from "src/profile/profile.service";
 import { diskStorage } from "multer";
+import { CheckIntPipe } from "src/profile/profile.pipe";
 
 export class PatchProfileDto {
     @IsOptional()
+    @IsString()
     @Length(3, 10)
     pseudo: string;
-
+    
     @IsOptional()
     @IsEmail()
     email: string;
 }
 
 export class CompleteProfileDto {
+    @IsString()
     @Length(3, 10)
     pseudo: string;
 }
@@ -50,7 +53,7 @@ export class UsersController {
     @Get('/:id')
     async retrieveUserProfile(
         @Request() req: ExpressRequest,
-        @Param('id', ParseIntPipe) paramId: number) {
+        @Param('id', CheckIntPipe) paramId: number) {
         
         const userProfile = await this.usersService.retrieveUserProfile(paramId);
 

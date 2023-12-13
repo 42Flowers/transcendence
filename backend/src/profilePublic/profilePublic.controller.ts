@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { BadRequestException, Controller, ForbiddenException, Get, Param, Post } from '@nestjs/common';
 import { ProfilePublicService } from './profilePublic.service';
 import { CheckIntPipe } from './profilePublic.pipe';
 import { NotFoundException } from '@nestjs/common';
@@ -48,10 +48,7 @@ export class ProfilePublicController {
 
 
 
-    async isBlockByOne(
-        @Param('userId', CheckIntPipe) userId: number,
-        @Param('friendId', CheckIntPipe) friendId: number,
-    ) {
+    async isBlockByOne(userId: number, friendId: number) {
         if (userId == friendId) {
           return null;
         }
@@ -60,16 +57,16 @@ export class ProfilePublicController {
         } catch (error) {
           throw new NotFoundException(error.message);
         }
-      }
+    }
 
 
     @Get('/isFriendWith/:friendId')
     async getIsFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
+        @Param('userId', CheckIntPipe) userId: number,
+        @Param('friendId', CheckIntPipe) friendId: number,
     ) {
         if (userId == friendId) {
-        return null;
+            return null;
         }
         try {
             return this.profilePublicService.getIsFriend(userId, friendId);
@@ -79,8 +76,8 @@ export class ProfilePublicController {
     }
     @Get('/isBlockWith/:friendId')
     async getIsBlockByUser(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
+        @Param('userId', CheckIntPipe) userId: number,
+        @Param('friendId', CheckIntPipe) friendId: number,
     ) {
         if (userId == friendId) {
             return null;
@@ -98,15 +95,15 @@ export class ProfilePublicController {
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
         if (userId == friendId) {
-            return null;
-        }
-        if ((await this.isBlockByOne(userId, friendId)) == true) {
-            return null;
+            throw new ForbiddenException();
         }
         try {
+            if ((await this.isBlockByOne(userId, friendId)) == true) {
+                throw new Error;
+            }
             return this.profilePublicService.addFriend(userId, friendId);
         } catch (error) {
-        throw new NotFoundException(error.message);
+            throw new NotFoundException(error.message);
         }
   }
   @Post('/unblock/:friendId')
@@ -114,27 +111,27 @@ export class ProfilePublicController {
     @Param('userId', CheckIntPipe) userId: number,
     @Param('friendId', CheckIntPipe) friendId: number,
   ) {
-        if (userId == friendId) {
-        return null;
-        }
-        try {
-        return this.profilePublicService.unblockFriend(userId, friendId);
+      if (userId == friendId) {
+          throw new ForbiddenException();
+      }
+      try {
+            return this.profilePublicService.unblockFriend(userId, friendId);
         } catch (error) {
-        throw new NotFoundException(error.message);
+            throw new NotFoundException(error.message);
         }
   }
-  @Post('/block/:friendId')
-  async blockFriend(
-    @Param('userId', CheckIntPipe) userId: number,
-    @Param('friendId', CheckIntPipe) friendId: number,
-  ) {
-        if (userId == friendId) {
-        return null;
-        }
-        try {
-        return this.profilePublicService.blockFriend(userId, friendId);
+    @Post('/block/:friendId')
+    async blockFriend(
+        @Param('userId', CheckIntPipe) userId: number,
+        @Param('friendId', CheckIntPipe) friendId: number,
+    ) {
+      if (userId == friendId) {
+          throw new ForbiddenException();
+      }
+      try {
+            return this.profilePublicService.blockFriend(userId, friendId);
         } catch (error) {
-        throw new NotFoundException(error.message);
-        }
-  }
+            throw new NotFoundException(error.message);
+        } 
+    }
 }

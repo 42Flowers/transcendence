@@ -174,7 +174,7 @@ export const fetchAvailableDMs = () => wrapResponse(authorizedGet(`/api/chat/get
 export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet<ChannelMessage[]>(`/api/chat/get-channelmessages/${channelId}`));
 export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet<PrivateMessage[]>(`/api/chat/get-privatemessages/${channelId}`));
 export const fetchChannelMembers = (channelId: number) => wrapResponse(authorizedGet<ChannelMembership[]>(`/api/chat/get-channelmembers/${channelId}`));
-export const fetchBlockedUsers = () => wrapResponse(authorizedGet(`/api/chat/get-blocked-users`));
+export const fetchBlockedUsers = () => wrapResponse(authorizedGet<{ blockedId: number; }[]>(`/api/chat/get-blocked-users`));
 
 export type KickPayload = {
     channelId: number;

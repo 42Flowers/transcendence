@@ -6,7 +6,6 @@ import { useContext } from "react";
 import { ChannelDescription, addDm, createPrivateChannel, joinChannel } from "../../api";
 import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
-import './Chat.css';
 
 const CreateJoin: React.FC = () => {
     const { isDm, isPrivate, setIsPrivate } = useContext(ChatContext) as ChatContextType;

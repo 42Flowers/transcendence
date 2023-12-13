@@ -9,7 +9,6 @@ import { queryClient } from "../../query-client";
 import { useAuthContext } from '../../contexts/AuthContext';
 import SocketContext from '../Socket/Context/Context';
 import { UserAvatar } from "../UserAvatar";
-import './Chat.css';
 
 type DisplayProps = {
     myId: number | undefined

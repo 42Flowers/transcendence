@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Request, UseGuards } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IsInt, IsNotEmpty, IsPositive, IsString, Length, Max, MaxLength, Min } from 'class-validator';
 import { Request as ExpressRequest } from 'express';
@@ -319,8 +319,8 @@ export class ChatController {
             const channelData = await this.chatService.joinRoom(userId, channelName, password);
         
             return channelData;
-        } catch {
-            ;
+        } catch (e) {
+            throw new ForbiddenException(e.message);
         }
     }
 

@@ -46,9 +46,9 @@ const CreateJoin: React.FC = () => {
     });
 
     const handleSubmitJoin = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
 		if (channelName.length < 3)
 			return;
-        event.preventDefault();
         joinChannelMutation.mutate({ channelName, password });
 		setChannelName('');
 		setPassword('');

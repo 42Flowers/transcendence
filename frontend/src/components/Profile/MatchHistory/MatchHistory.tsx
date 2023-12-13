@@ -49,7 +49,7 @@ const MatchHistory: React.FC<MatchHistoryProps> = ({ userId, auth }) => {
     
     useEffect(() => {
         if (userId !== auth) {
-            fetch(`http://localhost:3000/api/profile/${userId}/matchhistory`)
+            fetch(`/api/profile/${userId}/matchhistory`)
                 .then(response => response.json())
                 .then((data: Game[]) => {
                     setMatchHistory(data);

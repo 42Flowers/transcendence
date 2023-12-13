@@ -1,18 +1,20 @@
-import { useState, createContext, PropsWithChildren, } from 'react';
-import default_avatar from "../assets/images/default_avatar.png";
+import React, { PropsWithChildren, } from 'react';
+import { fetchUserProfile } from '../api';
+import { useQuery } from 'react-query';
+import get from 'lodash/get';
 
 export type AvatarContextType = {
-  avatar: string;
-  setAvatar: (avatar: string) => void;
+  avatar: string | null;
 }
 
-export const AvatarContext = createContext<AvatarContextType>(undefined as any);
+export const AvatarContext = React.createContext<AvatarContextType>(undefined as any);
 
 export const AvatarProvider: React.FC<PropsWithChildren> = ({ children })=> {
-  const [ avatar, setAvatar ] = useState<string>(default_avatar);
+  const currentUser = useQuery('@me', () => fetchUserProfile('@me'));
+  const avatar = get(currentUser.data, 'avatar', null);
 
   return (
-    <AvatarContext.Provider value={{ avatar, setAvatar }}> 
+    <AvatarContext.Provider value={{ avatar }}> 
       {children}
     </AvatarContext.Provider>
   );

@@ -13,6 +13,9 @@ export default defineConfig({
 				target: 'http://localhost:3000',
 				ws: true,
 			},
+			'/static': {
+				target: 'http://localhost:3000',
+			},
 		},
 	},
 });

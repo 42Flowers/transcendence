@@ -113,7 +113,6 @@ function objectToFormData(o: Record<string, Blob | string | number>): FormData {
     return formData;
 }
 
-export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
 export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<PublicUserProfile>(`/api/profile/${targetId}`));
 
 export type LadderEntry = {

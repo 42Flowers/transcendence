@@ -1,12 +1,60 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpException, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpException, Inject, Injectable, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiProperty, ApiTags } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length, MaxLength, MinLength, ValidationArguments, ValidationOptions, ValidatorConstraint, ValidatorConstraintInterface, registerDecorator } from 'class-validator';
 import { Request as ExpressRequest } from 'express';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/register.dto';
 import { TicketGuard } from './ticket.guard';
 import { TicketPayload } from './ticket.service';
 import { AuthGuard } from './auth.guard';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Injectable()
+@ValidatorConstraint({ name: 'IsChannel', async: true })
+export class IsChannelRule implements ValidatorConstraintInterface {
+    constructor(private readonly prismaService: PrismaService) {}
+
+    async validate(value: any, validationArguments?: ValidationArguments): Promise<boolean> {
+        if (!Number.isSafeInteger(value)) {
+            return false;
+        }
+
+        try {
+            const user = await this.prismaService.user.findUniqueOrThrow({
+                where: {
+                    id: value,
+                },
+            });
+
+            return true;
+        } catch (e) {
+            console.log(e);
+        }
+
+        return false;
+    }
+
+    defaultMessage?(validationArguments?: ValidationArguments): string {
+        return 'mdrrr cheh';
+    }
+
+}
+
+function IsChannel(validationOptions?: ValidationOptions) {
+    return (object: any, propertyName: string) =>
+        registerDecorator({
+            name: 'IsChannel',
+            target: object.constructor,
+            propertyName,
+            options: validationOptions,
+            validator: IsChannelRule
+        });
+}
+
+class ZebiDto {
+    @IsChannel()
+    channelId: number;
+}
 
 export enum AuthorizationProviderType {
     FortyTwo = 'ft',
@@ -146,6 +194,13 @@ export class AuthController {
         return {
             status,
         };
+    }
+
+    @Post('zebi')
+    async zebi(
+        @Body() zebi: ZebiDto
+    ) {
+        return zebi;
     }
 }
 

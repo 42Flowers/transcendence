@@ -294,8 +294,8 @@ export class RoomService {
 						throw error;
 					}
 					else {
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', "You are already in this channel"));
-						throw new MyError("User already in channel");
+						// this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', "You are already in this channel"));
+						throw new Error("You are already in this channel");
 					}
 				}
 			}

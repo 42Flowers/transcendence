@@ -46,7 +46,6 @@ const Ladder: React.FC = () => {
     const firstRowRef = useRef<HTMLTableRowElement>(null);
 
     const q = useQuery('ladder', fetchLadder);
-    /* TODO maybe we should move this in the backend */
 
     const winsAndLosses = React.useMemo(() => map(q.data, ({ gameParticipation, id, pseudo, avatar }): UserScores => {
         return reduce(gameParticipation, ({ wins, losses, ...rest }: UserScores, { game, userId }) => {

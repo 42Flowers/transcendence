@@ -33,18 +33,6 @@ type Achievements = {
     achievements: Achievement[]
 }
 
-type gamesParticipated = {
-    winnerId: number
-    looserId: number
-    score1: number
-    score2: number
-    createdAt: Date
-};
-
-type Game = {
-    game: gamesParticipated;
-};
-
 const Profile: React.FC = () => {
     const auth = useAuthContext();
 
@@ -63,7 +51,7 @@ const Profile: React.FC = () => {
         onSuccess(data) {
             queryClient.setQueryData('profile', data);
         },
-        onError(e: AxiosError) {
+        onError() {
             alert("Min 3 characters and maximum 10 characters, Only a to z, A to Z, 0 to 9, and '-' are allowed or pseudo already in use");
         }
     });
@@ -109,17 +97,13 @@ const Profile: React.FC = () => {
 
     return (
         <>
-        {/* IF current user */}
             <div className="Profile">
                 <ChangeAvatar handleUploadAvatar={handleUploadAvatar} />
                 <PseudoButton currentPseudo={pseudo} onChangePseudo={handleChangePseudo} />
                 <div style={{ marginTop: '1em' }}>
                     <Switch2FA />
                 </div>
-        {/* ELSE */}
-            {/* Add friend, block, unblock */}
-        {/* ENDIF */}
-                <Ladder auth={Number(auth.user?.id)} />
+                <Ladder />
                 <Stats userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
                 <MatchHistory userId={Number(auth.user?.id)} auth={Number(auth.user?.id)} />
                 <Achievements userId={'@me'} />

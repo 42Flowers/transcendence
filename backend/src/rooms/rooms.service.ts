@@ -170,8 +170,12 @@ export class RoomService {
 			const password = null;
 			const channel = await this.prismaService.channel.create({
 				data: {
+					owner: {
+						connect: {
+							id: user.id
+						}
+					},
 					name: name,
-					ownerId: user.id,
 					password: password,
 					accessMask: 2
 				}
@@ -219,7 +223,11 @@ export class RoomService {
 			const channel = await this.prismaService.channel.create({
 				data: {
 					name: name,
-					ownerId: user.id,
+					owner: {
+						connect: {
+							id: user.id
+						}
+					},
 					password: password,
 					accessMask: accessMask
 				}

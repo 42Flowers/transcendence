@@ -178,6 +178,7 @@ export const createPrivateChannel = (payload :any) => wrapResponse(authorizedPos
 export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation`, payload));
 export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel`, payload));
 export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel`, payload));
+export const inviteUser = (payload: any) => wrapResponse(authorizedPost(`api/chat/invite-user`, payload));
 export const mute = (payload: any) => wrapResponse(authorizedPost(`api/chat/mute-user`, payload));
 export const unmute = (payload: any) => wrapResponse(authorizedPost(`api/chat/unmute-user`, payload));
 export const ban = (payload: BanUserPayload) => wrapResponse(authorizedPost(`api/chat/ban-user`, payload));

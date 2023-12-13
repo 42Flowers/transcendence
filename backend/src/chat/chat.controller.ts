@@ -187,9 +187,10 @@ export class ChatController {
 
 	@Post('invite-user')
 	async handleInvite(
-		@Param() inviteDTO: InviteInChannelDTO,
+		@Body() inviteDTO: InviteInChannelDTO,
 		@Request() req : ExpressRequest
 	) {
+		console.log(inviteDTO.targetName);
 		const userId = Number(req.user.sub);
 		if (userId == undefined) {
 			return;

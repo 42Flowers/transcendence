@@ -2,7 +2,7 @@ import filter from 'lodash/filter';
 import map from 'lodash/map';
 import React, { useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
-import { addPwd, changePwd, deleteM, deletePwd, fetchAvailableDMs, quit } from "../../api";
+import { addPwd, changePwd, deleteM, deletePwd, fetchAvailableDMs, inviteUser, quit } from "../../api";
 import { ChatContext } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 
@@ -56,6 +56,7 @@ const Title: React.FC = () => {
 
     const [addPassword, setAddPassword] = useState("");
     const [changePassword, setChangePassword] = useState("");
+	const [invitedUser, setInvitedUser] = useState("");
     const auth = useAuthContext();
 
    const titleStyle: React.CSSProperties = {
@@ -134,6 +135,13 @@ const Title: React.FC = () => {
         }
     });
 
+	const inviteUserMutation = useMutation({
+		mutationFn: inviteUser, 
+		onError() {
+			alert("Cannot invite user");
+		}
+	});
+
     const handleQuit = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         quitMutation.mutate({ channelId: currentChannel });
@@ -145,10 +153,12 @@ const Title: React.FC = () => {
     };
 
     const handleInviteUser = (event: React.MouseEvent<HTMLButtonElement>) => {
+		console.log(event);
         event.preventDefault();
-        // TO DO
-        // INVITE USER
-        // addUserToChannel.mutate({targetId: })
+		if (invitedUser.length < 3)
+			return;
+		inviteUserMutation.mutate({channelId: currentChannel, targetName: invitedUser});
+		setInvitedUser('');
     };
 
     const handleAddPassword = (event: React.FormEvent<HTMLFormElement>) => {
@@ -184,8 +194,8 @@ const Title: React.FC = () => {
                                                 <input
                                                     type="text"
                                                     placeholder="add a user"
-                                                    value={addPassword}
-                                                    onChange={(e) => setAddPassword(e.target.value)}
+                                                    value={invitedUser}
+                                                    onChange={(e) => setInvitedUser(e.target.value)}
                                                     style={{ flex: "1 1 auto" }}
                                                     className='channelPasswordInput'
                                                     minLength={3}

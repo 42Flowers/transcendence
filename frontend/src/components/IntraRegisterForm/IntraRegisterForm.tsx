@@ -2,17 +2,17 @@ import { Stack } from '@mui/material';
 import { AxiosError } from 'axios';
 import { useSnackbar } from 'notistack';
 import React from 'react';
+import AvatarEdit from 'react-avatar-edit';
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { useMutation } from 'react-query';
-import { PatchUserProfile, completeRegister, patchUserProfile } from '../../api';
+import { useNavigate } from 'react-router-dom';
+import { PatchUserProfile, patchUserProfile } from '../../api';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { withAuthGuard } from '../../hocs/AuthGuard';
 import { Form, FormValidator } from '../Form/Form';
 import { Input } from '../Form/Input';
 import MainButton from '../MainButton/MainButton';
 import './IntraRegisterForm.scss';
-import { withAuthGuard } from '../../hocs/AuthGuard';
-import { useNavigate } from 'react-router-dom';
-import ChangeAvatar from '../Profile/ChangeAvatar/ChangeAvatar';
 
 const intraRegisterFormValidator: FormValidator = {
 	username(value: string) {
@@ -30,7 +30,7 @@ const IntraRegisterForm: React.FC = () => {
 	const { enqueueSnackbar } = useSnackbar();
 	const [ formErrors, setFormErrors ] = React.useState<object>({});
 	const { isAuthenticated, user, signIn } = useAuthContext();
-	const [ avatar, setAvatar ] = React.useState<File>();
+	const [ avatarPreview, setAvatarPreview ] = React.useState<string>();
 	const navigate = useNavigate();
 
 	React.useEffect(() => {
@@ -39,8 +39,8 @@ const IntraRegisterForm: React.FC = () => {
 		}
 	}, [ user ]);
 
-	const completeRegisterMutation = useMutation({
-		mutationFn: completeRegister,
+	const patchProfileMutation = useMutation({
+		mutationFn: (data: PatchUserProfile) => patchUserProfile('@me', data),
 		onSuccess(data) {
 			enqueueSnackbar({
 				message: `Nice to meet you, ${data.pseudo} !`,
@@ -65,27 +65,49 @@ const IntraRegisterForm: React.FC = () => {
 		},
 	});
 
-	const handleOnSubmit = React.useCallback((data: Record<string, string>) => {
-		const formData = new FormData();
+	const handleOnSubmit = async (data: Record<string, string>) => {
+		if (!('pseudo' in data))
+			return ;
 
-		for (const k in data) {
-			formData.append(k, data[k]);
+		const { pseudo } = data;
+
+console.log(avatarPreview);
+
+		if (avatarPreview) {
+			try {
+				const r = await fetch(avatarPreview);
+				const b = await r.blob();
+
+				patchProfileMutation.mutate({
+					pseudo,
+					avatar: new File([ b ], 'avatar.png', {
+						type: 'image/png',
+					}),
+				});
+
+				return ;
+			} catch {
+				/* should never get there */
+			}
 		}
 
-		if (avatar) {
-			formData.append('avatar', avatar!);
+		patchProfileMutation.mutate({
+			pseudo,
+		});
+	};
 
-			completeRegisterMutation.mutate(formData);
-		}
-	}, [ avatar ]);
-
-	const handleChangeAvatar = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-		setAvatar(e.currentTarget.files?.[0]);
-	}, [ setAvatar ]);
+    const onBeforeFileLoad = (elem: React.ChangeEvent<HTMLInputElement>) => {
+        if (elem.target.files) {
+            if(elem.target.files[0].size > 1048576){
+                alert("File is too big!");
+                elem.target.value = '';
+            };
+        }
+    };
 
 	return (
 		<Stack direction="row" justifyContent="center">
-			<div className="auth-container register-form" style={{height:'auto'}}>
+			<div className="auth-container register-form" style={{height: 'auto'}}>
 				<Form validator={intraRegisterFormValidator} onSubmit={handleOnSubmit} errors={formErrors}>
 					<h2>Register</h2>
 					<p>
@@ -102,7 +124,14 @@ const IntraRegisterForm: React.FC = () => {
 						type="text"
 						required
 					/>
-					<ChangeAvatar handleUploadAvatar={handleChangeAvatar} />
+					<AvatarEdit
+						width={300}
+						height={300}
+						exportMimeType="image/png"
+						exportSize={512}
+						onBeforeFileLoad={onBeforeFileLoad}
+						onCrop={preview => setAvatarPreview(preview)} />
+					{/* <ChangeAvatar handleUploadAvatar={handleChangeAvatar} /> */}
 					{/* <Avatar
 						alt="Avatar"
 						src={default_avatar}
@@ -129,7 +158,7 @@ const IntraRegisterForm: React.FC = () => {
 						id="fileInput"
 						style={{ display: 'none' }}
 					/> */}
-					<MainButton buttonName="Register" loading={completeRegisterMutation.isLoading} />
+					<MainButton buttonName="Register" loading={patchProfileMutation.isLoading} />
 				</Form>
 			</div>
 		</Stack>

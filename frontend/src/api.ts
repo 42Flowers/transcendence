@@ -86,21 +86,32 @@ export const registerUser = (payload: any) => wrapResponse(client.post('/api/v1/
 
 export const fetchUserProfile = (profile: number | '@me') => wrapResponse(authorizedGet<UserProfile>(`/api/v1/users/${profile}`));
 
-export type PatchUserProfile = Partial<Exclude<UserProfile, 'id' | 'avatar'>>;
+export type PatchUserProfile = Partial<Omit<UserProfile, 'id' | 'avatar'>> & { avatar?: File };
 
 export const patchUserProfile = (profile: UserID, data: PatchUserProfile) =>
-    wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, data));
-
-export const completeRegister = (formData: FormData) =>
-    wrapResponse(authorizedPost<UserProfile>('/api/v1/users/complete-profile', formData));
+    wrapResponse(authorizedPatch<UserProfile>(`/api/v1/users/${profile}`, objectToFormData(data)));
 
 /* ==== PROFILE ==== */
 export type PublicUserProfile = {
     id: number;
     pseudo: string;
     avatar: string | null;
-
 };
+
+function objectToFormData(o: Record<string, Blob | string | number>): FormData {
+    const formData = new FormData();
+
+    for (const key in o) {
+        const v = o[key];
+
+        if (v instanceof Blob)
+            formData.append(key, v);
+        else
+            formData.append(key, v.toString());
+    }
+
+    return formData;
+}
 
 export const fetchProfile = () => wrapResponse(authorizedGet('/api/profile'));
 export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<PublicUserProfile>(`/api/profile/${targetId}`));
@@ -151,7 +162,15 @@ export type ChannelMembership = {
     avatar: string | null;
 };
 
-export const fetchAvailableChannels = () => wrapResponse(authorizedGet(`/api/chat/get-channels`));
+export type ChannelDescription = {
+    accessMask: number;
+    channelId: number;
+    channelName: string;
+    membershipState: number;
+    userPermissionMask: number;
+};
+
+export const fetchAvailableChannels = () => wrapResponse(authorizedGet<ChannelDescription[]>(`/api/chat/get-channels`));
 export const fetchAvailableDMs = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
 export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet<ChannelMessage[]>(`/api/chat/get-channelmessages/${channelId}`));
 export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet<PrivateMessage[]>(`/api/chat/get-privatemessages/${channelId}`));
@@ -173,11 +192,13 @@ export type UnBanUserPayload = {
     targetId: number;
 }
 
-export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel`, payload));
+export const joinChannel = (payload: any) => wrapResponse(authorizedPost<ChannelDescription>('/api/chat/join-channel', payload));
 //export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
+export const createPrivateChannel = (payload :any) => wrapResponse(authorizedPost(`api/chat/create-private-channel`, payload));
 export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation`, payload));
 export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel`, payload));
 export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel`, payload));
+export const inviteUser = (payload: any) => wrapResponse(authorizedPost(`api/chat/invite-user`, payload));
 export const mute = (payload: any) => wrapResponse(authorizedPost(`api/chat/mute-user`, payload));
 export const unmute = (payload: any) => wrapResponse(authorizedPost(`api/chat/unmute-user`, payload));
 export const ban = (payload: BanUserPayload) => wrapResponse(authorizedPost(`api/chat/ban-user`, payload));

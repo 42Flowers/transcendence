@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { BadRequestException, Controller, Get, HttpStatus, NotFoundException, Param, ParseFilePipeBuilder, ParseIntPipe, Post, Request, UnprocessableEntityException, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Get, HttpException, HttpStatus, NotFoundException, Param, ParseFilePipeBuilder, ParseIntPipe, Post, Request, UnprocessableEntityException, UploadedFile, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToClass } from 'class-transformer';
@@ -12,6 +12,10 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { AvatarUpdatedEvent } from 'src/events/avatar-updated.event';
 import { AvatarDto } from './profile.dto';
 import { ProfileService } from './profile.service';
+import * as path from 'node:path';
+import { ISizeCalculationResult } from 'image-size/dist/types/interface';
+import { renameSync, unlink, unlinkSync } from 'fs';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from './profile.pipe';
 
 @Controller('profile')
@@ -19,6 +23,7 @@ import { CheckIntPipe } from './profile.pipe';
 export class ProfileController {
     constructor( 
         private readonly profileService: ProfileService,
+        private readonly prismaService: PrismaService,
         private readonly achievementsService: AchievementsService,
         private readonly eventEmitter: EventEmitter2
     ) {}
@@ -39,59 +44,6 @@ export class ProfileController {
         const profileInfo = await this.profileService.getProfileInfos(userId);
         
         return profileInfo;
-    }
-
-    @Post('add-avatar')
-    @UseInterceptors(FileInterceptor('file', { 
-        storage: diskStorage({
-            destination: './uploads',
-            filename: (req: ExpressRequest, file, callback) => {
-                const extension = file.originalname.split(".").at(-1);
-                const newFileName = `${req.user.id}_${Date.now()}.${extension}`;
-
-                callback(null, newFileName);
-            }
-        }),
-    }))
-    async uploadAvatar(@UploadedFile(
-        new ParseFilePipeBuilder()
-            .addFileTypeValidator({
-                fileType: /^(image\/jpeg|image\/png)$/
-            })
-            .addMaxSizeValidator({
-                maxSize: 1000042
-            })
-            .build({
-                errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY }),
-        )
-        avatar: Express.Multer.File, @Request() req: ExpressRequest) {
-
-        const userId = req.user.id;
-
-        // Transform the plain JavaScript object into an instance of the AvatarDto class
-        const AvatarDtoTransformed = plainToClass(AvatarDto, { filename: avatar.filename, userId });
-        // Validate the AvatarDtoTransformed instance
-        const errors = await validate(AvatarDtoTransformed);
-        if (errors.length > 0) {
-            throw new BadRequestException(errors);
-        }
-        
-        if (!avatar) {
-            throw new BadRequestException("Avatar is not an image");
-        } else {
-            // Check image dimensions
-            const dimensions = sizeOf(avatar.path);
-            if (dimensions.width > 1000 || dimensions.height > 1000) {
-                throw new BadRequestException('Invalid image dimensions');
-            }
-            try {
-                const avatarData = await this.profileService.addAvatar(avatar.filename, userId);
-
-                return avatarData;
-            } catch {
-                throw new UnprocessableEntityException();
-            }
-        }
     }
 
     @Get('matchhistory')

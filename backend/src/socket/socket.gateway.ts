@@ -198,12 +198,6 @@ export class SocketGateway implements
 		});
 	}
 
-	@OnEvent('chat.sendroomtoclient')
-	sendRoomToClient({userId, type, channel}: ChatSendRoomToClientEvent
-	) {
-		this.socketService.emitToUserSockets(userId, 'channel', {type: type, channel: channel});
-	}
-
 	@OnEvent('chat.sendmessage')
 	sendMessage(event: ChatSendMessageEvent) 
 	{

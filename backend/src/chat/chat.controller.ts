@@ -349,19 +349,19 @@ export class ChatController {
         @Request() req: ExpressRequest
     ) {
         try {
-			const userId = Number(req.user.sub);
-			if (userId == undefined)
-				return;
+            const userId = Number(req.user.sub);
+            if (userId == undefined)
+                return;
             const conversations = await this.conversationService.getAllUserConversations(userId);
             const convs = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
             conversations.map((conv, index) => {
-                convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo, avatar: userNames[index].avatar});
+                convs.push({conversationId: conv.id, targetId: conv.receiverId, targetName: userNames[index].pseudo, avatar: userNames[index].avatar});
             });
             return convs;
         } catch {
             ;
-        }
+        }// qu'est ce qu'il faut que je rajoute ici ? L'id de la conversation.
     }
 
     @Post('create-conversation')
@@ -381,14 +381,14 @@ export class ChatController {
     }
 
 
-    @Get('get-privatemessages/:targetId')
+    @Get('get-privatemessages/:convId')
     async privateConversation(
         @Request() req: ExpressRequest,
-		@Param('targetId', CheckIntPipe) targetId: number,
+        @Param('convId', CheckIntPipe) convId: number,
     ) {
         try {
-			const userId = Number(req.user.sub);
-            const conversations = await this.chatService.getPrivateConversation(userId, targetId);
+            const userId = Number(req.user.sub);
+            const conversations = await this.chatService.getPrivateConversation(convId);
             const messages = [];
             if (conversations != null) {
                 const authorNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.authorId)));

@@ -724,15 +724,16 @@ export class ChatService {
 		}
 	}
 
-	async getPrivateConversation(
-		userId: number,
-		targetId: number
-	){
-		let conversation = await this.conversationsService.conversationExists(userId, targetId);
-		if (conversation) {
-			return await this.messagesService.getMessagesfromConversation(userId, targetId);
-		}else {
-			return "No such conversation";
-		}
-	}
+    async getPrivateConversation(
+        convId: number
+    ){
+        // let conversation = await this.conversationsService.conversationExists(userId, targetId);
+        let conversation = await this.conversationsService.conversationExistsFromId(convId)
+        if (conversation) {
+            // return await this.messagesService.getMessagesfromConversation(userId, targetId);
+            return await this.messagesService.getMessagesfromConversationFromConvId(convId);
+        }else {
+            return "No such conversation";
+        }
+    }
 }

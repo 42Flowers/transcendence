@@ -33,7 +33,16 @@ export class UsersService {
 
 	async getUserByName(targetName: string) {
 		try {
-			const user = await this.prismaService.user.findUnique({where: {pseudo: targetName}, select: {id: true, pseudo: true}});
+			const user = await this.prismaService.user.findUnique({
+				where: {
+					pseudo: targetName
+				}, 
+				select: {
+					id: true, 
+					pseudo: true, 
+					channelMemberships: true
+				}
+			});
 			return user;
 		} catch (error) {
 			throw new Error(error.message);

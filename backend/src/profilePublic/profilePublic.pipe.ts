@@ -7,7 +7,7 @@ export class CheckIntPipe implements PipeTransform {
     constructor(private prismaService: PrismaService) {}
 
     async transform(value: any) {
-        if (value.length > 16) {
+        if (value.length > 7) {
             throw new BadRequestException('Validation failed: parameter exceeds maximum limit');
         }
 

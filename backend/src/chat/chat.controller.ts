@@ -1,31 +1,28 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Post, Body, Get, UseGuards, Request, Param, NotFoundException, HttpStatus, HttpCode } from '@nestjs/common';
-import { ConversationsService } from 'src/conversations/conversations.service';
-import { MessagesService } from 'src/messages/messages.service';
-import { UsersService } from 'src/users_chat/users_chat.service';
-import { RoomService } from '../rooms/rooms.service';
+import { Body, Controller, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Request, UseGuards } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IsInt, IsNotEmpty, IsPositive, IsString, Length, Max, MaxLength, Min } from 'class-validator';
 import { Request as ExpressRequest } from 'express';
-import { ChatService } from './chat.service';
-import { AuthGuard } from '../auth/auth.guard';
-import { EventEmitter2 } from '@nestjs/event-emitter'
-import { ChatMuteOnChannelEvent } from 'src/events/chat/muteOnChannel.event';
-import { ChatUnMuteOnChannelEvent } from 'src/events/chat/unMuteOnChannel.event';
-import { ChatBanFromChannelEvent } from 'src/events/chat/banFromChannel.event';
-import { ChatUnBanFromChannelEvent } from 'src/events/chat/unBanFromChannel.event';
-import { ChatKickFromChannelEvent } from 'src/events/chat/kickFromChannel.event';
-import { ChatAddAdminToChannelEvent } from 'src/events/chat/addAdminToChannel.event';
-import { ChatRemoveAdminFromChannelEvent } from 'src/events/chat/removeAdminFromChannel.event';
-import { ChatExitChannelEvent } from 'src/events/chat/exitChannel.event';
-import { ChatJoinChannelEvent } from 'src/events/chat/joinChannel.event';
+import { ConversationsService } from 'src/conversations/conversations.service';
+import { ChatAddInviteEvent } from 'src/events/chat/addInvite.event';
 import { ChatAddPasswordEvent } from 'src/events/chat/addPassword.event';
-import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
 import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
-import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
+import { ChatCreatePrivateChannelEvent } from 'src/events/chat/createPrivateChannel.event';
+import { ChatExitChannelEvent } from 'src/events/chat/exitChannel.event';
+import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event';
+import { ChatKickFromChannelEvent } from 'src/events/chat/kickFromChannel.event';
+import { ChatMuteOnChannelEvent } from 'src/events/chat/muteOnChannel.event';
+import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
+import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
+import { ChatUnMuteOnChannelEvent } from 'src/events/chat/unMuteOnChannel.event';
+import { MessagesService } from 'src/messages/messages.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
-import { IsString, IsInt, IsNotEmpty, Min, Max, MaxLength, MinLength, Length, IsPositive } from 'class-validator';
-import { CheckIntPipeChat } from './chat.pipe'
-import { HttpStatusCode } from 'axios';
+import { UsersService } from 'src/users_chat/users_chat.service';
+import { AuthGuard } from '../auth/auth.guard';
+import { RoomService } from '../rooms/rooms.service';
+import { CheckIntPipeChat } from './chat.pipe';
+import { ChatService } from './chat.service';
 
 
 interface Message {
@@ -104,10 +101,33 @@ export class ManagePwdDto {
 	@IsPositive()
     channelId: number
 
+    @IsNotEmpty()
     @IsString()
-	@MinLength(3)
 	@Length(3, 20)
     pwd: string
+}
+
+export class ManageInviteDTO {
+    @IsInt()
+    @IsNotEmpty()
+	@Max(1000000)
+    @Min(1)
+	@IsPositive()
+	channelId: number
+}
+
+export class InviteInChannelDTO {
+	@IsInt()
+    @IsNotEmpty()
+	@Max(1000000)
+    @Min(1)
+	@IsPositive()
+	channelId: number
+
+	@IsString()
+	@IsNotEmpty()
+	@Length(3, 10)
+    targetName: string;
 }
 
 export class RemovePwdDto {
@@ -117,6 +137,13 @@ export class RemovePwdDto {
     @Min(1)
 	@IsPositive()
     channelId: number
+}
+
+export class CreatePrivateChannelDTO {
+	// @IsString()
+	// @IsNotEmpty()
+	// // @Length(3, 10)
+    channelName: string;
 }
 
 /**
@@ -138,6 +165,52 @@ export class ChatController {
         private readonly prismaService: PrismaService
         ) {}
 
+	@Post('create-private-channel')
+	async handleCreateprivateChannel(
+		@Body() DTO: CreatePrivateChannelDTO,
+		@Request() req: ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined) {
+			return;
+		}
+		this.eventEmitter.emit("chat.createprivatechannel", new ChatCreatePrivateChannelEvent(userId, DTO.channelName));
+	}
+
+	@Post('invite-user')
+	async handleInvite(
+		@Body() inviteDTO: InviteInChannelDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined) {
+			return;
+		}
+		this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(userId, inviteDTO.channelId, inviteDTO.targetName));
+
+	}
+
+	@Post('add-invite')
+	async handleAddInvite(
+		@Param() inviteDTO : ManageInviteDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined)
+			return;
+		this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(userId, inviteDTO.channelId));
+	}
+
+	@Post('rm-invite')
+	async handleRemoveInvite(
+		@Param() inviteDTO: ManageInviteDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined)
+			return;
+		this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(userId, inviteDTO.channelId));
+	}
 
 	@Get('get-blocked-users')
 	async getBlockedUsers(
@@ -169,7 +242,7 @@ export class ChatController {
 			const userId = Number(req.user.sub);
 			if (userId == undefined)
 				return;
-            const rooms = await this.roomService.getPublicRooms(userId);
+            const rooms = await this.roomService.getPublicRoomsWhereNotBanned(userId);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
             const chans = [];
             const state = await Promise.all(rooms.map(room => this.roomService.getMembershipState(room.channelId, userId)));
@@ -259,8 +332,7 @@ export class ChatController {
 		  const userId = Number(req.user.sub);
 		  if (userId == undefined)
 			  return;
-          this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(userId, quitDto.channelId)); // TODO: quitDto.channelId
-          // this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
+          this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(userId, quitDto.channelId));
     }
 
 
@@ -333,7 +405,6 @@ export class ChatController {
         if (userId == undefined)
             return;
 		this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-		// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 	}
 
 	@Post('unmute-user')
@@ -345,7 +416,6 @@ export class ChatController {
         if (userId == undefined)
             return;
 		this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(userId, actionsDto.channelId, actionsDto.targetId))
-		// this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
 	}
 
 	@Post('ban-user')
@@ -409,7 +479,7 @@ export class ChatController {
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;
-		    this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(userId, managePwdDto.channelId, managePwdDto.pwd));
+		this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(userId, managePwdDto.channelId, managePwdDto.pwd));
 	}
 
 	@Post('add-pwd')
@@ -449,7 +519,7 @@ export class ChatController {
 		}
 	}
 
-    @Post('delete-channel') //TODO les DTO
+    @Post('delete-channel')
     @HttpCode(HttpStatus.NO_CONTENT)
     async handleDeleteRoom(
         @Body() deleteDto: DeleteChannelDto,

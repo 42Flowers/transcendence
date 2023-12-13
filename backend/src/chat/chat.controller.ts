@@ -350,25 +350,24 @@ export class ChatController {
 
 	@Post('ban-user')
 	async handleBan(
-        @Body() actionsDto: ActionsDto,
+        @Body() { channelId, targetId }: ActionsDto,
 		@Request() req : ExpressRequest
 	) {
-        const userId = Number(req.user.sub);
-        if (userId == undefined)
-            return;
-		this.eventEmitter.emit('chat.ban', new ChatBanFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-	}
+        const userId = req.user.id;
+        const resp = await this.chatService.banFromChannel(userId, channelId, targetId);
+	
+        return resp;
+    }
 
 	@Post('unban-user')
 	async handleUnBan(
-        @Body() actionsDto: ActionsDto,
+        @Body() { channelId, targetId }: ActionsDto,
 		@Request() req : ExpressRequest
 	) {
-        const userId = Number(req.user.sub);
-        if (userId == undefined)
-            return;
-		this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-		// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
+        const userId = req.user.id;
+        const resp = await this.chatService.unBanFromChannel(userId, channelId, targetId);
+
+        return resp;
 	}
 
 	@Post('kick-user')

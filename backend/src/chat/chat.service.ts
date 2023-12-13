@@ -336,26 +336,23 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.ban')
-	async banFromChannel(
-		event: ChatBanFromChannelEvent
-	) {
+	async banFromChannel(userId: number, channelId: number, targetId: number) {
 		try {
-			const user = await this.usersService.getUserById(event.userId);
-			const target = await this.usersService.getUserById(event.targetId);
+			const user = await this.usersService.getUserById(userId);
+			const target = await this.usersService.getUserById(targetId);
 			if (target != null && user != null) {
-				const room = await this.roomService.roomExists(event.channelId);
+				const room = await this.roomService.roomExists(channelId);
 				if (room != null) {
-					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+					const member = user.channelMemberships.find(channel => channel.channelId === channelId);
 					if (member && member.permissionMask  >= 2 && member.membershipState !== 4) {
-						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
+						const targetmember = target.channelMemberships.find(channel => channel.channelId === channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask)) {
-							const result = await this.roomService.banUser(event.targetId, event.channelId);
+							const result = await this.roomService.banUser(targetId, channelId);
 							if (result.status === false) {
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'ban', "You have been banned from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(targetId, 'ban', "You have been banned from " + room.name));
 							return;
 						}
 					}
@@ -368,26 +365,23 @@ export class ChatService {
 		}
 	}
 
-	@OnEvent('chat.unban')
-	async unBanFromChannel(
-		event: ChatUnBanFromChannelEvent
-	) {
+	async unBanFromChannel(userId: number, channelId: number, targetId: number) {
 		try {
-			const user = await this.usersService.getUserById(event.userId);
-			const target = await this.usersService.getUserById(event.targetId);
+			const user = await this.usersService.getUserById(userId);
+			const target = await this.usersService.getUserById(targetId);
 			if (target != null && user != null) {
-				const room = await this.roomService.roomExists(event.channelId);
+				const room = await this.roomService.roomExists(channelId);
 				if (room != null) {
-					const member = user.channelMemberships.find(channel => channel.channelId === event.channelId);
+					const member = user.channelMemberships.find(channel => channel.channelId === channelId);
 					if (member && member.permissionMask  >= 2 && member.membershipState != 4) {
-						const targetmember = target.channelMemberships.find(channel => channel.channelId === event.channelId);
+						const targetmember = target.channelMemberships.find(channel => channel.channelId === channelId);
 						if (targetmember && (targetmember.permissionMask < member.permissionMask) && targetmember.membershipState === 4) {
-							const result = await this.roomService.unBanUser(event.targetId, event.channelId);
+							const result = await this.roomService.unBanUser(targetId, channelId);
 							if (result.status === false) {
-								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, 'error', result.msg));
+								this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'error', result.msg));
 								return;
 							}
-							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.targetId, 'ban', "You have been unbanned from " + room.name));
+							this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(targetId, 'ban', "You have been unbanned from " + room.name));
 							return;
 						}
 					}

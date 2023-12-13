@@ -10,6 +10,7 @@ import { MyError } from 'src/errors/errors';
 import { ChatSendToClientEvent } from 'src/events/chat/sendToClient.event';
 import { UserLeftChannelEvent } from 'src/events/channels/user-left-channel.event';
 import { UserJoinedChannelEvent } from 'src/events/channels/user-joined-channel.event';
+import { channel } from 'node:diagnostics_channel';
 
 @Injectable()
 export class RoomService {
@@ -304,16 +305,66 @@ export class RoomService {
 		} catch (err) {throw new Error(err.message)}
 	}
 
-	async banUser(targetId: number, channelId: number) : Promise<any> {
+	private async dispatchEventToChannelMembers(channelId: number, ev: string, ...args: any[]): Promise<boolean> {
+		try {
+			const members = await this.prismaService.channelMembership.findMany({
+				where: {
+					channelId,
+				},
+			});
+
+			members.forEach(({ userId }) => {
+				this.socketService.emitToUserSockets(userId, ev, ...args);
+			});
+		} catch {
+			;
+		}
+		return false;
+	}
+
+	private async updateMembershipState(channelId: number, userId: number, membershipState: number): Promise<boolean> {
 		try {
 			const membership = await this.prismaService.channelMembership.update({
-				where : {userId_channelId: {userId: targetId, channelId: channelId}}, 
-				data: {membershipState: 4, permissionMask: 1}});
-			if (membership != null) {
-				return {status: true};
+				where: {
+					userId_channelId: {
+						userId,
+						channelId
+					}
+				}, 
+				data: {
+					membershipState,
+					permissionMask: 1
+				}
+			});
+
+			const membershipChanged = (null !== membership);
+
+			if (membershipChanged) {
+				this.dispatchEventToChannelMembers(channelId, 'member.update.state', {
+					channelId,
+					userId,
+					membershipState,
+				});
 			}
-			else {
-				return {status: false, msg: "Couldn't ban user"};
+
+			return membershipChanged;
+		} catch {
+			;
+		}
+		return false;
+	}
+
+	async banUser(targetId: number, channelId: number) : Promise<any> {
+		try {
+			if (await this.updateMembershipState(channelId, targetId, 4)) {
+				return {
+					status: true
+				};
+			} else {
+				return {
+					status: false,
+					msg: "Couldn't ban user"
+				};
 			}
 		} catch (err) {
 			throw new Error(err.message);
@@ -322,18 +373,19 @@ export class RoomService {
 
 	async unBanUser(targetId: number, channelId: number): Promise<any> {
 		try {
-			const membership = await this.prismaService.channelMembership.update({
-				where: { userId_channelId: {userId: targetId, channelId: channelId}},
-				data: {membershipState : 1, permissionMask: 1},
-				select: {userId: true}
-			});
-			if (membership != null) {
-				return {status: true};
+			if (await this.updateMembershipState(channelId, targetId, 1)) {
+				return {
+					status: true
+				};
+			} else {
+				return {
+					status: false,
+					msg: "Couldn't unban user"
+				};
 			}
-			else {
-				return {status: false, msg: "Couldn't ban user"};
-			}
-		} catch (err) {throw new Error(err.message)}
+		} catch (err) {
+			throw new Error(err.message);
+		}
 	}
 
 	async muteUser(targetId: number, channelId: number) : Promise<any> {

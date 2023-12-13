@@ -2,7 +2,7 @@ import filter from 'lodash/filter';
 import map from 'lodash/map';
 import React, { useContext, useEffect, useState } from "react";
 import { useMutation, useQuery } from "react-query";
-import { ChannelDescription, addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
+import { ChannelDescription, ChannelMembership, addAdmin, ban, fetchAvailableChannels, fetchAvailableDMs, fetchChannelMembers, kick, mute, removeAdmin, unban, unmute } from "../../api";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
@@ -10,6 +10,7 @@ import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
 import SocketContext, { useSocketEvent } from '../Socket/Context/Context';
 import { UserJoinedChannelPayload, UserLeftChannelPayload } from './Chat';
+import forEach from 'lodash/forEach';
 
 type Props = {
     side: string
@@ -239,15 +240,29 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar, u
 
 const MembersList: React.FC = () => {
     const { currentChannel, usersOrBanned, myPermissionMask, setMyPermissionMask } = useContext(ChatContext);
-    const allMembers = useQuery(['channel-members', currentChannel], () => fetchChannelMembers(currentChannel));
     const auth = useAuthContext();
+    const allMembers = useQuery(['channel-members', currentChannel], () => fetchChannelMembers(currentChannel), {
+        onSuccess(data) {
+            forEach(data, ({ userId, permissionMask }) => {
+                if (userId === auth.user?.id)
+                    setMyPermissionMask(permissionMask);
+            });
+        }
+    });
 
-    useEffect(() => {
-        allMembers.isFetched && map(allMembers.data, (member: Member) => {
-            if (member.userId === auth.user.id)
-                setMyPermissionMask(member.permissionMask);
-        });
-    }, [allMembers.data, auth.user.id]);
+    /* Sent when a channel member privileges has been updated (banned, unban) */
+    useSocketEvent<MembershipUpdatePayload>('member.update.state', ({ channelId, membershipState: newMembershipState, userId: targetId }) => {
+        const queryKey = [ 'channel-members', channelId ];
+        
+        if (queryClient.getQueryData(queryKey) !== undefined) {
+            queryClient.setQueryData<ChannelMembership[]>(queryKey, members => map(members, ({ userId, membershipState, ...rest }) => ({
+                userId,
+                membershipState: (targetId === userId) ? newMembershipState : membershipState,
+                ...rest,
+            })));
+        }
+    });
+
 
     return (
         usersOrBanned === 'users' 
@@ -274,6 +289,12 @@ const MembersList: React.FC = () => {
                     </div>
     );
 };
+
+type MembershipUpdatePayload = {
+    channelId: number;
+    userId: number;
+    membershipState: number;
+}
   
 const List: React.FC<Props> = ({ side }) => {
     const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask, setIsBanned, setMyPermissionMask } = useContext(ChatContext) as ChatContextType;
@@ -282,8 +303,6 @@ const List: React.FC<Props> = ({ side }) => {
     const auth = useAuthContext();
 
     const ctx = useContext(ChatContext);
-
-    console.log('Current channel id : ' + currentChannel);
 
     /* Sent when kicked out of the channel */
     useSocketEvent<UserLeftChannelPayload>('user.left.channel', ({ userId, channelId }) => {

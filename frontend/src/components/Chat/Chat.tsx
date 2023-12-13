@@ -15,6 +15,7 @@ import { ChannelDescription, ChannelMembership } from "../../api";
 import filter from 'lodash/filter';
 import map from 'lodash/map';
 import { useAuthContext } from "../../contexts/AuthContext";
+import './Chat.scss';
 
 interface infoElem {
     type: string,

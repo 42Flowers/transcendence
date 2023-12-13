@@ -10,7 +10,6 @@ import { queryClient } from "../../query-client";
 import SocketContext, { useSocketEvent } from '../Socket/Context/Context';
 import { UserAvatar } from "../UserAvatar";
 import { UserLeftChannelPayload } from './Chat';
-import './Chat.css';
 
 type Props = {
     side: string

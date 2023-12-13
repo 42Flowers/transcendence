@@ -40,7 +40,7 @@ interface Dm {
 }
 
 type DisplayProps = {
-    myId: number
+    myId: number | undefined
     userId: number
     userName: string
     avatar: string | null
@@ -242,10 +242,10 @@ const MembersList: React.FC = () => {
 
     useEffect(() => {
         allMembers.isFetched && map(allMembers.data, (member: Member) => {
-            if (member.userId === auth.user.id)
+            if (member.userId === auth.user?.id)
                 setMyPermissionMask(member.permissionMask);
         });
-    }, [allMembers.data, auth.user.id]);
+    }, [allMembers.data, auth.user?.id]);
 
     return (
         usersOrBanned === 'users' 
@@ -254,7 +254,7 @@ const MembersList: React.FC = () => {
                         {allMembers.isFetched && map(allMembers.data, (member: Member) => (
                             member.membershipState !== 4 &&
                                 <div key={member.userId} className="listRightClass">
-                                    <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
+                                    <DisplayUser myId={auth.user?.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
                                 </div>
                         ))}
                     </div>
@@ -264,7 +264,7 @@ const MembersList: React.FC = () => {
                             member.membershipState === 4
                                 ?
                                     <div key={member.userId} className="listRightClass">
-                                        <DisplayUser myId={auth.user.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
+                                        <DisplayUser myId={auth.user?.id} userId={member.userId} userName={member.userName} avatar={member.avatar} userPermissionMask={member.permissionMask} myPermissionMask={myPermissionMask} currentChannel={currentChannel} memberShipState={member.membershipState}/>
                                     </div>
                                 :
                                     null

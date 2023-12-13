@@ -1,46 +1,61 @@
-import { useContext } from "react";
-import { AvatarContext } from "../../../contexts/AvatarContext";
-import { AvatarContextType } from "../Profile";
-import { Avatar, Button } from "@mui/material";
-import default_avatar from "../../../assets/images/default_avatar.png";
+import { useSnackbar } from 'notistack';
+import React from 'react';
+import AvatarEdit from 'react-avatar-edit';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 
 type ChangeAvatarProps = {
-    handleUploadAvatar: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onCrop: (avatarUri: string) => void;
 };
 
-const ChangeAvatar: React.FC<ChangeAvatarProps> = ({ handleUploadAvatar }) => {
-    const { avatar } = useContext(AvatarContext) as AvatarContextType;
+const ChangeAvatarFallback: React.FC<FallbackProps> = ({ resetErrorBoundary }) => {
+    const { enqueueSnackbar } = useSnackbar();
+
+    React.useEffect(() => {
+        enqueueSnackbar({
+            variant: 'error',
+            message: 'Uh oh... it seems like you\'ve uploaded an invalid file :(',
+            anchorOrigin: {
+                horizontal: 'center',
+                vertical: 'top',
+            },
+            preventDuplicate: true,
+        });
+
+        resetErrorBoundary();
+    }, [resetErrorBoundary]);
+
+    return null;
+};
+
+export const ChangeAvatar: React.FC<ChangeAvatarProps> = ({ onCrop }) => {
+    const { enqueueSnackbar } = useSnackbar();
+
+    const handleBeforeFileLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            if (e.target.files[0].size > 1048576) {
+                enqueueSnackbar({
+                    variant: 'warning',
+                    message: 'The maximum upload size is limited to 1 Mb',
+                    anchorOrigin: {
+                        horizontal: 'center',
+                        vertical: 'top',
+                    },
+                });
+                e.target.value = '';
+            };
+        }
+    };
 
     return (
-        <>
-            <Avatar
-                alt="Avatar"
-                src={avatar || default_avatar}
-                sx={{
-                    width: '6vh',
-                    height: '6vh'
-                }}
+        <ErrorBoundary FallbackComponent={ChangeAvatarFallback}>
+            <AvatarEdit
+                width={300}
+                height={300}
+                exportSize={512}
+                exportMimeType="image/png"
+                onBeforeFileLoad={handleBeforeFileLoad}
+                onCrop={onCrop}
             />
-            <Button
-                variant="text"
-                sx={{ 
-                    fontSize: '1em', 
-                    marginTop: '1.5vh',
-                    fontWeight: '900',
-                    color: "#F8A38B",
-                }}
-                onClick={() => (document.getElementById('fileInput') as HTMLElement).click()}
-            >
-                CHANGE AVATAR 
-            </Button>
-            <input
-                type="file"
-                id="fileInput"
-                style={{ display: 'none' }}
-                onChange={handleUploadAvatar}
-            />
-        </>
-    )
+        </ErrorBoundary>
+    );
 };
-
-export default ChangeAvatar;

@@ -17,6 +17,7 @@ import './Profile.css';
 import { Button } from "@mui/material";
 import { enqueueSnackbar } from "notistack";
 import { queryClient } from "../../query-client";
+import { ChangeAvatar } from "./ChangeAvatar/ChangeAvatar";
 
 export interface PerfectContextType {
     perfectWin: boolean
@@ -75,15 +76,6 @@ const Profile: React.FC = () => {
         patchProfileMutation.mutate({ pseudo });
     }
 
-    const onBeforeFileLoad = (elem: React.ChangeEvent<HTMLInputElement>) => {
-        if (elem.target.files) {
-            if(elem.target.files[0].size > 1048576){
-                alert("File is too big!");
-                elem.target.value = '';
-            };
-        }
-    };
-
     const [ avatarPreview, setAvatarPreview ] = React.useState<string>();
 
     if (userProfileQuery.isLoading) {
@@ -98,14 +90,8 @@ const Profile: React.FC = () => {
 
     return (
         <>
-            <div className="Profile">
-                <AvatarEdit
-                    width={300}
-                    height={300}
-                    exportMimeType="image/png"
-                    exportSize={512}
-                    onBeforeFileLoad={onBeforeFileLoad}
-                    onCrop={avatarPreview => setAvatarPreview(avatarPreview)} />
+            <div className="Profile" onError={e => alert(e)}>
+                <ChangeAvatar onCrop={avatarPreview => setAvatarPreview(avatarPreview)} />
 
                 &nbsp;
                 

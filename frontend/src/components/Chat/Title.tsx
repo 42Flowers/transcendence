@@ -12,7 +12,7 @@ import { UserAvatar } from "../UserAvatar";
 import './Chat.css';
 
 type DisplayProps = {
-    myId: number
+    myId: number | undefined
     userId: number
     userName: string
     avatar: string | null
@@ -259,7 +259,7 @@ const Title: React.FC = () => {
                                                 setCurrentDm(dm.targetId)
                                                 setCurrentAvatar(dm.avatar)
                                             }}>
-                                                <DisplayUser myId={auth.user.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
+                                                <DisplayUser myId={auth.user?.id} userId={dm.targetId} userName={dm.targetName} avatar={dm.avatar} />
                                             </div>
                                         :
                                             null

@@ -102,7 +102,7 @@ const MessagesChannel: React.FC = () => {
                     ?
                         null
                     :
-                        msg.authorId === user.id 
+                        msg.authorId === user?.id 
                             ?
                                 <div key={msg.id} className="userBubble">
                                     <p className="userNameBubble">{msg.authorName} - {getTime(msg.createdAt)}</p>
@@ -127,7 +127,7 @@ const MessagesDm: React.FC = () => {
     const [sortedMessages, setSortedMessages] = useState<DmMessage[]>([]);
 
     const updateDmMessages = useCallback((msg: NewMessageElem) => {
-        if (!msg || msg.type !== "conversation" || (msg.authorId !== currentDm && msg.authorId !== user.id))
+        if (!msg || msg.type !== "conversation" || (msg.authorId !== currentDm && msg.authorId !== user?.id))
             return;
         setSortedMessages((prevMessages) => [...prevMessages, {
             id: msg.msgId,
@@ -166,7 +166,7 @@ const MessagesDm: React.FC = () => {
                     ? 
                         null
                     :
-                        msg.authorId === user.id 
+                        msg.authorId === user?.id 
                             ?
                                 <div key={msg.id} className="userBubble">
                                     <p className="userNameBubble">{msg.authorName} - {getTime(msg.createdAt)}</p>

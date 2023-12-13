@@ -7,21 +7,17 @@ ARG FT_APP_ID
 ARG FT_APP_SECRET
 ARG JWT_SECRET
 
-RUN npm i -g pnpm
-
 WORKDIR /app
 
 COPY package.json .
 
-COPY pnpm-lock.yaml .
+COPY yarn.lock .
 
 COPY . .
 
-RUN pnpm i --frozen-lockfile
+RUN yarn install --frozen-lockfile --non-interactive
 
-RUN pnpm run build
-
-RUN pnpm i --prod --frozen-lockfile
+RUN yarn run build
 
 COPY --chmod=744 ./docker-entrypoint.sh /docker-entrypoint.sh
 

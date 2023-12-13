@@ -219,6 +219,10 @@ export class ChatService {
 	) {
 		const target = await this.usersService.getUserByName(targetName);
 		const user = await this.usersService.getUserById(userId);
+		if (target == null || target == undefined) {
+			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'conversation', "This user does not exist on our database"));
+			return;
+		}
 		if (userId == target.id) {
 			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'conversation', "You cannot start a conversation with yourself"));
 			return null;

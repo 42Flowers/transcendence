@@ -40,7 +40,12 @@ export class ProfileController {
 
     @Get()
     async getProfileInfos(@Request() req: ExpressRequest) {
-        const userId = req.user.id;
+        const userId = Number(req.user.sub);
+        console.log("111");
+        if (userId === null || userId === undefined) {
+            return ;
+        }
+        console.log("111");
         const profileInfo = await this.profileService.getProfileInfos(userId);
         
         return profileInfo;
@@ -48,20 +53,36 @@ export class ProfileController {
 
     @Get('matchhistory')
     async getMatchHistory(@Request() req: ExpressRequest): Promise<any> {
-        return this.profileService.getMatchHistory(Number(req.user.sub));
+        const userId = Number(req.user.sub);
+        console.log("222");
+        if (userId === null || userId === undefined) {
+            return ;
+        }
+        console.log("222");
+        return this.profileService.getMatchHistory(userId);
     }
 
     @Get('stats')
     async getStats(@Request() req: ExpressRequest): Promise<any> {
-        return this.profileService.getStats(Number(req.user.sub));
+        const userId = Number(req.user.sub);
+        console.log("333");
+        if (userId === null || userId === undefined) {
+            return ;
+        }
+        console.log("333");
+        return this.profileService.getStats(userId);
     }
 
     @Get('/@me/achievements')
     async retrieveAchievementsForCurrentUser(
         @Request() req: ExpressRequest
     ) {
-        const userId = req.user.id;
-
+        const userId = Number(req.user.sub);
+        console.log("444");
+        if (userId === null || userId === undefined) {
+            return ;
+        }
+        console.log("444");
         try {
             const achievements = await this.achievementsService.listAchievements(userId);
 

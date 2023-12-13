@@ -84,7 +84,7 @@ export const loginWithPassword = (email: string, password: string) => wrapRespon
 export const submitOtp = (ticket: string, code: string) => wrapResponse(client.post<AuthorizationTokenPayload>('/api/v1/auth/mfa/otp', { ticket, code }));
 export const registerUser = (payload: any) => wrapResponse(client.post('/api/v1/auth/register', payload));
 
-export const fetchUserProfile = (profile: number | '@me') => wrapResponse(authorizedGet<UserProfile>(`/api/v1/users/${profile}`));
+export const fetchUserProfile = (profile: UserID) => wrapResponse(authorizedGet<UserProfile>(`/api/v1/users/${profile}`));
 
 export type PatchUserProfile = Partial<Omit<UserProfile, 'id' | 'avatar'>> & { avatar?: File };
 
@@ -113,7 +113,7 @@ function objectToFormData(o: Record<string, Blob | string | number>): FormData {
     return formData;
 }
 
-export const fetchProfilePublic = (targetId: number) => wrapResponse(authorizedGet<PublicUserProfile>(`/api/profile/${targetId}`));
+export const fetchProfilePublic = (targetId: UserID) => wrapResponse(authorizedGet<PublicUserProfile>(`/api/profile/${targetId}`));
 
 export type LadderEntry = {
     id: number;
@@ -131,10 +131,8 @@ export type LadderEntry = {
 }
 
 export const fetchLadder = () => wrapResponse(authorizedGet<LadderEntry[]>('/api/profile/ladder'));
-export const fetchMatchHistory = () => wrapResponse(authorizedGet('/api/profile/matchhistory'));
-export const fetchStats = () => wrapResponse(authorizedGet('/api/profile/stats'));
-export const fetchAddAchievementToUser = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-achievement-to-user', payload));
-export const fetchAddAvatar = (payload: any) => wrapResponse(authorizedPost('/api/profile/add-avatar', payload));
+export const fetchMatchHistory = (userId: UserID) => wrapResponse(authorizedGet(`/api/profile/${userId}/matchhistory`));
+export const fetchStats = (userId: UserID) => wrapResponse(authorizedGet(`/api/profile/${userId}/stats`));
 
 /* ==== CHAT ==== */
 export type ChannelMessage = {
@@ -222,11 +220,11 @@ export type UserStatus = [
 export const fetchAvailableUsers = () => wrapResponse(authorizedGet<UserStatus[]>('/api/gateway/status'));
 
 /* ==== FRIENDS ==== */
-export const fetchIsFriended = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isFriended: boolean; }>(`/api/profile/${userId}/isFriendwith/${friendId}`));
-export const addUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/add/${friendId}`, ''));
-export const fetchIsBlocked = (userId: number, friendId: number) => wrapResponse(authorizedGet<{ isBlocked: boolean; }>(`/api/profile/${userId}/isBlockWith/${friendId}`));
-export const blockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/block/${friendId}`, ''));
-export const unblockUser = (userId: number, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/unblock/${friendId}`, ''));
+export const fetchIsFriended = (userId: UserID, friendId: number) => wrapResponse(authorizedGet<{ isFriended: boolean; }>(`/api/profile/${userId}/isFriendwith/${friendId}`));
+export const addUser = (userId: UserID, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/add/${friendId}`, ''));
+export const fetchIsBlocked = (userId: UserID, friendId: number) => wrapResponse(authorizedGet<{ isBlocked: boolean; }>(`/api/profile/${userId}/isBlockWith/${friendId}`));
+export const blockUser = (userId: UserID, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/block/${friendId}`, ''));
+export const unblockUser = (userId: UserID, friendId: number) => wrapResponse(authorizedPost(`/api/profile/${userId}/unblock/${friendId}`, ''));
 
 // FRIEND PAGE FROM FETCH TO QUERY
 export const fetchFriendsList = () => wrapResponse(authorizedGet('/api/friends'));

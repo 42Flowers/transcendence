@@ -2,25 +2,33 @@ import { BadRequestException, Body, Controller, Get, HttpStatus, NotFoundExcepti
 import { Request as ExpressRequest } from 'express';
 import { AuthGuard } from "src/auth/auth.guard";
 import { UsersService } from "./users.service";
-import { IsEmail, IsOptional, IsString, Length } from "class-validator";
+import { IsEmail, IsOptional, IsString, Length, MinLength, MaxLength, IsNotEmpty } from "class-validator";
 import { AllowIncompleteProfile } from "src/auth/allow-incomplete-profile.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
 import sizeOf from 'image-size';
 import { ProfileService } from "src/profile/profile.service";
 import { diskStorage } from "multer";
+import { IsNoSpecialCharacters } from "src/profile/profile.pipe";
 
 export class PatchProfileDto {
     @IsOptional()
-    @Length(3, 10)
+    @IsString()
+    @IsNoSpecialCharacters()
+    @MinLength(3)
+    @MaxLength(10)
     pseudo: string;
 
     @IsOptional()
     @IsEmail()
+    @IsString()
     email: string;
 }
 
 export class CompleteProfileDto {
-    @Length(3, 10)
+    @IsString()
+    @IsNoSpecialCharacters()
+    @MinLength(3)
+    @MaxLength(10)
     pseudo: string;
 }
 
@@ -129,3 +137,4 @@ export class UsersController {
         }
     }
 }
+

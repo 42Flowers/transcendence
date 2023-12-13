@@ -117,7 +117,7 @@ const CreateJoin: React.FC = () => {
                                     minLength={3}
                                     maxLength={10}
                                 />
-                                <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">JOIN</button>
+                                <button type="submit" style={{ flex: "1 1 auto" }} className="submitClass">CREATE</button>
                             </form>
                     </div>
             :

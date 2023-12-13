@@ -23,8 +23,12 @@ import { ChatChangePasswordEvent } from 'src/events/chat/changePassword.event';
 import { ChatDeleteChannelEvent } from 'src/events/chat/deleteChannel.event';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CheckIntPipe } from 'src/profile/profile.pipe';
-import { IsString, IsNumber, IsNotEmpty, Min, Max, MaxLength, MinLength, Length, IsPositive } from 'class-validator';
+import { IsString, IsInt, IsNotEmpty, Min, Max, MaxLength, MinLength, Length, IsPositive, IsAscii } from 'class-validator';
 import { CheckIntPipeChat } from './chat.pipe'
+import { ChatAddInviteEvent } from 'src/events/chat/addInvite.event';
+import { ChatInviteInChannelEvent } from 'src/events/chat/inviteInChannel.event';
+import { ChatRemoveInviteEvent } from 'src/events/chat/removeInvite.event';
+import { ChatCreatePrivateChannelEvent } from 'src/events/chat/createPrivateChannel.event';
 
 
 interface Message {
@@ -55,9 +59,9 @@ export class JoinChannelDto {
 }
 
 export class QuitDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     channelId: number;
@@ -71,51 +75,81 @@ export class TargetDto {
 }
 
 export class DeleteChannelDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
     @Min(1)
 	@IsPositive()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     channelId: number
 }
 
 export class ActionsDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
     @Min(1)
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
 	@IsPositive()
     channelId: number
 
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     targetId: number
 }
 
 export class ManagePwdDto {
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     channelId: number
 
+    @IsNotEmpty()
     @IsString()
-	@MinLength(3)
 	@Length(3, 20)
     pwd: string
 }
 
-export class RemovePwdDto {
-    @IsNumber()
+export class ManageInviteDTO {
+    @IsInt()
     @IsNotEmpty()
-	@Max(Number.MAX_SAFE_INTEGER)
+	@Max(1000000)
+    @Min(1)
+	@IsPositive()
+	channelId: number
+}
+
+export class InviteInChannelDTO {
+	@IsInt()
+    @IsNotEmpty()
+	@Max(1000000)
+    @Min(1)
+	@IsPositive()
+	channelId: number
+
+	@IsString()
+	@IsNotEmpty()
+	@Length(3, 10)
+    targetName: string;
+}
+
+export class RemovePwdDto {
+    @IsInt()
+    @IsNotEmpty()
+	@Max(1000000)
     @Min(1)
 	@IsPositive()
     channelId: number
+}
+
+export class CreatePrivateChannelDTO {
+	// @IsString()
+	// @IsNotEmpty()
+	// // @Length(3, 10)
+    channelName: string;
 }
 
 /**
@@ -137,6 +171,52 @@ export class ChatController {
         private readonly prismaService: PrismaService
         ) {}
 
+	@Post('create-private-channel')
+	async handleCreateprivateChannel(
+		@Body() DTO: CreatePrivateChannelDTO,
+		@Request() req: ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined) {
+			return;
+		}
+		this.eventEmitter.emit("chat.createprivatechannel", new ChatCreatePrivateChannelEvent(userId, DTO.channelName));
+	}
+
+	@Post('invite-user')
+	async handleInvite(
+		@Body() inviteDTO: InviteInChannelDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined) {
+			return;
+		}
+		this.eventEmitter.emit('chat.invitechannel', new ChatInviteInChannelEvent(userId, inviteDTO.channelId, inviteDTO.targetName));
+
+	}
+
+	@Post('add-invite')
+	async handleAddInvite(
+		@Param() inviteDTO : ManageInviteDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined)
+			return;
+		this.eventEmitter.emit('chat.addinvite', new ChatAddInviteEvent(userId, inviteDTO.channelId));
+	}
+
+	@Post('rm-invite')
+	async handleRemoveInvite(
+		@Param() inviteDTO: ManageInviteDTO,
+		@Request() req : ExpressRequest
+	) {
+		const userId = Number(req.user.sub);
+		if (userId == undefined)
+			return;
+		this.eventEmitter.emit('chat.rminvite', new ChatRemoveInviteEvent(userId, inviteDTO.channelId));
+	}
 
 	@Get('get-blocked-users')
 	async getBlockedUsers(
@@ -168,7 +248,7 @@ export class ChatController {
 			const userId = Number(req.user.sub);
 			if (userId == undefined)
 				return;
-            const rooms = await this.roomService.getPublicRooms(userId);
+            const rooms = await this.roomService.getPublicRoomsWhereNotBanned(userId);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
             const chans = [];
             rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask}));
@@ -255,8 +335,7 @@ export class ChatController {
 		  const userId = Number(req.user.sub);
 		  if (userId == undefined)
 			  return;
-          this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(userId, quitDto.channelId)); // TODO: quitDto.channelId
-          // this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(Number(req.user.sub), "chan1", 2));
+          this.eventEmitter.emit('chat.exitchannel', new ChatExitChannelEvent(userId, quitDto.channelId));
     }
 
 
@@ -329,7 +408,6 @@ export class ChatController {
         if (userId == undefined)
             return;
 		this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-		// this.eventEmitter.emit('chat.mute', new ChatMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 	}
 
 	@Post('unmute-user')
@@ -341,7 +419,6 @@ export class ChatController {
         if (userId == undefined)
             return;
 		this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(userId, actionsDto.channelId, actionsDto.targetId))
-		// this.eventEmitter.emit('chat.unmute', new ChatUnMuteOnChannelEvent(Number(req.user.sub), "coucou", 2, 4))
 	}
 
 	@Post('ban-user')
@@ -364,7 +441,6 @@ export class ChatController {
         if (userId == undefined)
             return;
 		this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-		// this.eventEmitter.emit('chat.unban', new ChatUnBanFromChannelEvent(Number(req.user.sub), "coucou", 2, 4));
 	}
 
 	@Post('kick-user')
@@ -385,7 +461,6 @@ export class ChatController {
         if (userId == undefined)
             return;
         this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-        // this.eventEmitter.emit('chat.addadmin', new ChatAddAdminToChannelEvent(Number(req.user.sub), "chan", 2, 2));
 	}
 
 	@Post('rm-admin')
@@ -396,8 +471,7 @@ export class ChatController {
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;
-			this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
-			// this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(Number(req.user.sub), "chan", 2, 2));
+		this.eventEmitter.emit('chat.rmadmin', new ChatRemoveAdminFromChannelEvent(userId, actionsDto.channelId, actionsDto.targetId));
 	}
 
 	@Post('change-pwd')
@@ -408,7 +482,7 @@ export class ChatController {
         const userId = Number(req.user.sub);
         if (userId == undefined)
             return;
-		    this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(userId, managePwdDto.channelId, managePwdDto.pwd));
+		this.eventEmitter.emit('chat.changepwd', new ChatChangePasswordEvent(userId, managePwdDto.channelId, managePwdDto.pwd));
 	}
 
 	@Post('add-pwd')
@@ -448,7 +522,7 @@ export class ChatController {
 		}
 	}
 
-    @Post('delete-channel') //TODO les DTO
+    @Post('delete-channel')
     async handleDeleteRoom(
         @Body() deleteDto: DeleteChannelDto,
         @Request() req: ExpressRequest

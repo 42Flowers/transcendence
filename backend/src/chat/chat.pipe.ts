@@ -7,7 +7,7 @@ export class CheckIntPipeChat implements PipeTransform {
     constructor(private prismaService: PrismaService) {}
 
     async transform(value: any) {
-        if (value.length > 16) {
+        if (value.length > 7) {
             throw new BadRequestException('Validation failed: parameter exceeds maximum limit');
         }
 
@@ -19,7 +19,7 @@ export class CheckIntPipeChat implements PipeTransform {
         if (intValue.toString() !== value) {
             throw new BadRequestException('Validation failed: parameter must be an integer');
         }
-        if (intValue > Number.MAX_SAFE_INTEGER) {
+        if (intValue > 1000000) {
             throw new BadRequestException('Validation failed: parameter exceeds maximum limit');
         }
         if (intValue < 1) {

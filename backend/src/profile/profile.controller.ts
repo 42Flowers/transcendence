@@ -16,6 +16,7 @@ import * as path from 'node:path';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import { renameSync, unlink, unlinkSync } from 'fs';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CheckIntPipe } from './profile.pipe';
 
 @Controller('profile')
 @UseGuards(AuthGuard)
@@ -74,8 +75,8 @@ export class ProfileController {
 
     @Get('/:id/achievements')
     async getAchievements(
-        @Param('id', ParseIntPipe) userId: number): Promise<any> {
-        
+        @Param('id', CheckIntPipe) userId: number): Promise<any> {
+
         try {
             const achievements = await this.achievementsService.listAchievements(userId);
 

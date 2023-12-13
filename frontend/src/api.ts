@@ -185,10 +185,11 @@ export type UnBanUserPayload = {
 }
 
 export const joinChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/join-channel`, payload));
-//export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
+export const createPrivateChannel = (payload :any) => wrapResponse(authorizedPost(`api/chat/create-private-channel`, payload));
 export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation`, payload));
 export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel`, payload));
 export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel`, payload));
+export const inviteUser = (payload: any) => wrapResponse(authorizedPost(`api/chat/invite-user`, payload));
 export const mute = (payload: any) => wrapResponse(authorizedPost(`api/chat/mute-user`, payload));
 export const unmute = (payload: any) => wrapResponse(authorizedPost(`api/chat/unmute-user`, payload));
 export const ban = (payload: BanUserPayload) => wrapResponse(authorizedPost(`api/chat/ban-user`, payload));
@@ -222,7 +223,7 @@ export const unblockUser = (userId: number, friendId: number) => wrapResponse(au
 // FRIEND PAGE FROM FETCH TO QUERY
 export const fetchFriendsList = () => wrapResponse(authorizedGet('/api/friends'));
 export const unblockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/unblock`, payload));
-export const blockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/unblock`, payload));
+export const blockUserMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/block`, payload));
 export const deleteFriendMutation = (payload: any) => wrapResponse(authorizedPost(`api/friends/delete`, payload));
 export const cancelFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/cancel`, payload));
 export const declineFriendInvitation = (payload: any) => wrapResponse(authorizedPost(`api/friends/decline`, payload));

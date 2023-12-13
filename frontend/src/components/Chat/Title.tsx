@@ -143,7 +143,7 @@ const Title: React.FC = () => {
         deleteMutation.mutate({ channelId: currentChannel });
     };
 
-    const handleInviteUser = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleInviteUser = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 		if (invitedUser.length < 3)
 			return;

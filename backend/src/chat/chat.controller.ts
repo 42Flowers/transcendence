@@ -248,7 +248,7 @@ export class ChatController {
 			const userId = Number(req.user.sub);
 			if (userId == undefined)
 				return;
-            const rooms = await this.roomService.getPublicRooms(userId);
+            const rooms = await this.roomService.getPublicRoomsWhereNotBanned(userId);
 			const access = await Promise.all(rooms.map(room => this.roomService.getAccessMask(room.channelId)));
             const chans = [];
             rooms.forEach((room, index) => chans.push({channelId: room.channelId, channelName: room.channelName, userPermissionMask: room.permissionMask, accessMask: access[index].accessMask}));

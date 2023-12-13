@@ -105,15 +105,6 @@ const Title: React.FC = () => {
         }
     });
 
-    const addUserToChannel = useMutation({
-        // TO DO
-        // INVITE USER
-        // mutationFn: addPwd,
-        // onError() {
-        //     alert("Cannot add user");
-        // }
-    });
-
     const addPasswordMutation = useMutation({
         mutationFn: addPwd,
         onError() {

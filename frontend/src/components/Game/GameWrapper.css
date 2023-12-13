@@ -1,15 +1,19 @@
 .game-wrapper {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 }
 
 .display-players {
 	display: flex;
-	justify-content: space-between;
+	justify-content: space-around;
+	align-items: center;
 	padding-top: 3em;
+	width: 80%;
 }
 
 .game-div {
 	justify-content: center;
 	align-items: center;
+	width: 100%;
 }

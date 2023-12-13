@@ -1,6 +1,7 @@
 import './Game.css'
 import SocketContext, { useSocketEvent } from '../Socket/Context/Context';
 import React, { useRef, useEffect, useContext, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const BOARD_WIDTH = 800; // in px
 const BOARD_HEIGHT = 600; // in px
@@ -32,8 +33,6 @@ interface ballElem {
 	radius: number,
 }
 
-// const colorYellow = getComputedStyle(document.documentElement).getPropertyValue('--color-yellow').trim();
-// const colorPurple = getComputedStyle(document.documentElement).getPropertyValue('--color-purple').trim();
 let leftPaddleColor = "yellow";
 let rightPaddleColor = "yellow";
 let dangerousBallColor = "black";
@@ -183,7 +182,7 @@ const Game: React.FC<gameProps> = ({ specialMode, ...props }) => {
 		ctx.fillRect(rightPad.x, rightPad.y, rightPad.width, rightPad.length);
 		
 		// score
-		ctx.fillStyle = purpleColor;
+		ctx.fillStyle = yellowColor;
 		ctx.font = "40px Short Stack";
 		ctx.fillText(score.leftPlayer, Math.round(width / 2 / 2), Math.round(height / 8));
 		ctx.fillText(score.rightPlayer,Math.round(width / 2 * 1.5), Math.round(height / 8));
@@ -195,6 +194,8 @@ const Game: React.FC<gameProps> = ({ specialMode, ...props }) => {
 		ctx.fillStyle = yellowColor;
 		ctx.font = "40px Short Stack";
 		ctx.fillText("Get READY !", Math.round(width / 3), Math.round(height / 8));
+		ctx.font = "20px Short Stack";
+		ctx.fillText("tips: if the game does not start within 20's, return to menu ", Math.round(width / 14), Math.round(2.8 * height / 3));
 
 		const t = Math.min(1.0, (Date.now() - lastCountdownReceivedTime) / 250);
 
@@ -216,6 +217,7 @@ const Game: React.FC<gameProps> = ({ specialMode, ...props }) => {
 		ctx.fillText("Game is Over", Math.round(width / 3), Math.round(height / 2));
 		ctx.fillText(score.leftPlayer, Math.round(props.width / 2 / 2), Math.round(height / 8));
 		ctx.fillText(score.rightPlayer,Math.round(props.width / 2 * 1.5), Math.round(height / 8));
+		ctx.font = "20px Short Stack";
 	}
 	
 	function renderFrame(context: CanvasRenderingContext2D | null | undefined): void {

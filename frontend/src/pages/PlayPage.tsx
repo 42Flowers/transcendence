@@ -13,11 +13,12 @@ type UserStatus = [
 ]
 
 interface SelectUserProps {
-    usersList: UserStatus[];
+    usersList: UserStatus[] | undefined;
     handleChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 const SelectUser: React.FC<SelectUserProps> = ({ usersList, handleChange }) => {
+
     const availableUsers = map(usersList, ([ id, pseudo, status ]) => {
         if (status == "online") {
             return (
@@ -27,13 +28,18 @@ const SelectUser: React.FC<SelectUserProps> = ({ usersList, handleChange }) => {
             )
         }
     });
-    
-    return (
-        <select placeholder="Select a user" name="userList" className="userList" onChange={handleChange}>
-            <option value="-1" key="placeholder">Select a user</option>
-            { availableUsers }
-        </select>
-    );
+
+    if (usersList == undefined) {
+        return ;
+    }
+    else {
+        return (
+            <select placeholder="Select a user" name="userList" className="userList" onChange={handleChange}>
+                <option value="-1" key="placeholder">Select a user</option>
+                { availableUsers }
+            </select>
+        );
+    }
 }
 
 const PlayPage: React.FC = () => {
@@ -50,8 +56,9 @@ const PlayPage: React.FC = () => {
             setWaiting(true);
             return ;
         }
-        else if (whichButton === "invite-normal")
+        else if (whichButton === "invite-normal" && selectedUserIdNormal && selectedUserIdNormal != -1)
         {
+            console.log("userId: ", selectedUserIdNormal);
             SocketState.socket?.emit("inviteNormal", selectedUserIdNormal);
             setWaiting(true);
             return ;
@@ -61,8 +68,9 @@ const PlayPage: React.FC = () => {
             setWaiting(true);
             return ;
         }
-        else if (whichButton === "invite-special")
+        else if (whichButton === "invite-special" && selectedUserIdSpecial && selectedUserIdSpecial != -1)
         {
+            console.log("userId: ", selectedUserIdSpecial);
             SocketState.socket?.emit("inviteSpecial", selectedUserIdSpecial);
             setWaiting(true);
             return ;

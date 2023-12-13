@@ -207,7 +207,7 @@ const Title: React.FC = () => {
                                                 ?
                                                     <form onSubmit={handleAddPassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                                         <input
-                                                            type="text"
+                                                            type="password"
                                                             placeholder="add a password"
                                                             value={addPassword}
                                                             onChange={(e) => setAddPassword(e.target.value)}
@@ -221,7 +221,7 @@ const Title: React.FC = () => {
                                                     <>
                                                         <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                                                             <input
-                                                                type="text"
+                                                                type="password"
                                                                 placeholder="new password"
                                                                 value={changePassword}
                                                                 onChange={(e) => setChangePassword(e.target.value)}

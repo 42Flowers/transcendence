@@ -283,6 +283,7 @@ export class ProfileService {
               status: 1,
             },
           });
+		  this.eventEmitter.emit('chat.sendtoclient', 'friend', "Somebody wants to be your friend ! You should go look at your frienship requests");
         }
         return this.getIsFriend(userId, friendId);
     }

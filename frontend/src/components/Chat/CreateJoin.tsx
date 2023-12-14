@@ -3,7 +3,7 @@ import { useMutation } from "react-query";
 
 import filter from "lodash/filter";
 import { useContext } from "react";
-import { ChannelDescription, addDm, createPrivateChannel, joinChannel } from "../../api";
+import { ChannelDescription, ConversationDescription, addDm, createPrivateChannel, joinChannel } from "../../api";
 import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { queryClient } from "../../query-client";
 
@@ -32,6 +32,14 @@ const CreateJoin: React.FC = () => {
 
     const addDmMutation = useMutation({
         mutationFn: addDm,
+        onSuccess(convDesc) {
+            if (queryClient.getQueryData('direct-messages-list') !== undefined) {
+                queryClient.setQueryData<ConversationDescription[]>('direct-messages-list', conversations => [
+                    ...(filter(conversations, c => c.conversationId !== convDesc.conversationId)),
+                    convDesc,
+                ]);
+            }
+        },
         onError() {
             alert("Choose a more secured password or a valid channel name");
         }
@@ -39,6 +47,14 @@ const CreateJoin: React.FC = () => {
 
     const createPrivateChannelMutation = useMutation({
         mutationFn: createPrivateChannel,
+        onSuccess(channelDescription) {
+            if (queryClient.getQueryData([ 'channels-list' ]) !== undefined) {
+                queryClient.setQueryData<ChannelDescription[]>([ 'channels-list' ], channels => [
+                    ...(filter(channels, c => c.channelId !== channelDescription.channelId)),
+                    channelDescription,
+                ]);
+            }
+        },
         onError() {
             alert("Choose a valid channel name")
         }

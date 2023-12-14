@@ -119,7 +119,7 @@ export class RoomService {
 		} catch (err) {throw err}
 	}
 
-	async getAccessMask(channelId: number) {
+	async getAccessMask(channelId: number): Promise<number> {
 		try {
 			const mask = await this.prismaService.channel.findUnique({
 				where: {
@@ -130,7 +130,7 @@ export class RoomService {
 				}
 			});
 			
-			return mask;
+			return mask.accessMask;
 		} catch {
 			;
 		}
@@ -179,7 +179,7 @@ export class RoomService {
 		return undefined;
 	}
 
-	async createPrivateRoom(name: string, userId: number) : Promise<any> {
+	async createPrivateRoom(name: string, userId: number) : Promise<ChannelMembership | null> {
 		try {
 			const user = await this.prismaService.user.findUnique({where: {id: userId}, select: {id: true}});
 			if (name.length > 10)
@@ -197,7 +197,7 @@ export class RoomService {
 					accessMask: 2
 				}
 			});
-			if (channel != null ) {
+			if (channel !== null) {
 				const member = await this.prismaService.channelMembership.create({
 					data: {
 						user: {

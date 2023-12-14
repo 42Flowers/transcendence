@@ -169,16 +169,16 @@ export class ChatController {
         ) {}
 
 	@Post('create-private-channel')
-	async handleCreateprivateChannel(
-		@Body() DTO: CreatePrivateChannelDTO,
+	async handleCreatePrivateChannel(
+		@Body() { channelName }: CreatePrivateChannelDTO,
 		@Request() req: ExpressRequest
 	) {
-		const userId = Number(req.user.sub);
-		if (userId == undefined) {
-			return;
-		}
-		this.eventEmitter.emit("chat.createprivatechannel", new ChatCreatePrivateChannelEvent(userId, DTO.channelName));
-	}
+		const userId = req.user.id;
+        const resp = await this.chatService.createPrivateChannel(userId, channelName);
+	
+    
+        return resp;
+    }
 
 	@Post('invite-user')
 	async handleInvite(
@@ -366,14 +366,13 @@ export class ChatController {
 
     @Post('create-conversation')
     async createConversation(
-        @Body() targetDto: TargetDto,
+        @Body() { targetName }: TargetDto,
         @Request() req: ExpressRequest
     ) {
         try {
-			const userId = Number(req.user.sub);
-			if (userId == undefined)
-				return;
-            const conversation = await this.chatService.createConversation(userId, targetDto.targetName);
+			const userId = req.user.id;
+            const conversation = await this.chatService.createConversation(userId, targetName);
+            
             return conversation;
         } catch {
             ;

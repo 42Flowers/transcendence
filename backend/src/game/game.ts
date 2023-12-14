@@ -2,9 +2,6 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { User } from "@prisma/client";
 import { Socket } from "socket.io";
 import { GameEndedEvent } from "src/events/game-ended.event";
-import { v4 as uuidv4 } from 'uuid';
-
-const SOCKET_NOT_FOUND = -1;
 
 const BOARD_WIDTH = 800; // in px
 const BOARD_HEIGHT = 600; // in px
@@ -136,15 +133,6 @@ export class Game {
         this.leftPlayerScore = 0;
         this.rightPlayerScore = 0;
 
-        this.emitToPlayers('playerData', {
-            left: {
-                pseudo: this.leftPlayerSocket.user.pseudo,
-            },
-            right: {
-                pseudo: this.rightPlayerSocket.user.pseudo,
-            },
-        });
-
         this.updateCountdown();
 
         this.keys = {
@@ -223,6 +211,15 @@ export class Game {
                    this.lastCountDownTick = now;
 
                    this.updateCountdown();
+
+                    this.emitToPlayers('playerData', {
+                        left: {
+                            pseudo: this.leftPlayerSocket.user.pseudo,
+                        },
+                        right: {
+                            pseudo: this.rightPlayerSocket.user.pseudo,
+                        },
+                    });
                 }
             }
         } else if (this.gameState === GameState.Running) {

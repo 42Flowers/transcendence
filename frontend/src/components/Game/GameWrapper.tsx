@@ -30,12 +30,12 @@ const GameWrapper: React.FC<wrapperProps> = (props) => {
 		setGameEnded(true);
 	}
 	
-	const updatePlayersScore = (newScore: {leftPlayer: string, rightPlayer: string}) => {
+	const updatePlayersScore = (newScore: { leftPlayer: string; rightPlayer: string; }) => {
 		setLeftScore(newScore.leftPlayer);
 		setRightScore(newScore.rightPlayer);
 	}
 	
-	useSocketEvent('playerData', data => setPlayersData(data));
+	useSocketEvent('playerData', setPlayersData);
 	useSocketEvent('gameFinished', endGame);
 	useSocketEvent('updateScore', updatePlayersScore);
 

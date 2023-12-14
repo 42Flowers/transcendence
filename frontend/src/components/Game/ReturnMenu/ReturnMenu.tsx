@@ -22,7 +22,7 @@ const ReturnMenu: React.FC<Props> = ({ leftName, rightName, leftScore, rightScor
         return (
             <div className="returnMenu">
                 <p style={{ marginTop: '40px', }} className="winner">WINNER: {leftName} with {leftScore} points</p>
-                <p style={{ marginTop: '40px', }} className="looser">LOOSER: {rightName} with {rightScore} points</p>
+                <p style={{ marginTop: '40px', }} className="looser">LOSER: {rightName} with {rightScore} points</p>
                 <MainButton buttonName='Return to Menu' onClick={() => handleReturnMenu()} />
             </div>
         );
@@ -33,7 +33,7 @@ const ReturnMenu: React.FC<Props> = ({ leftName, rightName, leftScore, rightScor
             return (
                 <div className="returnMenu">
                     <p style={{ marginTop: '40px', }} className="winner">WINNER: {rightName} with {rightScore} points</p>
-                    <p style={{ marginTop: '40px', }} className="looser">LOOSER: {leftName} with {leftScore} points</p>
+                    <p style={{ marginTop: '40px', }} className="looser">LOSER: {leftName} with {leftScore} points</p>
                     <MainButton buttonName='Return to Menu' onClick={() => handleReturnMenu()} />
                 </div>
             );

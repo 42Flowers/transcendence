@@ -197,6 +197,14 @@ export class SocketGateway implements
 		});
 	}
 
+	@OnEvent('chat.sendtoclientfriends')
+    sendToClientFriends({ userId, type, data }: ChatSendToClientEvent) {
+        this.socketService.emitToUserSockets(userId, 'infofriends', {
+            type,
+            msg: data,
+        });
+    }
+
 	@OnEvent('chat.sendmessage')
 	sendMessage(event: ChatSendMessageEvent) 
 	{

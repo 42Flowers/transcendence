@@ -38,6 +38,7 @@ export class MessagesService {
                     id: true,
                     authorId: true,
                     createdAt: true,
+					content: true,
                 }
             });
             return messages;

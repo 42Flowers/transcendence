@@ -51,11 +51,6 @@ function IsChannel(validationOptions?: ValidationOptions) {
         });
 }
 
-class ZebiDto {
-    @IsChannel()
-    channelId: number;
-}
-
 export enum AuthorizationProviderType {
     FortyTwo = 'ft',
 }
@@ -196,12 +191,6 @@ export class AuthController {
         };
     }
 
-    @Post('zebi')
-    async zebi(
-        @Body() zebi: ZebiDto
-    ) {
-        return zebi;
-    }
 }
 
 declare global {

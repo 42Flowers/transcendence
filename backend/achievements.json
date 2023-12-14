@@ -2,31 +2,31 @@
     {
         "name": "Newwww Avatar",
         "slug": "new-avatar",
-        "description": "Congrats, you've just changed you're avatar for the very first time!",
+        "description": "Congrats, you've just changed your avatar for the very first time!",
         "difficulty": 1
     },
     {
         "name": "Newwww Pseudo",
         "slug": "new-username",
-        "description": "Congrats, you've just changed you're pseudo for the very first time!",
+        "description": "Congrats, you've just changed your pseudo for the very first time!",
         "difficulty": 1
     },
     {
         "name": "First Game",
         "slug": "first-game",
-        "description": "It's you're first game ever!",
+        "description": "It's your first game ever!",
         "difficulty": 1
     },
     {
         "name": "You're getting used to Pong",
         "slug": "games-played-10",
-        "description": "It's you're 10th game participation!",
+        "description": "It's your 10th game participation!",
         "difficulty": 2
     },
     {
         "name": "You're playing a lot",
         "slug": "games-played-100",
-        "description": "It's you're 100th game participation!",
+        "description": "It's your 100th game participation!",
         "difficulty": 3
     },
     {
@@ -80,13 +80,13 @@
     {
         "name": "Perfect win",
         "slug": "won-10-0",
-        "description": "You won 10-0",
+        "description": "You won 3-0",
         "difficulty": 2
     },
     {
         "name": "You're a looser",
         "slug": "loose-10-0",
-        "description": "You lost 10-0",
+        "description": "You lost 3-0",
         "difficulty": 2
     },
     {
@@ -110,7 +110,7 @@
     {
         "name": "Chatterbox",
         "slug": "messages-sent-100",
-        "description": "You can't stop talking! It's you're 100th message!",
+        "description": "You can't stop talking! It's your 100th message!",
         "difficulty": 2
     }
 ]

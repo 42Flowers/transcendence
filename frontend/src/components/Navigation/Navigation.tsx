@@ -83,7 +83,7 @@ const Navigation: React.FC = () => {
                     PONG
                 </Link>
                 <Stack direction="row" alignItems="center">
-                    <p>
+                    <p className="pseudoNav">
                         {userData.data?.pseudo ?? ''}
                     </p>
                     <div ref={avatarRef} style={{ marginLeft: '1em' }}>

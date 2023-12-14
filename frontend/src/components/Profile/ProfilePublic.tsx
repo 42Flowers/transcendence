@@ -26,7 +26,7 @@ const ProfilePublic: React.FC = () => {
             <UserAvatar
                 avatar={profileInfos.data.avatar}
                 userId={profileInfos.data.id} />
-            <p>{profileInfos.data.pseudo}</p>
+            <p className="pseudoProfileClass">{profileInfos.data.pseudo}</p>
             {
                 (auth.user?.id !== targetId) && <FriendChoiceButtons userId={'@me'} friendId={Number(targetId)} />
             }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Socket } from 'socket.io-client';
 
 interface ISocketContext {
-	socket?: Socket;
+	socket: Socket;
 };
 
 export const SocketContext = React.createContext<ISocketContext>({});
@@ -16,12 +16,10 @@ export function useSocketEvent<T = any>(ev: string, cb: (data: T) => void, deps:
 	const { socket } = React.useContext(SocketContext);
 
 	React.useEffect(() => {
-		if (socket) {
-			socket.on(ev, cb);
+		socket.on(ev, cb);
 
-			return () => {
-				socket.off(ev, cb);
-			}
+		return () => {
+			socket.off(ev, cb);
 		}
 	}, [ socket, cb, ...deps ]);
 }

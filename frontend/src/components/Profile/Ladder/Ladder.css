@@ -116,3 +116,7 @@
     padding: 12px 1px;
     overflow: auto;
 }
+
+.avatarCursor {
+    cursor: pointer;
+}

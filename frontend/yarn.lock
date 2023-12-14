@@ -1246,10 +1246,10 @@ esutils@^2.0.2:
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.3.tgz#74d2eb4de0b8da1293711910d50775b9b710ef64"
   integrity sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==
 
-exif-js@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/exif-js/-/exif-js-2.3.0.tgz#9d10819bf571f873813e7640241255ab9ce1a814"
-  integrity sha512-1Og9pAzG2FZRVlaavH8bB8BTeHcjMdJhKmeQITkX+uLRCD0xPtKAdZ2clZmQdJ56p9adXtJ8+jwrGp/4505lYg==
+exif-js_fixed@^2.3.0:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/exif-js_fixed/-/exif-js_fixed-2.3.1.tgz#e99adf78007b5da124939795f924e901c5e9888a"
+  integrity sha512-NrXAZcUKZtunV/297HbzztmKhf50up9rqqs62KXH/22RR9UH9wIrDgKw4K+jxMoUv0xUQXwLkvMdZBKOvRHoWw==
 
 fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   version "3.1.3"
@@ -1906,13 +1906,12 @@ queue-microtask@^1.2.2:
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
 
-react-avatar-edit@^1.2.0:
+"react-avatar-edit@https://github.com/mc-zoi/react-avatar-edit":
   version "1.2.0"
-  resolved "https://registry.yarnpkg.com/react-avatar-edit/-/react-avatar-edit-1.2.0.tgz#0ac169868367470a59e5a743ba1ee3093e6f343e"
-  integrity sha512-xTn/hC8KOTFvMagkAiLNq2yWTosCL88ZX34/CTb7dyadGSR27tc56JYBeYcLojTn2y/Hin8azT9aNVvQytAQ/w==
+  resolved "https://github.com/mc-zoi/react-avatar-edit#9a7d2b0b61fe4c61f2e31534aa7b7ea2f59bde81"
   dependencies:
     blueimp-load-image "^5.14.0"
-    exif-js "^2.3.0"
+    exif-js_fixed "^2.3.0"
     konva "^8.3.5"
 
 react-dom@^18.2.0:

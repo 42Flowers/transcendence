@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpException, Inject, Injectable, Patch, Post, Request, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiProperty, ApiTags } from '@nestjs/swagger';
 import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsString, Length, MaxLength, MinLength, ValidationArguments, ValidationOptions, ValidatorConstraint, ValidatorConstraintInterface, registerDecorator } from 'class-validator';
@@ -49,11 +50,6 @@ function IsChannel(validationOptions?: ValidationOptions) {
             options: validationOptions,
             validator: IsChannelRule
         });
-}
-
-class ZebiDto {
-    @IsChannel()
-    channelId: number;
 }
 
 export enum AuthorizationProviderType {
@@ -196,12 +192,6 @@ export class AuthController {
         };
     }
 
-    @Post('zebi')
-    async zebi(
-        @Body() zebi: ZebiDto
-    ) {
-        return zebi;
-    }
 }
 
 declare global {

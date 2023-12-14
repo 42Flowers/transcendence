@@ -5,6 +5,7 @@ import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 
 type ChangeAvatarProps = {
     onCrop: (avatarUri: string) => void;
+    onClose: () => void;
 };
 
 const ChangeAvatarFallback: React.FC<FallbackProps> = ({ resetErrorBoundary }) => {
@@ -27,7 +28,7 @@ const ChangeAvatarFallback: React.FC<FallbackProps> = ({ resetErrorBoundary }) =
     return null;
 };
 
-export const ChangeAvatar: React.FC<ChangeAvatarProps> = ({ onCrop }) => {
+export const ChangeAvatar: React.FC<ChangeAvatarProps> = ({ onCrop, onClose }) => {
     const { enqueueSnackbar } = useSnackbar();
 
     const handleBeforeFileLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +56,7 @@ export const ChangeAvatar: React.FC<ChangeAvatarProps> = ({ onCrop }) => {
                 exportMimeType="image/png"
                 onBeforeFileLoad={handleBeforeFileLoad}
                 onCrop={onCrop}
+                onClose={onClose}
             />
         </ErrorBoundary>
     );

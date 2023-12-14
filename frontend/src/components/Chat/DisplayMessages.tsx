@@ -87,8 +87,8 @@ const MessagesChannel: React.FC = () => {
 };
 
 const MessagesDm: React.FC = () => {
-    const { currentDm } = useContext(ChatContext);
-    const dmMessages = useQuery(['dm-messages', currentDm], () => fetchDmMessages(currentDm));
+    const { currentConv } = useContext(ChatContext);
+    const dmMessages = useQuery(['dm-messages', currentConv], () => fetchDmMessages(currentConv));
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 
@@ -112,7 +112,7 @@ const MessagesDm: React.FC = () => {
         }
     });
 
-    const getTime = (date: number) => {
+    const getTime = (date: string) => {
         const dateObject = new Date(date);
         const hours = dateObject.getHours();
         const minutes = dateObject.getMinutes().toString().padStart(2, '0');

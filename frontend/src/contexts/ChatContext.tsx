@@ -13,6 +13,8 @@ export interface ChatContextType {
   setCurrentChannel: (currentChannel: number) => void;
   currentDm: number
   setCurrentDm: (currentDm: number) => void;
+  currentConv: number
+  setCurrentConv: (currentConv: number) => void;
   currentAvatar: string | null
   setCurrentAvatar: (currentAvatar: string) => void;
   currentChannelName: string
@@ -36,6 +38,7 @@ export const ChatProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [isPrivate, setIsPrivate ] = useState(false);
   const [currentChannel, setCurrentChannel] = useState(0);
   const [currentDm, setCurrentDm] = useState(0);
+  const [currentConv, setCurrentConv] = useState(0);
   const [currentChannelName, setCurrentChannelName] = useState('');
   const [myPermissionMask, setMyPermissionMask] = useState(0);
   const [currentAccessMask, setCurrentAccessMask] = useState(1);
@@ -48,6 +51,7 @@ export const ChatProvider: React.FC<PropsWithChildren> = ({ children }) => {
       isDm, setIsDm,
       currentChannel, setCurrentChannel,
       currentDm, setCurrentDm,
+      currentConv, setCurrentConv,
       currentAvatar, setCurrentAvatar,
       currentChannelName, setCurrentChannelName,
       myPermissionMask, setMyPermissionMask,

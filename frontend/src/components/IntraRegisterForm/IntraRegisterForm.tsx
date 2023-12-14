@@ -116,7 +116,9 @@ const IntraRegisterForm: React.FC = () => {
 						required
 					/>
 
-					<ChangeAvatar onCrop={avatarPreview => setAvatarPreview(avatarPreview)} />
+					<ChangeAvatar
+						onCrop={avatarPreview => setAvatarPreview(avatarPreview)}
+						onClose={() => setAvatarPreview(undefined)} />
 
 					<MainButton buttonName="Register" loading={patchProfileMutation.isLoading} />
 				</Form>

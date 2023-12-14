@@ -36,6 +36,7 @@ interface ChannelMember {
 }
 
 interface Dm {
+    conversationId: number
     targetId: number;
     targetName: string;
     avatar: string | null;
@@ -310,7 +311,7 @@ type MembershipUpdatePayload = {
 }
   
 const List: React.FC<Props> = ({ side }) => {
-    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask, setIsBanned, setMyPermissionMask } = useContext(ChatContext) as ChatContextType;
+    const { chanOrDm, setCurrentChannel, setCurrentDm, currentChannel, setCurrentChannelName, setCurrentAccessMask, setIsBanned, setMyPermissionMask, setCurrentConv } = useContext(ChatContext) as ChatContextType;
     const channels = useQuery(['channels-list'], fetchAvailableChannels);
     const directMessages = useQuery('direct-messages-list', fetchAvailableDMs);
     const auth = useAuthContext();
@@ -349,7 +350,6 @@ const List: React.FC<Props> = ({ side }) => {
                             {channels.isFetched && map(channels.data, (channel: Channel) => (
                                 <div key={channel.channelId} onClick={() => {
                                     if (channel.membershipState === 4) {
-                                        console.log("top");
                                         setIsBanned(true);
                                     }
                                     setCurrentChannel(channel.channelId)
@@ -363,7 +363,10 @@ const List: React.FC<Props> = ({ side }) => {
                     :
                         <div className="listClass">
                             {directMessages.isFetched && map(directMessages.data, (dm: Dm) => (
-                                <div key={dm.targetId} className="listLeftClass" onClick={() => setCurrentDm(dm.targetId)}>
+                                <div key={dm.targetId} className="listLeftClass" onClick={() => {
+                                    setCurrentDm(dm.targetId)
+                                    setCurrentConv(dm.conversationId)
+                                }}>
                                    <p>{dm.targetName}</p>
                                 </div>
                             ))}

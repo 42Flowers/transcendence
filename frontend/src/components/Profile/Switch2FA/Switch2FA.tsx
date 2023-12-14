@@ -141,7 +141,7 @@ const ActivateMfaDialog: React.FC<ActivateMfaDialogProps> = ({ onClose, otpUrl, 
 
             <TextField label="OTP code" variant="outlined" value={code} onChange={code => setCode(code.currentTarget.value)} />
             <Typography gutterBottom>
-                Scan the QR code with an OTP application on your phone
+                For this operation you have to scan this QR code in an OTP application on your phone and enter the digits in the input box located between this text and the QR code (or RTFM)
             </Typography>
         </MfaDialog>
     );

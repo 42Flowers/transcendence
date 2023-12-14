@@ -1,5 +1,6 @@
 import { PrismaService } from "src/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { MyError } from "src/errors/errors";
 
 @Injectable()
 export class MessagesService {
@@ -26,6 +27,25 @@ export class MessagesService {
 			throw new Error(err.message);
 		}
 	}
+
+	async getMessagesfromConversationFromConvId(convId: number) : Promise<any> {
+        try {
+            const messages = await this.prismaService.privateMessage.findMany({
+                where: {
+                    conversationId: convId
+                }, 
+                select: {
+                    id: true,
+                    authorId: true,
+                    createdAt: true,
+					content: true,
+                }
+            });
+            return messages;
+        } catch (error) {
+            throw new MyError(error.message);
+        }
+    }
 
 	async getMessagesfromConversation(userId: number, friendId: number): Promise<any> {
 		try {

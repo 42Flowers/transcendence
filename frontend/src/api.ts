@@ -130,9 +130,23 @@ export type LadderEntry = {
     }[];
 }
 
+interface Stats {
+    opponentId: number,
+    userId: number,
+    gameId: number,
+    game: {
+      id: number,
+      score1: number,
+      score2: number,
+      winnerId: number,
+      looserId: number,
+      createdAt: string,
+    }
+}
+
 export const fetchLadder = () => wrapResponse(authorizedGet<LadderEntry[]>('/api/profile/ladder'));
 export const fetchMatchHistory = (userId: UserID) => wrapResponse(authorizedGet(`/api/profile/${userId}/matchhistory`));
-export const fetchStats = (userId: UserID) => wrapResponse(authorizedGet(`/api/profile/${userId}/stats`));
+export const fetchStats = (userId: UserID) => wrapResponse(authorizedGet<Stats[]>(`/api/profile/${userId}/stats`));
 
 /* ==== CHAT ==== */
 export type ChannelMessage = {

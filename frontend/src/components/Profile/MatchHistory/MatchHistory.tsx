@@ -32,7 +32,7 @@ const MatchHistoryList: React.FC<MatchHistoryProps> = ({ userId }) => {
                 display: 'table',
                 width: '100%',
                 tableLayout: 'fixed',
-                backgroundColor: game.winnerId === Number(auth.user?.id) ? '#85DE89' : '#DE8585'
+                backgroundColor: userId !== '@me' ? (game.winnerId === userId ? '#85DE89' : '#DE8585') : (game.winnerId === Number(auth.user?.id) ? '#85DE89' : '#DE8585')
             }}
         >
             <TableCell id="cell-scored-mh">

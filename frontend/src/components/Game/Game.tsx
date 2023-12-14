@@ -125,18 +125,18 @@ function useAnimationFrame(cb: () => void, deps: React.DependencyList = []) {
 //           GAME           //
 //////////////////////////////
 const Game: React.FC<gameProps> = ({ specialMode, ...props }) => {
-	const { SocketState } = useContext(SocketContext);
+	const { socket } = useContext(SocketContext);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const ctx = canvasRef.current?.getContext('2d');
 	
 	function handleKeyDown(event: KeyboardEvent) {
 		event.preventDefault();
-		SocketState.socket?.emit("keyDown", event.key);
+		socket?.emit("keyDown", event.key);
 	};
 	
 	function handleKeyUp(event: KeyboardEvent) {
 		event.preventDefault();
-		SocketState.socket?.emit("keyUp", event.key);
+		socket?.emit("keyUp", event.key);
 	};
 	
 	function clearBackground(ctx: CanvasRenderingContext2D): void {
@@ -281,14 +281,14 @@ const Game: React.FC<gameProps> = ({ specialMode, ...props }) => {
 
 	useEffect(() => {
 		if (specialMode) {
-			SocketState.socket?.on("shield", activateShield);
-			SocketState.socket?.on("dangerousBall", activateBall);
+			socket?.on("shield", activateShield);
+			socket?.on("dangerousBall", activateBall);
 			return () => {
-				SocketState.socket?.off("shield", activateShield);
-				SocketState.socket?.off("dangerousBall", activateBall);
+				socket?.off("shield", activateShield);
+				socket?.off("dangerousBall", activateBall);
 			};
 		}
-	}, [SocketState.socket]);
+	}, [socket]);
 
 	useAnimationFrame(() => {
 		const ctx = canvasRef.current?.getContext('2d');

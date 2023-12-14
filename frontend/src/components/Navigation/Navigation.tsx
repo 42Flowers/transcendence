@@ -17,7 +17,7 @@ const Navigation: React.FC = () => {
     const location = useLocation();
     const [ senderPseudo, setSenderPseudo ] = useState<string>("");
     const { signOut } = useAuthContext();
-    const { SocketState } = useContext(SocketContext);
+    const { socket } = useContext(SocketContext);
     const userData = useQuery('@me', () => fetchUserProfile('@me'));
 
     const launchNormal = useCallback(() => {
@@ -36,16 +36,16 @@ const Navigation: React.FC = () => {
     }, [ setPopup, setSenderPseudo ]);
 
     useEffect(() => {
-        SocketState.socket?.on("showGameInvite", showPopup);
-        SocketState.socket?.on("launchNormal", launchNormal);
-        SocketState.socket?.on("launchSpecial", launchSpecial);
+        socket?.on("showGameInvite", showPopup);
+        socket?.on("launchNormal", launchNormal);
+        socket?.on("launchSpecial", launchSpecial);
         
         return () => {
-            SocketState.socket?.off("showGameInvite", showPopup);
-            SocketState.socket?.off("launchNormal", launchNormal);
-            SocketState.socket?.off("launchSpecial", launchSpecial);
+            socket?.off("showGameInvite", showPopup);
+            socket?.off("launchNormal", launchNormal);
+            socket?.off("launchSpecial", launchSpecial);
         };
-    }, [SocketState.socket, launchNormal, launchSpecial, showPopup ]);
+    }, [socket, launchNormal, launchSpecial, showPopup ]);
 
     const { avatar } = useContext(AvatarContext);
 
@@ -61,12 +61,12 @@ const Navigation: React.FC = () => {
     React.useEffect(() => setOpen(false), [ location ]);
 
     const onAccept = () => {
-        SocketState.socket?.emit('joinInviteGame');
+        socket?.emit('joinInviteGame');
         setPopup(false);
     };
 
     const onDecline = () => {
-        SocketState.socket?.emit('declineGameInvitation');
+        socket?.emit('declineGameInvitation');
         setPopup(false);
     };
 

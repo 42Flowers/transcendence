@@ -9,16 +9,16 @@ import { AvatarProvider } from "../contexts/AvatarContext";
 import { PerfectProvider } from "../contexts/PerfectContext";
 
 export const AppLayout: React.FC = withAuthGuard(() => (
-    <ChatProvider>
-      <AvatarProvider>
-        <PerfectProvider>
-            <SocketContextComponent>
-                <StatusManager />
-                <TrophyManager />
-                <Navigation />
-                <Outlet />
-            </SocketContextComponent>
-        </PerfectProvider>
-    </AvatarProvider>
-    </ChatProvider>
+    <SocketContextComponent>
+        <ChatProvider>
+            <AvatarProvider>
+                <PerfectProvider>
+                    <StatusManager />
+                    <TrophyManager />
+                    <Navigation />
+                    <Outlet />
+                </PerfectProvider>
+            </AvatarProvider>
+        </ChatProvider>
+    </SocketContextComponent>
 ));

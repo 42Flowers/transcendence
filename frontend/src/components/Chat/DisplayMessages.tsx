@@ -1,23 +1,10 @@
 import filter from "lodash/filter";
 import map from "lodash/map";
-import sortBy from "lodash/sortBy";
 import React, { createRef, useContext, useEffect } from "react";
 import { useQuery } from "react-query";
-import { ChannelMessage, fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../api";
+import { fetchBlockedUsers, fetchChannelMessages, fetchDmMessages } from "../../api";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { ChatContext } from "../../contexts/ChatContext";
-import { queryClient } from "../../query-client";
-import { useSocketEvent } from "../Socket/Context/Context";
-
-interface PushedMessagePayload {
-    type: 'channel' | 'conversation',
-    id: number, //channelId/targetId
-    authorId: number,
-    authorName: string 
-    message: string,
-    createdAt: string,
-    msgId: number,
-}
 
 type MsgType = {
     id: number
@@ -35,24 +22,6 @@ const MessagesChannel: React.FC = () => {
     const { user } = useAuthContext();
 
     const blockedUsersSet = React.useMemo(() => new Set(map(blockedUsersQuery.data, ({ blockedId }) => blockedId)), [ blockedUsersQuery ]);
-
-    useSocketEvent<PushedMessagePayload>('message', ({ type, id, msgId, message, ...rest }) => {
-        if ('channel' !== type)
-            return ;
-
-        const queryKey = [ 'channel-messages', id ];
-        
-        if (queryClient.getQueryData(queryKey) !== undefined) {
-            queryClient.setQueryData<ChannelMessage[]>(queryKey, messages => sortBy([
-                ...(messages ?? []),
-                {
-                    id: msgId,
-                    content: message,
-                    ...rest,
-                }
-            ], 'id'));
-        }
-    });
 
     const getTime = (date: string) => {
         const dateObject = new Date(date);
@@ -93,24 +62,6 @@ const MessagesDm: React.FC = () => {
     const { user } = useAuthContext();
 
     const blockedUsersSet = React.useMemo(() => new Set(map(blockedUsers.data, ({ blockedId }) => blockedId)), [ blockedUsers ]);
-
-    useSocketEvent<PushedMessagePayload>('message', ({ type, id, message, msgId, ...rest }) => {
-        if ('conversation' !== type)
-            return ;
-
-        const queryKey = [ 'dm-messages', id ];
-    
-        if (queryClient.getQueryData(queryKey) !== undefined) {
-            queryClient.setQueryData<ChannelMessage[]>(queryKey, messages => sortBy([
-                ...(messages ?? []),
-                {
-                    id: msgId,
-                    content: message,
-                    ...rest,
-                }
-            ], 'id'));
-        }
-    });
 
     const getTime = (date: string) => {
         const dateObject = new Date(date);

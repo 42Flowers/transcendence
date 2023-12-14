@@ -1,4 +1,8 @@
-import { useState, createContext, PropsWithChildren, } from 'react';
+import sortBy from "lodash/sortBy";
+import { PropsWithChildren, createContext, useState, } from 'react';
+import { ChannelMessage } from '../api';
+import { useSocketEvent } from '../components/Socket/Context/Context';
+import { queryClient } from '../query-client';
 
 export interface ChatContextType {
   chanOrDm: string
@@ -27,8 +31,56 @@ export interface ChatContextType {
   setIsBanned: (isBanned: boolean ) => void;
 }
 
+interface PushedMessagePayload {
+  type: 'channel' | 'conversation',
+  id: number, //channelId/targetId
+  authorId: number,
+  authorName: string 
+  message: string,
+  createdAt: string,
+  msgId: number,
+}
+
 
 export const ChatContext = createContext<ChatContextType>(undefined as any);
+
+function useMonitorChatEvents() {
+  useSocketEvent<PushedMessagePayload>('message', ({ type, id, message, msgId, ...rest }) => {
+    if ('conversation' !== type)
+        return ;
+
+    const queryKey = [ 'dm-messages', id ];
+
+    if (queryClient.getQueryData(queryKey) !== undefined) {
+        queryClient.setQueryData<ChannelMessage[]>(queryKey, messages => sortBy([
+            ...(messages ?? []),
+            {
+                id: msgId,
+                content: message,
+                ...rest,
+            }
+        ], 'id'));
+    }
+});
+
+  useSocketEvent<PushedMessagePayload>('message', ({ type, id, msgId, message, ...rest }) => {
+  if ('channel' !== type)
+      return ;
+
+  const queryKey = [ 'channel-messages', id ];
+
+  if (queryClient.getQueryData(queryKey) !== undefined) {
+      queryClient.setQueryData<ChannelMessage[]>(queryKey, messages => sortBy([
+          ...(messages ?? []),
+          {
+              id: msgId,
+              content: message,
+              ...rest,
+          }
+      ], 'id'));
+  }
+  });
+}
 
 export const ChatProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [chanOrDm, setChanOrDm] = useState('channel');
@@ -43,6 +95,8 @@ export const ChatProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [myPermissionMask, setMyPermissionMask] = useState(0);
   const [currentAccessMask, setCurrentAccessMask] = useState(1);
   const [isBanned, setIsBanned] = useState(false);
+
+  useMonitorChatEvents();
 
   return (
     <ChatContext.Provider value={{

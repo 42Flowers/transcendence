@@ -353,7 +353,6 @@ export class ChatController {
             if (userId == undefined)
                 return;
             const conversations = await this.conversationService.getAllUserConversations(userId);
-            console.log(conversations);
             const convs = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
             conversations.map((conv, index) => {

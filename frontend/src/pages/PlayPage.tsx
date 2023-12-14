@@ -58,7 +58,6 @@ const PlayPage: React.FC = () => {
         }
         else if (whichButton === "invite-normal" && selectedUserIdNormal && selectedUserIdNormal != -1)
         {
-            console.log("userId: ", selectedUserIdNormal);
             SocketState.socket?.emit("inviteNormal", selectedUserIdNormal);
             setWaiting(true);
             return ;
@@ -70,7 +69,6 @@ const PlayPage: React.FC = () => {
         }
         else if (whichButton === "invite-special" && selectedUserIdSpecial && selectedUserIdSpecial != -1)
         {
-            console.log("userId: ", selectedUserIdSpecial);
             SocketState.socket?.emit("inviteSpecial", selectedUserIdSpecial);
             setWaiting(true);
             return ;

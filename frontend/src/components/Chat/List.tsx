@@ -350,7 +350,6 @@ const List: React.FC<Props> = ({ side }) => {
                             {channels.isFetched && map(channels.data, (channel: Channel) => (
                                 <div key={channel.channelId} onClick={() => {
                                     if (channel.membershipState === 4) {
-                                        console.log("top");
                                         setIsBanned(true);
                                     }
                                     setCurrentChannel(channel.channelId)
@@ -366,7 +365,6 @@ const List: React.FC<Props> = ({ side }) => {
                             {directMessages.isFetched && map(directMessages.data, (dm: Dm) => (
                                 <div key={dm.targetId} className="listLeftClass" onClick={() => {
                                     setCurrentDm(dm.targetId)
-                                    console.log("conversationId", dm.conversationId);
                                     setCurrentConv(dm.conversationId)
                                 }}>
                                    <p>{dm.targetName}</p>

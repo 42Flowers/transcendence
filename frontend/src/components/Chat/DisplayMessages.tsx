@@ -89,7 +89,6 @@ const MessagesChannel: React.FC = () => {
 const MessagesDm: React.FC = () => {
     const { currentConv } = useContext(ChatContext);
     const dmMessages = useQuery(['dm-messages', currentConv], () => fetchDmMessages(currentConv));
-    console.log(dmMessages);
     const blockedUsers = useQuery('blocked-users', fetchBlockedUsers);
     const { user } = useAuthContext();
 

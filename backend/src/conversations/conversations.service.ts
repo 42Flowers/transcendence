@@ -1,5 +1,6 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from "@nestjs/common";
+import { MyError } from 'src/errors/errors';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -8,6 +9,23 @@ export class ConversationsService {
 	constructor(
 		private readonly prismaService: PrismaService
 	) {};
+
+	async conversationExistsFromId(convId: number) : Promise<any> {
+        try {
+            const conversation = await this.prismaService.conversation.findUnique({
+                where: {
+                    id: convId,
+                }, select : {
+                    id : true,
+                    messages: true,
+                    users : true
+                }
+            });
+            return conversation;
+        } catch (error) {
+            throw new MyError(error.message);
+        }
+    }
 
 	async conversationExists(userId: number, targetId: number) : Promise<any> {
 		try {

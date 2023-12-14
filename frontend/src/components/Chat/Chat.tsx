@@ -1,20 +1,21 @@
-import React, { useCallback, useEffect, useState } from "react";
-import Menu from "./Menu";
-import List from "./List";
+import React, { useCallback } from "react";
 import CreateJoin from "./CreateJoin";
-import Title from "./Title";
 import DisplayMessages from "./DisplayMessages";
+import List from "./List";
+import Menu from "./Menu";
 import SendMessages from "./SendMessages";
+import Title from "./Title";
 
-import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 import { useContext } from "react";
+import { ChatContext, ChatContextType } from "../../contexts/ChatContext";
 
-import SocketContext, { useSocketEvent } from "../Socket/Context/Context";
-import { queryClient } from "../../query-client";
-import { ChannelDescription, ChannelMembership } from "../../api";
 import filter from 'lodash/filter';
 import map from 'lodash/map';
+import { ChannelDescription, ChannelMembership } from "../../api";
 import { useAuthContext } from "../../contexts/AuthContext";
+import { queryClient } from "../../query-client";
+import { useSocketEvent } from "../Socket/Context/Context";
+import './Chat.scss';
 
 interface infoElem {
     type: string,
@@ -41,7 +42,6 @@ export type UpdateMemberPrivilegesPayload = {
 
 const Chat: React.FC = () => {
     const { isDm } = useContext(ChatContext) as ChatContextType;
-    const { SocketState } = useContext(SocketContext);
     const auth = useAuthContext();
     const currentUserId = auth.user?.id;
 
@@ -169,13 +169,7 @@ const Chat: React.FC = () => {
         alert(msg.msg);
     }, []);
 
-    useEffect(() => {
-        SocketState.socket?.on("info", displayInfo);
-
-        return () => {
-            SocketState.socket?.off("info", displayInfo);
-        }
-    }, [SocketState.socket]);
+    useSocketEvent<infoElem>('info', displayInfo);
 
     return (
         <div style={containerStyle}>

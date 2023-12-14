@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import get from 'lodash/get';
+import React from 'react';
 import { useSocketEvent } from '../Socket/Context/Context';
 import Game from './Game';
 import "./GameWrapper.css";
@@ -20,26 +21,21 @@ interface playersData {
 }
 
 const GameWrapper: React.FC<wrapperProps> = (props) => {
-	const [ playersData, setPlayersData ] = useState<playersData>();
-	const [ gameEnded, setGameEnded ] = useState(false);
-	const [ leftScore, setLeftScore ] = useState<string>('0');
-	const [ rightScore, setRightScore ] = useState<string>('0');
-
-	const displayPlayerData = useCallback((data: playersData) => {
-		setPlayersData(data);
-	}, [ setPlayersData ]);
+	const [ playersData, setPlayersData ] = React.useState<playersData>();
+	const [ gameEnded, setGameEnded ] = React.useState(false);
+	const [ leftScore, setLeftScore ] = React.useState<string>('0');
+	const [ rightScore, setRightScore ] = React.useState<string>('0');
 
 	const endGame = () => {
 		setGameEnded(true);
 	}
-
 	
 	const updatePlayersScore = (newScore: {leftPlayer: string, rightPlayer: string}) => {
 		setLeftScore(newScore.leftPlayer);
 		setRightScore(newScore.rightPlayer);
 	}
 	
-	useSocketEvent('playerData', displayPlayerData);
+	useSocketEvent('playerData', data => setPlayersData(data));
 	useSocketEvent('gameFinished', endGame);
 	useSocketEvent('updateScore', updatePlayersScore);
 
@@ -51,10 +47,10 @@ const GameWrapper: React.FC<wrapperProps> = (props) => {
 						{playersData &&
 							<>
 								<div style={{color: "white"}}>
-									<p>{playersData.left.pseudo}</p>
+									<p>{get(playersData, 'left.pseudo')}</p>
 								</div>
 								<div style={{color: "white"}}>
-									<p>{playersData.right.pseudo}</p>
+									<p>{get(playersData, 'right.pseudo')}</p>
 								</div>
 							</>
 						}

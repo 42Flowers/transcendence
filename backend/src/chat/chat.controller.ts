@@ -17,7 +17,7 @@ import { ChatRemovePasswordEvent } from 'src/events/chat/removePassword.event';
 import { ChatUnMuteOnChannelEvent } from 'src/events/chat/unMuteOnChannel.event';
 import { MessagesService } from 'src/messages/messages.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CheckIntPipe } from 'src/profile/profile.pipe';
+import { CheckIntPipe, IsNoSpecialCharacters } from 'src/profile/profile.pipe';
 import { UsersService } from 'src/users_chat/users_chat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { RoomService } from '../rooms/rooms.service';
@@ -45,6 +45,7 @@ export class JoinChannelDto {
     @IsString()
 	@IsNotEmpty()
 	@Length(3, 10)
+    @IsNoSpecialCharacters()
     channelName: string;
 
     @IsString()
@@ -65,6 +66,7 @@ export class TargetDto {
     @IsString()
 	@IsNotEmpty()
 	@Length(3, 10)
+    @IsNoSpecialCharacters()
     targetName: string;
 }
 
@@ -127,6 +129,7 @@ export class InviteInChannelDTO {
 	@IsString()
 	@IsNotEmpty()
 	@Length(3, 10)
+    @IsNoSpecialCharacters()
     targetName: string;
 }
 
@@ -140,9 +143,10 @@ export class RemovePwdDto {
 }
 
 export class CreatePrivateChannelDTO {
-	// @IsString()
-	// @IsNotEmpty()
-	// // @Length(3, 10)
+	@IsString()
+	@IsNotEmpty()
+	@Length(3, 10)
+    @IsNoSpecialCharacters()
     channelName: string;
 }
 
@@ -153,7 +157,6 @@ export class CreatePrivateChannelDTO {
 @Controller("chat")
 @UseGuards(AuthGuard)
 export class ChatController {
-
 
     constructor(
         private readonly roomService: RoomService,
@@ -346,19 +349,19 @@ export class ChatController {
         @Request() req: ExpressRequest
     ) {
         try {
-			const userId = Number(req.user.sub);
-			if (userId == undefined)
-				return;
+            const userId = Number(req.user.sub);
+            if (userId == undefined)
+                return;
             const conversations = await this.conversationService.getAllUserConversations(userId);
             const convs = []
             const userNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.receiverId)));
             conversations.map((conv, index) => {
-                convs.push({targetId: conv.receiverId, targetName: userNames[index].pseudo, avatar: userNames[index].avatar});
+                convs.push({conversationId: conv.conversationId, targetId: conv.receiverId, targetName: userNames[index].pseudo, avatar: userNames[index].avatar});
             });
             return convs;
         } catch {
             ;
-        }
+        }// qu'est ce qu'il faut que je rajoute ici ? L'id de la conversation.
     }
 
     @Post('create-conversation')
@@ -378,14 +381,14 @@ export class ChatController {
     }
 
 
-    @Get('get-privatemessages/:targetId')
+    @Get('get-privatemessages/:convId')
     async privateConversation(
         @Request() req: ExpressRequest,
-		@Param('targetId', CheckIntPipe) targetId: number,
+        @Param('convId', CheckIntPipe) convId: number,
     ) {
         try {
-			const userId = Number(req.user.sub);
-            const conversations = await this.chatService.getPrivateConversation(userId, targetId);
+            const userId = Number(req.user.sub);
+            const conversations = await this.chatService.getPrivateConversation(convId);
             const messages = [];
             if (conversations != null) {
                 const authorNames = await Promise.all(conversations.map(conv => this.userService.getUserName(conv.authorId)));

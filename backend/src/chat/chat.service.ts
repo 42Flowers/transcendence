@@ -219,6 +219,10 @@ export class ChatService {
 	) {
 		const target = await this.usersService.getUserByName(targetName);
 		const user = await this.usersService.getUserById(userId);
+		if (target == null || target == undefined) {
+			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'conversation', "This user does not exist on our database"));
+			return;
+		}
 		if (userId == target.id) {
 			this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'conversation', "You cannot start a conversation with yourself"));
 			return null;
@@ -350,7 +354,6 @@ export class ChatService {
 			const user = await this.usersService.getUserById(userId);
 			if (user != null) {
 				const join = await this.roomService.joinRoom(user.id, channelId, channelName, pwd);
-				console.log("JOIN ", join);
 				if (join !== undefined) {
 					this.socketService.joinChannel(user.id, channelName);
 					this.eventEmitter.emit('chat.sendtochannel', new ChatSendToChannelEvent(join.channelName, 'join', user.pseudo + " joined " + channelName));
@@ -724,15 +727,16 @@ export class ChatService {
 		}
 	}
 
-	async getPrivateConversation(
-		userId: number,
-		targetId: number
-	){
-		let conversation = await this.conversationsService.conversationExists(userId, targetId);
-		if (conversation) {
-			return await this.messagesService.getMessagesfromConversation(userId, targetId);
-		}else {
-			return "No such conversation";
-		}
-	}
+    async getPrivateConversation(
+        convId: number
+    ){
+        // let conversation = await this.conversationsService.conversationExists(userId, targetId);
+        let conversation = await this.conversationsService.conversationExistsFromId(convId)
+        if (conversation) {
+            // return await this.messagesService.getMessagesfromConversation(userId, targetId);
+            return await this.messagesService.getMessagesfromConversationFromConvId(convId);
+        }else {
+            return "No such conversation";
+        }
+    }
 }

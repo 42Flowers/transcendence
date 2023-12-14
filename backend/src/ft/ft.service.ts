@@ -40,7 +40,7 @@ export class FortyTwoService {
                 client_id: this.configService.get('FT_APP_ID'),
                 client_secret: this.configService.get('FT_APP_SECRET'),
                 code,
-                redirect_uri: 'http://localhost:5173/auth/callback',
+                redirect_uri: this.configService.get<string>('FT_REDIRECT_URI'),
             }).pipe(
                 catchError((error: AxiosError) => {
                     console.warn(error.message, error.response.status);

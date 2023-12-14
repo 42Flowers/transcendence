@@ -10,6 +10,8 @@ import './LoginForm.scss';
 import { Input } from '../Form/Input';
 import { Link } from 'react-router-dom';
 import { getIntranetAuthorizeUrl } from '../../ft';
+import toString from 'lodash/toString';
+import get from 'lodash/get';
 
 type LoginFormProps = Pick<AuthReducerProps, 'dispatch'>;
 
@@ -35,7 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ dispatch }) => {
 		},
 		onError(error: AxiosError) {
 			const { response } = error;
-			let message = error.message;
+			let message = toString(get(error, 'response.data.message', get(error.message, 'message', 'Error')));
 
 			if (undefined !== response) {
 				if (response.status === 401) {

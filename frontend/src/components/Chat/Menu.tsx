@@ -1,6 +1,5 @@
 import { ChatContext } from "../../contexts/ChatContext";
 import { useContext } from "react";
-import './Chat.css';
 
 type Props = {
     side: string

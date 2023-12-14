@@ -1,10 +1,9 @@
-import React, { PropsWithChildren, useEffect, useReducer, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { useSocket } from '../Hooks/useSocket';
-import { defaultSocketContextState, SocketContextProvider, SocketReducer } from './Context';
+import { SocketContextProvider } from './Context';
 
 const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
-	const [SocketState, SocketDispatch] = useReducer(SocketReducer, defaultSocketContextState);
-	const [loading, setLoading] = useState(true);
+	const [ loading, setLoading ] = useState(true);
 
 	const socket = useSocket(import.meta.env.WEBSOCKET_URL, {
 		reconnectionAttempts: 5,
@@ -15,8 +14,6 @@ const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
 	useEffect(() => {
 		/**Connect to the web socket */
 		socket.connect()
-		/*Save the socket  in context*/
-		SocketState.socket = socket;
 		// SocketDispatch({type: 'update_socket', payload: socket.id });
 		/**Start the event listeners */
 		StartListeners();
@@ -24,7 +21,7 @@ const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
 		SendHandshake();
 
 		// eslint-disable-next-line
-	}, [socket]);
+	}, [ socket ]);
 
 	const StartListeners = () => {
 
@@ -54,12 +51,16 @@ const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
 		socket.emit('handshake', () => {
 			setLoading(false);
 		});
-
 	};
 
-	if (loading) return <p>Loading Socket IO........</p>;
+	if (loading)
+		return <p>Loading Socket IO........</p>;
 
-	return <SocketContextProvider value={{ SocketState, SocketDispatch, socket }}>{children}</SocketContextProvider>;
+	return (
+		<SocketContextProvider value={{ socket }}>
+			{children}
+		</SocketContextProvider>
+	);
 }
 
 export default SocketContextComponent;

@@ -2,7 +2,6 @@ import { Stack } from '@mui/material';
 import { AxiosError } from 'axios';
 import { useSnackbar } from 'notistack';
 import React from 'react';
-import AvatarEdit from 'react-avatar-edit';
 import { HiOutlineUserCircle } from "react-icons/hi2";
 import { useMutation } from 'react-query';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +11,10 @@ import { withAuthGuard } from '../../hocs/AuthGuard';
 import { Form, FormValidator } from '../Form/Form';
 import { Input } from '../Form/Input';
 import MainButton from '../MainButton/MainButton';
+import { ChangeAvatar } from '../Profile/ChangeAvatar/ChangeAvatar';
 import './IntraRegisterForm.scss';
+import toString from 'lodash/toString';
+import get from 'lodash/get';
 
 const intraRegisterFormValidator: FormValidator = {
 	username(value: string) {
@@ -55,7 +57,7 @@ const IntraRegisterForm: React.FC = () => {
 		},
 		onError(error: AxiosError) {
 			enqueueSnackbar({
-				message: `${error.message}`,
+				message: `${toString(get(error, 'response.data.message', get(error.message, 'message', 'Error')))}`,
 				variant: 'error',
 				anchorOrigin: {
 					horizontal: 'center',
@@ -70,8 +72,6 @@ const IntraRegisterForm: React.FC = () => {
 			return ;
 
 		const { pseudo } = data;
-
-console.log(avatarPreview);
 
 		if (avatarPreview) {
 			try {
@@ -96,15 +96,6 @@ console.log(avatarPreview);
 		});
 	};
 
-    const onBeforeFileLoad = (elem: React.ChangeEvent<HTMLInputElement>) => {
-        if (elem.target.files) {
-            if(elem.target.files[0].size > 1048576){
-                alert("File is too big!");
-                elem.target.value = '';
-            };
-        }
-    };
-
 	return (
 		<Stack direction="row" justifyContent="center">
 			<div className="auth-container register-form" style={{height: 'auto'}}>
@@ -124,40 +115,11 @@ console.log(avatarPreview);
 						type="text"
 						required
 					/>
-					<AvatarEdit
-						width={300}
-						height={300}
-						exportMimeType="image/png"
-						exportSize={512}
-						onBeforeFileLoad={onBeforeFileLoad}
-						onCrop={preview => setAvatarPreview(preview)} />
-					{/* <ChangeAvatar handleUploadAvatar={handleChangeAvatar} /> */}
-					{/* <Avatar
-						alt="Avatar"
-						src={default_avatar}
-						sx={{
-							width: '6vh',
-							height: '6vh'
-						}}
-					/> */}
-					{/* <Button
-						variant="text"
-						sx={{ 
-							fontSize: '1em', 
-							marginTop: '1.5vh',
-							fontWeight: '900',
-							color: "#F8A38B",
-						}}
-						onClick={() => (document.getElementById('fileInput') as HTMLElement).click()}
-					>
-						CHANGE AVATAR 
-					</Button>
-					<input
-						type="file"
-						name="avatar"
-						id="fileInput"
-						style={{ display: 'none' }}
-					/> */}
+
+					<ChangeAvatar
+						onCrop={avatarPreview => setAvatarPreview(avatarPreview)}
+						onClose={() => setAvatarPreview(undefined)} />
+
 					<MainButton buttonName="Register" loading={patchProfileMutation.isLoading} />
 				</Form>
 			</div>

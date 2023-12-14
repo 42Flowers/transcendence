@@ -1,8 +1,7 @@
 .game-modes {
 	display: flex;
-	align-items: center;
+	flex-direction: row;
 	margin-top: 5%;
-	height: 40vw;
 }
 
 .game-modes button {
@@ -21,10 +20,8 @@
 	border: 2px solid white;
     border-radius: 20px;
     background: linear-gradient(to right, var(--color-blue) 10%, var(--color-light-pink) 100%) no-repeat;
-	height: 20%;
 	width: 20%;
-	margin-left: 2%;
-	margin-right: 2%;
+	margin: auto 2%;
 	overflow: hidden;
 }
 
@@ -40,7 +37,6 @@
     border-radius: 20px;
 	background-color: var(--color-blue);
 	width: 40%;
-	height: 100%;
 }
 
 .special-mode {
@@ -48,19 +44,16 @@
     border-radius: 20px;
 	background-color: var(--color-light-pink);
 	width: 40%;
-	height: 100%;
 }
 
 .box-pong {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-around;
-	height: 90%;
 }
 
 .random-choice {
 	padding-top: 10%;
-
 }
 
 .user-choice {
@@ -68,12 +61,16 @@
 	padding-top: 20%;
 }
 
+.box-pong .mainBtn {
+	margin: 1em 0;
+}
+
 .no-border {
 	border-top: none;
-   }
+}
 
-.controls_info {
-	height: 20%;
+.random-choice, .controls_info, .user-choice {
+	margin: 0 1em;
 }
 
 .userList {
@@ -83,7 +80,10 @@
     backdrop-filter: blur(20px);
     background: transparent;
     font-size: 1em;
-    color: white;
+    color: #333;
     text-shadow: 0 0 4px var(--color-yellow);
-	width: 80%;
+	max-width: 15em;
+	width: 100%;
+	display: block;
+	margin: auto;
 }

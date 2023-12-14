@@ -21,7 +21,7 @@ interface Props {
 }
 
 const FriendItem: React.FC<Props> = ({avatar, friendName, status, friendId }) => {
-	const { SocketState } = useContext(SocketContext);
+	const { socket } = useContext(SocketContext);
 
 	const unblockFriend = useMutation({
         mutationFn: unblockUserMutation,
@@ -108,7 +108,7 @@ const FriendItem: React.FC<Props> = ({avatar, friendName, status, friendId }) =>
 	}
 
 	const handlePlay = () => {
-		SocketState.socket?.emit("inviteNormal", friendId);
+		socket?.emit("inviteNormal", friendId);
 	}
 
     if(status === FRIENDS)

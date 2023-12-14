@@ -15,6 +15,7 @@ import './MatchHistory.css';
 import { useQuery } from 'react-query';
 import { UserID, fetchMatchHistory } from '../../../api';
 import { UserAvatar } from '../../UserAvatar';
+import { useAuthContext } from '../../../contexts/AuthContext';
 
 type MatchHistoryProps = {
     userId: UserID;
@@ -22,6 +23,7 @@ type MatchHistoryProps = {
 
 const MatchHistoryList: React.FC<MatchHistoryProps> = ({ userId }) => {
     const matchHistory = useQuery([ 'match history', userId ], () => fetchMatchHistory(userId));
+    const auth = useAuthContext()
     const entries = map(matchHistory.data, ({ game, opponent }) => (
         <TableRow
             key={game.id}
@@ -30,7 +32,7 @@ const MatchHistoryList: React.FC<MatchHistoryProps> = ({ userId }) => {
                 display: 'table',
                 width: '100%',
                 tableLayout: 'fixed',
-                backgroundColor: game.winnerId === Number(userId) ? '#85DE89' : '#DE8585'
+                backgroundColor: game.winnerId === Number(auth.user?.id) ? '#85DE89' : '#DE8585'
             }}
         >
             <TableCell id="cell-scored-mh">

@@ -16,7 +16,8 @@ const GAME_START_DELAY = 3200;
 const PADDLE_SPEED = 6;
 const BALL_SPEED_Y = 5;
 const BALL_SPEED_X = 1;
-const BALL_SPEED_MOD = 2;
+const BALL_SPEED_MOD = 5.5;
+const BALL_SPEED_MOD_SPECIAL = 4;
 
 const NORMAL_MODE = 0;
 const SPECIAL_MODE = 1;
@@ -25,8 +26,8 @@ const LEFT = 0;
 const RIGHT = 1;
 const SHIELD_NOT_ACTIVATED = -1;
 let TURN = LEFT;
-const SPEED_THRESHOLD = 4;
-const SHIELD_MAX_INTERVAL = 400; // in ms
+const SPEED_THRESHOLD = 6;
+const SHIELD_MAX_INTERVAL = 300; // in ms
 
 interface Paddle {
 	x: number,
@@ -248,7 +249,10 @@ export class Game {
 			this.ball.speed = { x: BALL_SPEED_X * x_dir, y: Math.sin(heading) }
 		}
 
-		this.ball.speedModifier = BALL_SPEED_MOD;
+        if (this.gameMode == 0)
+		    this.ball.speedModifier = BALL_SPEED_MOD;
+        else
+            this.ball.speedModifier = BALL_SPEED_MOD_SPECIAL;
 		this.ball.x = Math.round(BOARD_WIDTH / 2);
 		this.ball.y = Math.round(BOARD_HEIGHT / 2);
 

@@ -11,12 +11,13 @@ import {
 	WebSocketGateway,
 	WebSocketServer
 } from "@nestjs/websockets";
+import { ValidationArguments, ValidationOptions, registerDecorator } from 'class-validator';
 import { Server, Socket } from "socket.io";
 import { UserPayload } from "src/auth/user.payload";
 import { ChatChannelMessageEvent } from "src/events/chat/channelMessage.event";
 import { ChatPrivateMessageEvent } from "src/events/chat/privateMessage.event";
 import { ChatSendMessageEvent } from "src/events/chat/sendMessage.event";
-import { ChatSendRoomToClientEvent } from "src/events/chat/sendRoomToClient.event";
+import { ChatSendMessageToConversationdEvent } from "src/events/chat/sendMessageToConversation.event";
 import { ChatSendToChannelEvent } from "src/events/chat/sendToChannel.event";
 import { ChatSendToClientEvent } from "src/events/chat/sendToClient.event";
 import { ChatSocketJoinChannelsEvent } from "src/events/chat/socketJoinChannels.event";
@@ -30,13 +31,11 @@ import { GameJoinInvite } from "src/events/game/joinInvite.event";
 import { GameJoinRandomEvent } from "src/events/game/joinRandom.event";
 import { GameKeyDownEvent } from "src/events/game/keyDown.event";
 import { GameKeyUpEvent } from "src/events/game/keyUp.event";
+import { UserDeclineGameInvitation } from "src/events/user.decline.invitation.event";
 import { Game, GameMode } from "src/game/game";
 import { PrismaService } from "src/prisma/prisma.service";
 import { v4 as uuidv4 } from 'uuid';
 import { SocketService } from "./socket.service";
-import { IsAscii, IsNotEmpty, IsInt, IsString, Max, MaxLength, Min, MinLength, ValidationArguments, ValidationOptions, registerDecorator, IsPositive } from 'class-validator';
-import { ChatSendMessageToConversationdEvent } from "src/events/chat/sendMessageToConversation.event";
-import { UserDeclineGameInvitation } from "src/events/user.decline.invitation.event";
 
 declare module 'socket.io' {
 	interface Socket {
@@ -405,7 +404,7 @@ export class SocketGateway implements
 	{
 		try {
 			const userId = Number(socket.user.sub);
-			if (socket == null || socket == undefined || !this.validateId(data) || userId == data) {
+			if (socket == null || socket == undefined || !this.validateId(data) || userId === data) {
 				return;
 			}
 			this.eventEmitter.emit('game.inviteToNormal', new GameInviteToNormal(socket, data));

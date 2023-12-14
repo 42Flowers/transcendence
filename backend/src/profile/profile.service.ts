@@ -50,6 +50,11 @@ export class ProfileService {
 
     async getLadder(): Promise<any> {
         const allUsers = await this.prisma.user.findMany({
+            where: {
+              pseudo: {
+                not: null,
+              }
+            },
             select: {
                 id: true,
                 pseudo: true,

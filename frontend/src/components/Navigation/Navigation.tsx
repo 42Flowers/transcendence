@@ -35,17 +35,24 @@ const Navigation: React.FC = () => {
         setSenderPseudo(pseudo);
     }, [ setPopup, setSenderPseudo ]);
 
+	const displayInfo = useCallback((msg: {type: string, msg: string}) => {
+        //pendant le jeu
+        alert(msg.msg);
+    }, []);
+
     useEffect(() => {
         socket?.on("showGameInvite", showPopup);
         socket?.on("launchNormal", launchNormal);
         socket?.on("launchSpecial", launchSpecial);
+		socket?.on("infofriends", displayInfo);;
         
         return () => {
             socket?.off("showGameInvite", showPopup);
             socket?.off("launchNormal", launchNormal);
             socket?.off("launchSpecial", launchSpecial);
+			socket?.off('infofriends', displayInfo);
         };
-    }, [socket, launchNormal, launchSpecial, showPopup ]);
+    }, [socket, launchNormal, launchSpecial, showPopup, displayInfo]);
 
     const { avatar } = useContext(AvatarContext);
 

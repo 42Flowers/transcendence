@@ -1,53 +1,11 @@
-import React, { createContext } from 'react';
+import React from 'react';
 import { Socket } from 'socket.io-client';
 
-export interface ISocketContextState {
-	socket: Socket | undefined,
-	uid: string,
-	users: string[]
-}
-
-export const defaultSocketContextState :ISocketContextState = {
-	socket: undefined,
-	uid: '',
-	users: []
+interface ISocketContext {
+	socket?: Socket;
 };
 
-export type TSocketContextActions = 'update_socket' | 'update_uid' | 'update_users' | 'remove_users';
-
-export type TSocketContextPayload = string | string[] | Socket;
-
-export interface ISocketContextActions {
-	type: TSocketContextActions;
-	payload: TSocketContextPayload;
-}
-
-export const SocketReducer = (state: ISocketContextState, action: ISocketContextActions) => {
-	switch (action.type) {
-		case 'update_socket':
-			return {...state, socket: action.payload as Socket};
-		case 'update_uid':
-			return {...state, uid: action.payload as string};
-		case 'update_users':
-			return {...state, users: [...state.users, action.payload as string]};
-		case 'remove_users':
-			return {...state, users: state.users.filter((uid) => uid !== (action.payload as String))};
-		default:
-			return {...state};
-	}
-};
-
-export interface ISocketContextProps {
-	SocketState: ISocketContextState;
-	SocketDispatch: React.Dispatch<ISocketContextActions>;
-	socket: Socket;
-}
-
-export const SocketContext = createContext<ISocketContextProps>({
-	SocketState: defaultSocketContextState,
-	SocketDispatch: () => {},
-	socket: undefined as any,
-});
+export const SocketContext = React.createContext<ISocketContext>({});
 
 /**
  * Listens to an event and calls cb upon receiving
@@ -55,7 +13,7 @@ export const SocketContext = createContext<ISocketContextProps>({
  * @param cb The callback function called when an event arrives, data contains the event payload sent from the backend.
  */
 export function useSocketEvent<T = any>(ev: string, cb: (data: T) => void, deps: React.DependencyList = []) {
-	const { SocketState: { socket } } = React.useContext(SocketContext);
+	const { socket } = React.useContext(SocketContext);
 
 	React.useEffect(() => {
 		if (socket) {
@@ -65,7 +23,7 @@ export function useSocketEvent<T = any>(ev: string, cb: (data: T) => void, deps:
 				socket.off(ev, cb);
 			}
 		}
-	}, [ socket, ...deps ]);
+	}, [ socket, cb, ...deps ]);
 }
 
 export const SocketContextConsumer = SocketContext.Consumer;

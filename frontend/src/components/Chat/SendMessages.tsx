@@ -11,7 +11,7 @@ const SendMessages: React.FC = () => {
         marginRight: "5%",
     };
     const { currentChannel, currentDm, chanOrDm } = useContext(ChatContext);
-    const { SocketState } = useContext(SocketContext);
+    const { socket } = useContext(SocketContext);
     const [message, setMessage] = useState<string>("");
 
     const handleSubmitMessage = (event: React.FormEvent) => {
@@ -19,9 +19,9 @@ const SendMessages: React.FC = () => {
 		if (message.length < 1)
 			return;
         if (chanOrDm === "channel")
-            SocketState.socket?.emit("channelmessage", {channelId: currentChannel, message: message});
+            socket?.emit("channelmessage", {channelId: currentChannel, message: message});
         else if (chanOrDm === "dm")
-            SocketState.socket?.emit("privatemessage", {targetId: currentDm, message: message});
+            socket?.emit("privatemessage", {targetId: currentDm, message: message});
         setMessage("");
     };
 

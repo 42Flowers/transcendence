@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
+import { forEach } from "lodash";
 import { SocketConnectedEvent } from "src/events/socket-connected.event";
 import { SocketDisconnectedEvent } from "src/events/socket-disconnected.event";
 import { GameService } from "src/game/game.service";
@@ -43,28 +44,27 @@ export class StatusService {
                 where: {
                     id: userId,
                 },
-                include: {
-                    friends: true,
+                select: {
+                    pseudo: true,
+                    friends: {
+                        select: {
+                            friend: {
+                                select: {
+                                    id: true,
+                                },
+                            },
+                        },
+                    },
                 },
             });
 
-            await Promise.all(user.friends.map(async ({ friendId }) => {
-                try {
-                    const friend = await this.prismaService.user.findUniqueOrThrow({
-                        where: {
-                            id: friendId,
-                        },
-                    });
-
-                    this.socketService.emitToUserSockets(friendId, 'status', {
-                        userId,
-                        username: friend.pseudo,
-                        status,
-                    });
-                } catch {
-
-                }
-            }));
+            forEach(user.friends, ({ friend }) => {
+                this.socketService.emitToUserSockets(friend.id, 'status', {
+                    userId,
+                    username: user.pseudo,
+                    status,
+                });
+            });
         } catch {
             ;
         }

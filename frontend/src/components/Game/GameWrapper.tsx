@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import get from 'lodash/get';
+import React from 'react';
 import { useSocketEvent } from '../Socket/Context/Context';
 import Game from './Game';
 import "./GameWrapper.css";
@@ -19,24 +20,20 @@ interface playersData {
 }
 
 const GameWrapper: React.FC<wrapperProps> = (props) => {
-	const [ playersData, setPlayersData ] = useState<playersData | null>(null);
+	const [ playersData, setPlayersData ] = React.useState<playersData>();
 
-	const displayPlayerData = useCallback((data: playersData) => {
-		setPlayersData(data);
-	}, [ setPlayersData ]);
-
-	useSocketEvent('playerData', displayPlayerData);
+	useSocketEvent<playersData>('playerData', data => setPlayersData(data));
 
 	return (
 		<div className="game-wrapper">
-			<div className="display-players" >
+			<div className="display-players">
 				{playersData &&
 					<>
 						<div style={{color: "white"}}>
-							<p>{playersData.left.pseudo}</p>
+							<p>{get(playersData, 'left.pseudo')}</p>
 						</div>
 						<div style={{color: "white"}}>
-							<p>{playersData.right.pseudo}</p>
+							<p>{get(playersData, 'right.pseudo')}</p>
 						</div>
 					</>
 				}

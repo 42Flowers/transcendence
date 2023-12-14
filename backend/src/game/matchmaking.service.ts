@@ -23,6 +23,8 @@ export class MatchmakingService {
     private joinQueue(socket: Socket, gameMode: GameMode) {
         if (this.queuedUsers.has(socket.user.id))
             return ; /* User is already queued */
+    
+        this.queuedUsers.add(socket.user.id);
 
         /* random queue */
         if (GameMode.Normal === gameMode) {
@@ -66,7 +68,13 @@ export class MatchmakingService {
     private leaveQueue(socket: Socket) {
         const normalQueueIndex = this.randomQueue.findIndex(e => e.id === socket.id);
         const specialQueueIndex = this.specialQueue.findIndex(e => e.id === socket.id);
-        this.queuedUsers.delete(socket.user.id);
+
+        if (normalQueueIndex >= 0 || specialQueueIndex >= 0) {
+            /**
+             * Remove from queue only if you are the socket that queued
+             */
+            this.queuedUsers.delete(socket.user.id);
+        }
 
         if (normalQueueIndex >= 0) {
             this.randomQueue.splice(normalQueueIndex, 1);

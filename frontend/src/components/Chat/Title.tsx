@@ -22,7 +22,7 @@ type DisplayProps = {
 }
 
 const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar }) => {
-    const { SocketState } = useContext(SocketContext);
+    const { socket } = useContext(SocketContext);
     const buttonStyle: React.CSSProperties = {
         width: "30%",
         height: "100%",
@@ -31,9 +31,10 @@ const DisplayUser: React.FC<DisplayProps> = ({ myId, userId, userName, avatar })
         border: "none",
     };
 
-    const handlePlay = (event) => {
-        event.preventDefault();
-        SocketState.socket?.emit("inviteNormal", userId);
+    const handlePlay = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        
+        socket?.emit("inviteNormal", userId);
     };
 
     return (

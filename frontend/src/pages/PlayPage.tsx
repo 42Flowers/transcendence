@@ -43,7 +43,7 @@ const SelectUser: React.FC<SelectUserProps> = ({ usersList, handleChange }) => {
 }
 
 const PlayPage: React.FC = () => {
-    const { SocketState } = useContext(SocketContext);
+    const { socket } = useContext(SocketContext);
     const [waiting, setWaiting] = useState<boolean>(false);
     const [selectedUserIdNormal, setSelectedUserNormal] = useState<number | null>(null);
     const [selectedUserIdSpecial, setSelectedUserSpecial] = useState<number | null>(null);
@@ -52,24 +52,26 @@ const PlayPage: React.FC = () => {
 
     const handleClick = (whichButton: string) => {
         if (whichButton === "random-normal") {
-            SocketState.socket?.emit("joinRandomNormal");
+            socket?.emit("joinRandomNormal");
             setWaiting(true);
             return ;
         }
         else if (whichButton === "invite-normal" && selectedUserIdNormal && selectedUserIdNormal != -1)
         {
-            SocketState.socket?.emit("inviteNormal", selectedUserIdNormal);
+            socket?.emit("inviteNormal", selectedUserIdNormal);
+
             setWaiting(true);
             return ;
         }
         else if (whichButton === "random-special") {
-            SocketState.socket?.emit("joinRandomSpecial");
+            socket?.emit("joinRandomSpecial");
             setWaiting(true);
             return ;
         }
         else if (whichButton === "invite-special" && selectedUserIdSpecial && selectedUserIdSpecial != -1)
         {
-            SocketState.socket?.emit("inviteSpecial", selectedUserIdSpecial);
+            socket?.emit("inviteSpecial", selectedUserIdSpecial);
+
             setWaiting(true);
             return ;
         }
@@ -84,7 +86,7 @@ const PlayPage: React.FC = () => {
     }
 
     const handleCancel = () => {
-        SocketState.socket?.emit("cancelGameSearch");
+        socket?.emit("cancelGameSearch");
         setWaiting(false);
     };
 

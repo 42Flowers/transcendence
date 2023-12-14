@@ -1,15 +1,14 @@
 import { Avatar, Divider, List, ListItem, ListItemButton, ListItemText, Popover, Stack } from "@mui/material";
-import React, { useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import { useQuery } from "react-query";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { fetchUserProfile } from "../../api";
 import default_avatar from "../../assets/images/default_avatar.png";
 import { useAuthContext } from "../../contexts/AuthContext";
 import { AvatarContext } from "../../contexts/AvatarContext";
-import './Navigation.css';
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import MemoizedPopUpInvite from "../PopUpInvite/PopUpInvite";
 import SocketContext from "../Socket/Context/Context";
 import './Navigation.css';
-import MemoizedPopUpInvite from "../PopUpInvite/PopUpInvite";
 
 const Navigation: React.FC = () => {
     const avatarRef = React.useRef<HTMLDivElement>(null);
@@ -19,6 +18,7 @@ const Navigation: React.FC = () => {
     const [ senderPseudo, setSenderPseudo ] = useState<string>("");
     const { signOut } = useAuthContext();
     const { SocketState } = useContext(SocketContext);
+    const userData = useQuery('@me', () => fetchUserProfile('@me'));
 
     const launchNormal = useCallback(() => {
         navigate('/game-normal');
@@ -82,9 +82,14 @@ const Navigation: React.FC = () => {
                 <Link to="/" className="logo">
                     PONG
                 </Link>
-                <div ref={avatarRef}>
-                    <Avatar aria-describedby={id} alt="Avatar" onClick={handleAvatarClick} src={avatarSource} style={{margin: '5px 10px'}}/>
-                </div>
+                <Stack direction="row" alignItems="center">
+                    <p>
+                        {userData.data?.pseudo ?? ''}
+                    </p>
+                    <div ref={avatarRef} style={{ marginLeft: '1em' }}>
+                        <Avatar aria-describedby={id} alt="Avatar" sx={{ cursor: 'pointer' }} onClick={handleAvatarClick} src={avatarSource} style={{margin: '5px 10px'}}/>
+                    </div>
+                </Stack>
             </Stack>
 
             <Popover

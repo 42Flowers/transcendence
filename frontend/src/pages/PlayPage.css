@@ -83,7 +83,10 @@
     backdrop-filter: blur(20px);
     background: transparent;
     font-size: 1em;
-    color: white;
+    color: #333;
     text-shadow: 0 0 4px var(--color-yellow);
-	width: 80%;
+	min-width: 10em;
+	width: 100%;
+	display: block;
+	margin: auto;
 }

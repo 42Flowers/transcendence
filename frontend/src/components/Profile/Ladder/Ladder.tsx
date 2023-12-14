@@ -129,9 +129,11 @@ const Ladder: React.FC = () => {
                                     {losses}
                                 </TableCell>
                                 <TableCell id="cell-avatar-l">
-                                    <UserAvatar
-                                        avatar={avatar}
-                                        userId={id} />
+                                    <div className='avatarCursor'>
+                                        <UserAvatar
+                                            avatar={avatar}
+                                            userId={id} />
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}

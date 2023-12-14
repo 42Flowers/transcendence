@@ -128,7 +128,7 @@ const PlayPage: React.FC = () => {
                         <p style={{color: 'white'}}>
                             Use the "SPACE" key just before you hit the ball to protect the paddle, it will become "RED", and speed up the ball !
                             <br/>
-                            Tips: If the ball goes too fast an unprotected paddle might break
+                            Tips: If the ball goes too fast an unprotected paddle might not stop the ball
                         </p>
                     </div>
                 </div>

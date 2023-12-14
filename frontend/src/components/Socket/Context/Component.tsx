@@ -1,26 +1,33 @@
 import React, { PropsWithChildren, useEffect, useState } from 'react';
-import { useSocket } from '../Hooks/useSocket';
+import { io } from 'socket.io-client';
 import { SocketContextProvider } from './Context';
+
+const socket = io(import.meta.env.WEBSOCKET_URL, {
+	reconnectionAttempts: 5,
+	reconnectionDelay: 5000,
+	autoConnect: false,
+	auth(cb) {
+		cb({ token: localStorage.getItem('token') });
+	},
+});
 
 const SocketContextComponent: React.FC<PropsWithChildren> = ({ children }) => {
 	const [ loading, setLoading ] = useState(true);
 
-	const socket = useSocket(import.meta.env.WEBSOCKET_URL, {
-		reconnectionAttempts: 5,
-		reconnectionDelay: 5000,
-		autoConnect: false
-	});
-
 	useEffect(() => {
 		/**Connect to the web socket */
 		socket.connect()
-		// SocketDispatch({type: 'update_socket', payload: socket.id });
 		/**Start the event listeners */
 		StartListeners();
 		/**Send the handshake */
-		SendHandshake();
+		socket.io.on('open', SendHandshake);
 
 		// eslint-disable-next-line
+
+		return () => {
+			socket.io.off('open', SendHandshake);
+			socket.disconnect();
+		};
 	}, [ socket ]);
 
 	const StartListeners = () => {

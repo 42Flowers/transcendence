@@ -44,7 +44,7 @@ export class ConversationsService {
 	}
 
 
-	async createConversation(userId: number, targetId: number) : Promise<any> {
+	async createConversation(userId: number, targetId: number): Promise<any> {
 		try {
 			const id : string = uuidv4();
 			const conversation = await this.prismaService.conversation.create({
@@ -85,9 +85,22 @@ export class ConversationsService {
 				});
 				if (!conversation1 || !conversation2)
 					return "coulnd't create user conversation."
-				
 			}
-			return conversation
+			const target = await this.prismaService.user.findUniqueOrThrow({
+				where: {
+					id: targetId,
+				},
+				select: {
+					pseudo: true,
+					avatar: true,
+				},
+			});
+			return {
+				avatar: target.avatar,
+				conversationId: conversation.id,
+				targetId,
+				targetName: target.pseudo,
+			};
 		} catch (err) {
 			throw new Error(err.message);
 		}

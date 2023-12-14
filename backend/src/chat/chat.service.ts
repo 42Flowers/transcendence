@@ -21,7 +21,7 @@ import { MessagesService } from '../messages/messages.service'
 import { UsersService } from '../users_chat/users_chat.service';
 import { SocketService } from 'src/socket/socket.service';
 import { RoomService } from '../rooms/rooms.service';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ChatSendToChannelEvent } from 'src/events/chat/sendToChannel.event';
 import { ChatSendMessageEvent } from 'src/events/chat/sendMessage.event';
 import { ChatSocketJoinChannelsEvent } from 'src/events/chat/socketJoinChannels.event';
@@ -64,30 +64,36 @@ export class ChatService {
 		private readonly eventEmitter: EventEmitter2,
 		) {}
 
-	@OnEvent('chat.createprivatechannel')
-	async CreatePrivateChannel(
-		event: ChatCreatePrivateChannelEvent
-	) {
+	async createPrivateChannel(userId: number, channelName: string) {
 		try {
-			const user = await this.usersService.getUserById(event.userId);
-			if (user != null && event.channelName != null ) {
-				const room = await this.roomService.channelExists(event.channelName);
-				if (room == null) {
-					const newChannel = this.roomService.createPrivateRoom(event.channelName, event.userId);
-					if (newChannel != null) {
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "You have created a private channel called " + event.channelName));
+			const user = await this.usersService.getUserById(userId);
+			if (user !== null && channelName !== null ) {
+				const room = await this.roomService.channelExists(channelName);
+				if (room === null) {
+					const newChannel = await this.roomService.createPrivateRoom(channelName, userId);
+					if (newChannel !== null) {
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, "channel", "You have created a private channel called " + channelName));
+						return {
+							channelName,
+							channelId: newChannel.channelId,
+							userPermissionMask: newChannel.permissionMask,
+							membershipState: newChannel.membershipState,
+							accessMask: (await this.roomService.getAccessMask(newChannel.channelId)),
+						};
 					} else {
-						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "The creation of the " + event.channelName + " private channel failed, please try again later"));
+						this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, "channel", "The creation of the " + channelName + " private channel failed, please try again later"));
 						return;
 					}
 				} else{
-					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(event.userId, "channel", "It seems " + event.channelName + " is already in use"));
+					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, "channel", "It seems " + channelName + " is already in use"));
 					return;
 				}
 			}
 		} catch (err) {
 			console.log(err.message);
 		}
+
+		throw new BadRequestException();
 	}
 
 	@OnEvent('chat.invitechannel')
@@ -247,7 +253,7 @@ export class ChatService {
 				const convName = await this.conversationsService.getConversationName(user.id, target.id);
 				if (convName !== null && conversation !== null) {
 					this.socketService.joinConversation(user.id, target.id, convName.name);
-				this.eventEmitter.emit("chat.sendtoclient", new ChatSendToClientEvent(user.id, "add", "You can now talk with " + targetName))
+					this.eventEmitter.emit("chat.sendtoclient", new ChatSendToClientEvent(user.id, "add", "You can now talk with " + targetName))
 				}
 				else {
 					this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(user.id, 'error', "The server failed to create this conversation, please try again later"));

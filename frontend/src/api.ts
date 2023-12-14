@@ -167,8 +167,15 @@ export type ChannelDescription = {
     userPermissionMask: number;
 };
 
+export type ConversationDescription = {
+    avatar: string | null;
+    conversationId: number;
+    targetId: number;
+    targetName: string;
+};
+
 export const fetchAvailableChannels = () => wrapResponse(authorizedGet<ChannelDescription[]>(`/api/chat/get-channels`));
-export const fetchAvailableDMs = () => wrapResponse(authorizedGet(`/api/chat/get-conversations`));
+export const fetchAvailableDMs = () => wrapResponse(authorizedGet<ConversationDescription[]>(`/api/chat/get-conversations`));
 export const fetchChannelMessages = (channelId: number) => wrapResponse(authorizedGet<ChannelMessage[]>(`/api/chat/get-channelmessages/${channelId}`));
 export const fetchDmMessages = (channelId: number) => wrapResponse(authorizedGet<PrivateMessage[]>(`/api/chat/get-privatemessages/${channelId}`));
 export const fetchChannelMembers = (channelId: number) => wrapResponse(authorizedGet<ChannelMembership[]>(`/api/chat/get-channelmembers/${channelId}`));
@@ -189,10 +196,14 @@ export type UnBanUserPayload = {
     targetId: number;
 }
 
+export type CreatePrivateChannelPayload = {
+    channelName: string;
+};
+
 export const joinChannel = (payload: any) => wrapResponse(authorizedPost<ChannelDescription>('/api/chat/join-channel', payload));
 //export const createChannel = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-channel/`, payload));
-export const createPrivateChannel = (payload :any) => wrapResponse(authorizedPost(`api/chat/create-private-channel`, payload));
-export const addDm = (payload: any) => wrapResponse(authorizedPost(`api/chat/create-conversation`, payload));
+export const createPrivateChannel = (payload: CreatePrivateChannelPayload) => wrapResponse(authorizedPost<ChannelDescription>(`api/chat/create-private-channel`, payload));
+export const addDm = (payload: any) => wrapResponse(authorizedPost<ConversationDescription>(`api/chat/create-conversation`, payload));
 export const quit = (payload: any) => wrapResponse(authorizedPost(`api/chat/exit-channel`, payload));
 export const deleteM = (payload: any) => wrapResponse(authorizedPost(`api/chat/delete-channel`, payload));
 export const inviteUser = (payload: any) => wrapResponse(authorizedPost(`api/chat/invite-user`, payload));

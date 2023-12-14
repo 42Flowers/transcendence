@@ -84,7 +84,7 @@ const Stats: React.FC<StatsProps> = ({ userId }) => {
                         </div>
                     <div className='statt'>
                         <p className='title'>Ratio</p>
-                        <div className='middle'>{Math.round((result.wins / result.losses) * 100) / 100}</div>
+                        <div className='middle'>{Math.round((result.wins / (result.losses + result.wins)) * 100)}/100</div>
                             <div className='score'>
                                 <p className='win'>Wins: <span>{result.wins}</span></p>
                                 <p className='lose'>Losses: <span>{result.losses}</span></p>

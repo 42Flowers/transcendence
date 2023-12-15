@@ -296,8 +296,10 @@ export class SocketGateway implements
 	) {
 		try {
 			const userId = Number(client.user.sub);
-			if (client == null || client == undefined || !this.validateId(data.targetId) || !this.validateMessage(data.message))
+			if (client == null || client == undefined || !this.validateId(data.targetId) || !this.validateMessage(data.message)) {
+				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', "Your message is not valid, wether ot is too long or contains invalid characters. You should stick to 100chars ASCII"));
 				return;
+			}
 			this.eventEmitter.emit('chat.privatemessage', new ChatPrivateMessageEvent(userId, data.targetId, data.message));
 		} catch {
 			;
@@ -310,8 +312,10 @@ export class SocketGateway implements
 		@ConnectedSocket() client : Socket 
 	) {
 		try {
-			if (client == null || client == undefined || !this.validateId(data.channelId) || !this.validateMessage(data.message))
+			if (client == null || client == undefined || !this.validateId(data.channelId) || !this.validateMessage(data.message)) {
+				this.eventEmitter.emit('chat.sendtoclient', new ChatSendToClientEvent(userId, 'channel', "Your message is not valid, wether ot is too long or contains invalid characters. You should stick to 100chars ASCII"));
 				return;
+			}
 			const userId = Number(client.user.sub);
 			this.eventEmitter.emit('chat.channelmessage', new ChatChannelMessageEvent(userId, data.channelId, data.message));
 		} catch {
